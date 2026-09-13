@@ -36,35 +36,57 @@ type WrapMode = 'word' | 'char' | 'none';
 
 Call `sync()` before reading `rowCount` and `visibleCount`.
 
-| Property       | Type      | Description                                           |
-| -------------- | --------- | ----------------------------------------------------- |
-| `rowCount`     | `number`  | The number of rows of all visible entries.            |
-| `visibleCount` | `number`  | The number of visible entries.                        |
-| `maxCells`     | `number`  | The widest row seen, in cells, including indentation. |
-| `isDirty`      | `boolean` | Whether the store changed since the last `sync`.      |
+| Property           | Type      | Description                                                                                                                    |
+| ------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `rowCount`         | `number`  | The number of rows of all visible entries.                                                                                     |
+| `visibleCount`     | `number`  | The number of visible entries.                                                                                                 |
+| `maxCells`         | `number`  | The widest row seen, in cells, including indentation.                                                                          |
+| `isDirty`          | `boolean` | Whether the store changed since the last `sync`.                                                                               |
+| `pendingCount`     | `number`  | The number of visible entries whose row count is an estimate.                                                                  |
+| `positionsVersion` | `number`  | Increases whenever the first row of an entry that was already visible may have moved. Appending at the end does not change it. |
 
 ### Methods
 
-| Method                                                          | Returns                                | Description                                                                         |
-| --------------------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------- |
-| `getOptions()`                                                  | `Readonly<LayoutOptions>`              | Returns the options.                                                                |
-| `setOptions(options: Partial<LayoutOptions>)`                   | `void`                                 | Changes options.                                                                    |
-| `setColumns(columns: number)`                                   | `void`                                 | Sets the number of columns rows wrap into.                                          |
-| `setFilter(filter: LogFilter \| null)`                          | `CompiledFilter`                       | Sets which entries are visible. The result reports a pattern that does not compile. |
-| `getFilter()`                                                   | `CompiledFilter`                       | Returns the compiled filter in use.                                                 |
-| `sync()`                                                        | `boolean`                              | Applies pending store changes. Returns whether anything changed.                    |
-| `getRows(start: number, count: number)`                         | `VisualRow[]`                          | Returns up to `count` rows starting at row `start`.                                 |
-| `entryAt(index: number)`                                        | `LogEntry \| undefined`                | Returns the entry at a visible position, where 0 is the oldest visible entry.       |
-| `indexOf(entryId: number)`                                      | `number`                               | Returns the visible position of an entry, or -1.                                    |
-| `rowOfEntry(entryId: number)`                                   | `number`                               | Returns the first row of an entry, or -1 when it is not visible.                    |
-| `isExpanded(entry: LogEntry, path: string)`                     | `boolean`                              | Returns whether the value at a path of an entry is expanded.                        |
-| `setExpanded(entry: LogEntry, path: string, expanded: boolean)` | `void`                                 | Expands or collapses the value at a path of an entry.                               |
-| `runAction(entryId: number, action: LineAction)`                | `void`                                 | Runs the action of a clicked span.                                                  |
-| `positionAt(row: number, column: number)`                       | `TextPosition \| null`                 | Returns the text position under a row and a column of the content area.             |
-| `wordAt(position: TextPosition)`                                | `[TextPosition, TextPosition] \| null` | Returns the start and end of the word at a position.                                |
-| `getText(from: TextPosition, to: TextPosition)`                 | `string`                               | Returns the text between two positions, one line per logical line.                  |
-| `getAllText()`                                                  | `string`                               | Returns the text of every visible entry.                                            |
-| `dispose()`                                                     | `void`                                 | Stops listening to the store.                                                       |
+| Method                                                                          | Returns                                         | Description                                                                                                                        |
+| ------------------------------------------------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `getOptions()`                                                                  | `Readonly<LayoutOptions>`                       | Returns the options.                                                                                                               |
+| `setOptions(options: Partial<LayoutOptions>)`                                   | `void`                                          | Changes options.                                                                                                                   |
+| `setColumns(columns: number)`                                                   | `void`                                          | Sets the number of columns rows wrap into.                                                                                         |
+| `setFilter(filter: LogFilter \| null)`                                          | `CompiledFilter`                                | Sets which entries are visible. The result reports a pattern that does not compile.                                                |
+| `getFilter()`                                                                   | `CompiledFilter`                                | Returns the compiled filter in use.                                                                                                |
+| `sync(budget?: number)`                                                         | `boolean`                                       | Applies pending store changes. Returns whether anything changed. See [Estimated row counts](#estimated-row-counts).                |
+| `measureAround(entryId: number \| null, rowsBefore: number, rowsAfter: number)` | `boolean`                                       | Lays out exactly the entries around one entry, or around the last entry for `null`. Returns whether a row count changed.           |
+| `measurePending(budget: number, entryId?: number \| null)`                      | `boolean`                                       | Lays out exactly up to `budget` entries that still have estimates, nearest to an entry first. Returns whether a row count changed. |
+| `locateRow(row: number)`                                                        | `{ entry: LogEntry; entryRow: number } \| null` | Returns the entry that holds a row and the index of the row within it.                                                             |
+| `rowsOf(entryId: number)`                                                       | `number`                                        | Returns the number of rows of a visible entry, or 0.                                                                               |
+| `getRows(start: number, count: number)`                                         | `VisualRow[]`                                   | Returns up to `count` rows starting at row `start`.                                                                                |
+| `entryAt(index: number)`                                                        | `LogEntry \| undefined`                         | Returns the entry at a visible position, where 0 is the oldest visible entry.                                                      |
+| `indexOf(entryId: number)`                                                      | `number`                                        | Returns the visible position of an entry, or -1.                                                                                   |
+| `rowOfEntry(entryId: number)`                                                   | `number`                                        | Returns the first row of an entry, or -1 when it is not visible.                                                                   |
+| `isExpanded(entry: LogEntry, path: string)`                                     | `boolean`                                       | Returns whether the value at a path of an entry is expanded.                                                                       |
+| `setExpanded(entry: LogEntry, path: string, expanded: boolean)`                 | `void`                                          | Expands or collapses the value at a path of an entry.                                                                              |
+| `runAction(entryId: number, action: LineAction)`                                | `void`                                          | Runs the action of a clicked span.                                                                                                 |
+| `positionAt(row: number, column: number)`                                       | `TextPosition \| null`                          | Returns the text position under a row and a column of the content area.                                                            |
+| `wordAt(position: TextPosition)`                                                | `[TextPosition, TextPosition] \| null`          | Returns the start and end of the word at a position.                                                                               |
+| `getText(from: TextPosition, to: TextPosition)`                                 | `string`                                        | Returns the text between two positions, one line per logical line.                                                                 |
+| `getAllText()`                                                                  | `string`                                        | Returns the text of every visible entry.                                                                                           |
+| `dispose()`                                                                     | `void`                                          | Stops listening to the store.                                                                                                      |
+
+### Estimated row counts
+
+Laying out a large log at a new width takes time in proportion to its size. `sync(budget)` lays out at most `budget` entries exactly and gives the rest an estimate: the previous row count scaled by the change in width, and never fewer rows than the entry has lines. The default budget has no limit, so a layout used on its own is always exact.
+
+The viewer calls `sync` with a budget, lays out the entries on screen with `measureAround` before it draws, and calls `measurePending` in short slices between frames until `pendingCount` is 0. It compares `positionsVersion` between frames to keep the entry at the top of the view in place.
+
+```ts
+layout.setColumns(60);
+layout.sync(500);
+layout.measureAround(topEntryId, 50, 100);
+
+while (layout.pendingCount > 0) {
+	layout.measurePending(200, topEntryId);
+}
+```
 
 A value path is the index of the part in the entry, followed by the index of each child, joined with dots. `'1'` is the second part of an entry, and `'1.0'` is the first child of that value.
 

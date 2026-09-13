@@ -91,7 +91,7 @@ The Console Standard leaves the display of logged values to the implementation, 
 ## Working principles
 
 - A new log message must not re-render a React component. Messages go to the store directly, and the viewer draws at most once per animation frame.
-- The cost of a frame depends on the number of visible rows, not on the size of the history.
+- The cost of a frame depends on the number of visible rows, not on the size of the history. Work that grows with the history, such as laying out every entry after a width change, runs for the rows on screen first and in small slices between frames for the rest.
 - Memory is bounded. The store drops the oldest entries past `maxEntries`.
 - The browser keeps the jobs it does better than a canvas: focus, text input with IME composition, and screen reader output stay in the DOM.
 - Wide characters, such as Korean, Chinese, Japanese, and emoji, and IME composition in the input line are first-class cases, not edge cases. Test the input line on Safari, which fires `compositionend` before the committing `keydown` up to version 26.

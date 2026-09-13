@@ -10,6 +10,7 @@ The first release.
 - `hookConsole` and `createConsole` record console calls. Arguments are captured when the method is called, and format specifiers, counters, timers, groups and `console.table` follow the Console Standard.
 - Logged objects, arrays, maps, sets, errors and DOM elements expand and collapse. Getters are never run while a value is captured.
 - Text written with `wrap: false`, and the output of `console.table`, keeps its lines on one row. When such a line is wider than the viewer, the log scrolls sideways.
+- A large log lays out the rows on screen first and the rest in small steps between frames, so changing the width does not stall the page. While the view is not following, the entry at its top stays in place when rows above it change height.
 - `readTextFile` reads a text file in chunks and detects UTF-8, UTF-16 and the legacy encoding of the browser language, such as EUC-KR. `followTextFile` keeps reading a growing file in Chromium-based browsers.
 - Korean, Chinese, Japanese and emoji take two cells, Korean text wraps at spaces, and Enter in the input line waits for IME composition to finish.
 - Light, dark and automatic themes come from `--lognal-*` CSS custom properties in `lognal/style.css`.

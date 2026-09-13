@@ -36,35 +36,57 @@ type WrapMode = 'word' | 'char' | 'none';
 
 `rowCount`와 `visibleCount`를 읽기 전에 `sync()`를 호출하세요.
 
-| 속성           | 타입      | 설명                                                       |
-| -------------- | --------- | ---------------------------------------------------------- |
-| `rowCount`     | `number`  | 보이는 항목 전체의 행 수입니다.                            |
-| `visibleCount` | `number`  | 보이는 항목 수입니다.                                      |
-| `maxCells`     | `number`  | 지금까지 본 가장 넓은 행의 칸 수로, 들여쓰기를 포함합니다. |
-| `isDirty`      | `boolean` | 마지막 `sync` 이후 스토어가 바뀌었는지 나타냅니다.         |
+| 속성               | 타입      | 설명                                                                                                  |
+| ------------------ | --------- | ----------------------------------------------------------------------------------------------------- |
+| `rowCount`         | `number`  | 보이는 항목 전체의 행 수입니다.                                                                       |
+| `visibleCount`     | `number`  | 보이는 항목 수입니다.                                                                                 |
+| `maxCells`         | `number`  | 지금까지 본 가장 넓은 행의 칸 수로, 들여쓰기를 포함합니다.                                            |
+| `isDirty`          | `boolean` | 마지막 `sync` 이후 스토어가 바뀌었는지 나타냅니다.                                                    |
+| `pendingCount`     | `number`  | 행 수가 아직 추정값인 보이는 항목의 수입니다.                                                         |
+| `positionsVersion` | `number`  | 이미 보이던 항목의 첫 행이 움직였을 수 있을 때마다 커집니다. 끝에 항목을 추가할 때는 바뀌지 않습니다. |
 
 ### 메서드 {#methods}
 
-| 메서드                                                          | 반환값                                 | 설명                                                                                 |
-| --------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------ |
-| `getOptions()`                                                  | `Readonly<LayoutOptions>`              | 옵션을 반환합니다.                                                                   |
-| `setOptions(options: Partial<LayoutOptions>)`                   | `void`                                 | 옵션을 바꿉니다.                                                                     |
-| `setColumns(columns: number)`                                   | `void`                                 | 행을 나눌 열 수를 정합니다.                                                          |
-| `setFilter(filter: LogFilter \| null)`                          | `CompiledFilter`                       | 보여 줄 항목을 정합니다. 결과에 컴파일되지 않는 패턴이 표시됩니다.                   |
-| `getFilter()`                                                   | `CompiledFilter`                       | 사용 중인 컴파일된 필터를 반환합니다.                                                |
-| `sync()`                                                        | `boolean`                              | 밀린 스토어 변경을 적용합니다. 바뀐 것이 있었는지 반환합니다.                        |
-| `getRows(start: number, count: number)`                         | `VisualRow[]`                          | `start`번째 행부터 최대 `count`개의 행을 반환합니다.                                 |
-| `entryAt(index: number)`                                        | `LogEntry \| undefined`                | 보이는 위치에 있는 항목을 반환합니다. 0이 보이는 항목 가운데 가장 오래된 항목입니다. |
-| `indexOf(entryId: number)`                                      | `number`                               | 항목의 보이는 위치를 반환합니다. 없으면 -1입니다.                                    |
-| `rowOfEntry(entryId: number)`                                   | `number`                               | 항목의 첫 행을 반환합니다. 보이지 않으면 -1입니다.                                   |
-| `isExpanded(entry: LogEntry, path: string)`                     | `boolean`                              | 항목의 경로에 있는 값이 펼쳐져 있는지 반환합니다.                                    |
-| `setExpanded(entry: LogEntry, path: string, expanded: boolean)` | `void`                                 | 항목의 경로에 있는 값을 펼치거나 접습니다.                                           |
-| `runAction(entryId: number, action: LineAction)`                | `void`                                 | 클릭한 조각의 동작을 실행합니다.                                                     |
-| `positionAt(row: number, column: number)`                       | `TextPosition \| null`                 | 콘텐츠 영역의 행과 열에 있는 텍스트 위치를 반환합니다.                               |
-| `wordAt(position: TextPosition)`                                | `[TextPosition, TextPosition] \| null` | 위치에 있는 낱말의 시작과 끝을 반환합니다.                                           |
-| `getText(from: TextPosition, to: TextPosition)`                 | `string`                               | 두 위치 사이의 텍스트를 논리 줄마다 한 줄씩 반환합니다.                              |
-| `getAllText()`                                                  | `string`                               | 보이는 모든 항목의 텍스트를 반환합니다.                                              |
-| `dispose()`                                                     | `void`                                 | 스토어의 변경을 더 듣지 않습니다.                                                    |
+| 메서드                                                                          | 반환값                                          | 설명                                                                                                                             |
+| ------------------------------------------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `getOptions()`                                                                  | `Readonly<LayoutOptions>`                       | 옵션을 반환합니다.                                                                                                               |
+| `setOptions(options: Partial<LayoutOptions>)`                                   | `void`                                          | 옵션을 바꿉니다.                                                                                                                 |
+| `setColumns(columns: number)`                                                   | `void`                                          | 행을 나눌 열 수를 정합니다.                                                                                                      |
+| `setFilter(filter: LogFilter \| null)`                                          | `CompiledFilter`                                | 보여 줄 항목을 정합니다. 결과에 컴파일되지 않는 패턴이 표시됩니다.                                                               |
+| `getFilter()`                                                                   | `CompiledFilter`                                | 사용 중인 컴파일된 필터를 반환합니다.                                                                                            |
+| `sync(budget?: number)`                                                         | `boolean`                                       | 밀린 스토어 변경을 적용합니다. 바뀐 것이 있었는지 반환합니다. [추정 행 수](#estimated-row-counts)를 참고하세요.                  |
+| `measureAround(entryId: number \| null, rowsBefore: number, rowsAfter: number)` | `boolean`                                       | 한 항목 주변의 항목을 정확히 배치합니다. `null`이면 마지막 항목 주변을 배치합니다. 행 수가 바뀌었는지 반환합니다.                |
+| `measurePending(budget: number, entryId?: number \| null)`                      | `boolean`                                       | 추정값이 남은 항목을 최대 `budget`개까지 정확히 배치합니다. 지정한 항목에 가까운 것부터 처리하고, 행 수가 바뀌었는지 반환합니다. |
+| `locateRow(row: number)`                                                        | `{ entry: LogEntry; entryRow: number } \| null` | 행이 속한 항목과, 그 항목 안에서 몇 번째 행인지 반환합니다.                                                                      |
+| `rowsOf(entryId: number)`                                                       | `number`                                        | 보이는 항목의 행 수를 반환합니다. 보이지 않으면 0입니다.                                                                         |
+| `getRows(start: number, count: number)`                                         | `VisualRow[]`                                   | `start`번째 행부터 최대 `count`개의 행을 반환합니다.                                                                             |
+| `entryAt(index: number)`                                                        | `LogEntry \| undefined`                         | 보이는 위치에 있는 항목을 반환합니다. 0이 보이는 항목 가운데 가장 오래된 항목입니다.                                             |
+| `indexOf(entryId: number)`                                                      | `number`                                        | 항목의 보이는 위치를 반환합니다. 없으면 -1입니다.                                                                                |
+| `rowOfEntry(entryId: number)`                                                   | `number`                                        | 항목의 첫 행을 반환합니다. 보이지 않으면 -1입니다.                                                                               |
+| `isExpanded(entry: LogEntry, path: string)`                                     | `boolean`                                       | 항목의 경로에 있는 값이 펼쳐져 있는지 반환합니다.                                                                                |
+| `setExpanded(entry: LogEntry, path: string, expanded: boolean)`                 | `void`                                          | 항목의 경로에 있는 값을 펼치거나 접습니다.                                                                                       |
+| `runAction(entryId: number, action: LineAction)`                                | `void`                                          | 클릭한 조각의 동작을 실행합니다.                                                                                                 |
+| `positionAt(row: number, column: number)`                                       | `TextPosition \| null`                          | 콘텐츠 영역의 행과 열에 있는 텍스트 위치를 반환합니다.                                                                           |
+| `wordAt(position: TextPosition)`                                                | `[TextPosition, TextPosition] \| null`          | 위치에 있는 낱말의 시작과 끝을 반환합니다.                                                                                       |
+| `getText(from: TextPosition, to: TextPosition)`                                 | `string`                                        | 두 위치 사이의 텍스트를 논리 줄마다 한 줄씩 반환합니다.                                                                          |
+| `getAllText()`                                                                  | `string`                                        | 보이는 모든 항목의 텍스트를 반환합니다.                                                                                          |
+| `dispose()`                                                                     | `void`                                          | 스토어의 변경을 더 듣지 않습니다.                                                                                                |
+
+### 추정 행 수 {#estimated-row-counts}
+
+큰 로그를 새 폭에 맞춰 배치하는 시간은 로그 크기에 비례합니다. `sync(budget)`은 최대 `budget`개의 항목만 정확히 배치하고, 나머지에는 추정값을 줍니다. 추정값은 이전 행 수를 폭이 바뀐 비율만큼 조정한 값이고, 항목의 줄 수보다 작아지지 않습니다. 기본 예산에는 한도가 없으므로, 레이아웃을 따로 쓰면 항상 정확합니다.
+
+뷰어는 예산을 정해 `sync`를 호출하고, 그리기 전에 `measureAround`로 화면에 보이는 항목을 배치한 다음, `pendingCount`가 0이 될 때까지 프레임 사이에 `measurePending`을 짧게 나눠 호출합니다. 프레임마다 `positionsVersion`을 비교해서 화면 맨 위의 항목을 제자리에 둡니다.
+
+```ts
+layout.setColumns(60);
+layout.sync(500);
+layout.measureAround(topEntryId, 50, 100);
+
+while (layout.pendingCount > 0) {
+	layout.measurePending(200, topEntryId);
+}
+```
 
 값 경로는 항목 안 파트의 인덱스 뒤에 자식의 인덱스를 점으로 이어 붙인 문자열입니다. `'1'`은 항목의 두 번째 파트이고, `'1.0'`은 그 값의 첫 번째 자식입니다.
 

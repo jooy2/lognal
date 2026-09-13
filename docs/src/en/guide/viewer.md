@@ -136,6 +136,10 @@ viewer.on('follow', (following) => {
 
 `scrollToTop()` and `scrollToEntry(id)` pause following. `scrollToBottom()` and `setFollowing(true)` resume it, and `viewer.isFollowing` tells whether the view follows.
 
+While following is paused, the view keeps the entry at its top in place. Entries dropped from the front of the store, a value expanded above the view, or a new width that wraps lines differently do not move what you are reading.
+
+With a large log, a change of width lays out the rows on screen first, and the rest of the log in small steps between frames. Until that finishes, the scrollbar is based on estimated row heights, so its thumb can move a little while the view stays put.
+
 ## Filtering
 
 ```ts

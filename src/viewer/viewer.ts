@@ -115,6 +115,15 @@ interface Selection {
 	head: TextPosition;
 }
 
+/** The row at the top of the view, kept when rows above it change height. */
+interface ViewAnchor {
+	entryId: number;
+	/** The row within the entry. */
+	entryRow: number;
+	/** The distance from the top of the view to the top of the row, zero or negative. */
+	offset: number;
+}
+
 interface HitTest {
 	row: number;
 	column: number;
@@ -149,6 +158,13 @@ const FOLLOW_THRESHOLD = 4;
 const ACCESSORY_DELAY = 200;
 const FILTER_DELAY = 120;
 const DRAG_THRESHOLD = 4;
+/** The most entries laid out exactly when a frame starts. Past it, row counts are estimated. */
+const SYNC_BUDGET = 2000;
+/** Rows laid out exactly above and below the view, so a short scroll finds them ready. */
+const MEASURE_MARGIN_ROWS = 50;
+/** How long one slice of background layout may run, and how many entries it takes at a time. */
+const MEASURE_SLICE_MS = 8;
+const MEASURE_BATCH = 200;
 
 const LEVEL_OPTIONS: { value: LogLevel | ''; label: keyof ViewerLabels }[] = [
 	{ value: '', label: 'levelAll' },
@@ -227,7 +243,9 @@ export class LogViewer {
 	private visibleRows: VisualRow[] = [];
 	private expectedScrollTop: number | null = null;
 	private lastScrollTop = 0;
+	private anchor: ViewAnchor | null = null;
 	private columns = 1;
+	private measureTimer: ReturnType<typeof setTimeout> | undefined;
 	private selection: Selection | null = null;
 	private drag: {
 		pointerId: number;
@@ -247,10 +265,8 @@ export class LogViewer {
 	private consoleObject: LognalConsole | null = null;
 	/** The wrapping mode the toolbar button restores after turning wrapping off. */
 	private wrapMode: WrapMode = 'word';
-	private cachedNumberFormat: {
-		locale: string | undefined;
-		format: Intl.NumberFormat;
-	} | null = null;
+	private cachedNumberFormat: { locale: string | undefined; format: Intl.NumberFormat } | null =
+		null;
 	private disposed = false;
 
 	constructor(container: HTMLElement, options: LogViewerOptions = {}) {
@@ -348,10 +364,7 @@ export class LogViewer {
 
 		const previous = this.options;
 
-		this.options = this.resolveOptions({
-			...this.unresolvedOptions(),
-			...options
-		});
+		this.options = this.resolveOptions({ ...this.unresolvedOptions(), ...options });
 
 		if (
 			options.toolbar !== undefined ||
@@ -460,7 +473,13 @@ export class LogViewer {
 
 	scrollToTop(): void {
 		this.setFollowing(false);
+		this.layout.sync(SYNC_BUDGET);
+
+		const first = this.layout.entryAt(0);
+
+		this.anchor = first ? { entryId: first.id, entryRow: 0, offset: PADDING_TOP } : null;
 		this.viewport.scrollTop = 0;
+		this.lastScrollTop = 0;
 		this.requestRender();
 	}
 
@@ -471,16 +490,14 @@ export class LogViewer {
 
 	/** Scrolls so that an entry is at the top of the view. */
 	scrollToEntry(entryId: number): void {
-		this.layout.sync();
+		this.layout.sync(SYNC_BUDGET);
 
-		const row = this.layout.rowOfEntry(entryId);
-
-		if (row < 0) {
+		if (this.layout.indexOf(entryId) < 0) {
 			return;
 		}
 
 		this.setFollowing(false);
-		this.viewport.scrollTop = (PADDING_TOP + row * this.metrics.height) / this.scrollScale();
+		this.anchor = { entryId, entryRow: 0, offset: 0 };
 		this.requestRender();
 	}
 
@@ -508,11 +525,7 @@ export class LogViewer {
 
 		this.selection = {
 			anchor: { entryId: first.id, line: 0, cell: 0 },
-			head: {
-				entryId: last.id,
-				line: Number.MAX_SAFE_INTEGER,
-				cell: Number.MAX_SAFE_INTEGER
-			}
+			head: { entryId: last.id, line: Number.MAX_SAFE_INTEGER, cell: Number.MAX_SAFE_INTEGER }
 		};
 		this.emit('selection', this.getSelectionText());
 		this.requestRender();
@@ -612,6 +625,7 @@ export class LogViewer {
 		cancelAnimationFrame(this.autoScrollFrame);
 		clearTimeout(this.accessoryTimer);
 		clearTimeout(this.filterTimer);
+		clearTimeout(this.measureTimer);
 
 		for (const cleanup of this.cleanups.splice(0)) {
 			cleanup();
@@ -895,9 +909,7 @@ export class LogViewer {
 						this.wrapMode = current;
 					}
 
-					this.layout.setOptions({
-						wrap: current === 'none' ? this.wrapMode : 'none'
-					});
+					this.layout.setOptions({ wrap: current === 'none' ? this.wrapMode : 'none' });
 					this.syncWrapButton();
 					this.requestRender();
 				},
@@ -1039,13 +1051,42 @@ export class LogViewer {
 			return;
 		}
 
-		this.layout.sync();
+		this.layout.sync(SYNC_BUDGET);
 
+		const viewport = this.viewport;
 		const rowHeight = this.metrics.height;
+		const client = viewport.clientHeight;
+		const screenRows = Math.ceil(this.height / rowHeight) + 1;
+		const scrollTop = viewport.scrollTop;
+
+		// The view was scrolled since the last frame, and its scroll event has not arrived yet.
+		// Follow the new position rather than the old anchor, and stop following the bottom.
+		if (Math.abs(scrollTop - Math.min(this.lastScrollTop, viewport.scrollHeight - client)) >= 1) {
+			this.anchor = null;
+
+			if (this.following && viewport.scrollHeight - client - scrollTop > FOLLOW_THRESHOLD) {
+				this.setFollowing(false);
+			}
+		}
+
+		if (!this.following && !this.anchor) {
+			this.anchor = this.anchorAt(scrollTop * this.scrollScale());
+		}
+
+		// Lay out the rows on screen exactly before reading them. The rest of the log keeps its
+		// estimated row counts until `measurePending` gets to it.
+		if (this.following) {
+			this.layout.measureAround(null, screenRows + MEASURE_MARGIN_ROWS, 1);
+		} else if (this.anchor) {
+			this.layout.measureAround(
+				this.anchor.entryId,
+				MEASURE_MARGIN_ROWS,
+				screenRows + MEASURE_MARGIN_ROWS
+			);
+		}
+
 		const content = this.contentHeight();
-		const client = this.viewport.clientHeight;
 		const spacerHeight = Math.min(content, MAX_SCROLL_HEIGHT);
-		// Lines that do not wrap, such as tables, can be wider than the view and scroll sideways.
 		const wide = this.layout.getOptions().wrap === 'none' || this.layout.maxCells > this.columns;
 
 		this.spacer.style.height = `${spacerHeight}px`;
@@ -1053,49 +1094,54 @@ export class LogViewer {
 			? `${this.contentLeft() + this.layout.maxCells * this.metrics.width + PADDING_RIGHT}px`
 			: '';
 
-		const maxScroll = Math.max(0, spacerHeight - client);
-		const scrollTop = this.viewport.scrollTop;
-
-		// The view was scrolled since the last frame, and its scroll event has not arrived yet.
-		// Stop following now rather than snapping back to the bottom first.
-		if (
-			this.following &&
-			Math.abs(scrollTop - Math.min(this.lastScrollTop, maxScroll)) >= 1 &&
-			maxScroll - scrollTop > FOLLOW_THRESHOLD
-		) {
-			this.setFollowing(false);
-		}
+		const maxTop = Math.max(0, content - client);
+		const scale = this.scrollScale();
+		let topPixels = Math.min(maxTop, viewport.scrollTop * scale);
 
 		if (this.following) {
-			const bottom = Math.max(0, spacerHeight - client);
+			topPixels = maxTop;
+		} else if (this.anchor) {
+			const entryStart = this.layout.rowOfEntry(this.anchor.entryId);
 
-			if (Math.abs(this.viewport.scrollTop - bottom) >= 1) {
-				this.expectedScrollTop = bottom;
-				this.viewport.scrollTop = bottom;
+			if (entryStart < 0) {
+				this.anchor = null;
+			} else {
+				const entryRow = Math.min(
+					this.anchor.entryRow,
+					Math.max(0, this.layout.rowsOf(this.anchor.entryId) - 1)
+				);
+
+				topPixels = Math.min(
+					maxTop,
+					Math.max(0, PADDING_TOP + (entryStart + entryRow) * rowHeight - this.anchor.offset)
+				);
 			}
 		}
 
-		const scale = this.scrollScale();
+		const targetScrollTop = topPixels / scale;
 
-		this.topPixels = Math.min(Math.max(0, content - client), this.viewport.scrollTop * scale);
-
-		if (this.following) {
-			this.topPixels = Math.max(0, content - client);
+		if (Math.abs(viewport.scrollTop - targetScrollTop) >= 1) {
+			this.expectedScrollTop = targetScrollTop;
+			viewport.scrollTop = targetScrollTop;
 		}
 
-		const firstRow = Math.max(0, Math.floor((this.topPixels - PADDING_TOP) / rowHeight));
-		const offsetY = PADDING_TOP + firstRow * rowHeight - this.topPixels;
-		const count = Math.ceil((this.height - offsetY) / rowHeight) + 1;
-		const rows = this.layout.getRows(firstRow, count);
+		const firstRow = Math.max(0, Math.floor((topPixels - PADDING_TOP) / rowHeight));
+		const offsetY = PADDING_TOP + firstRow * rowHeight - topPixels;
+		const rows = this.layout.getRows(firstRow, Math.ceil((this.height - offsetY) / rowHeight) + 1);
 
+		this.topPixels = topPixels;
 		this.firstRow = firstRow;
 		this.visibleRows = rows;
-		this.lastScrollTop = this.viewport.scrollTop;
+		this.lastScrollTop = viewport.scrollTop;
+		this.anchor =
+			this.following || !rows[0]
+				? null
+				: { entryId: rows[0].entry.id, entryRow: rows[0].entryRow, offset: offsetY };
 		this.renderer.render({
 			rows,
 			decorations: rows.map((row) => this.decorationFor(row)),
 			offsetY,
-			scrollX: this.viewport.scrollLeft,
+			scrollX: viewport.scrollLeft,
 			paddingLeft: PADDING_LEFT,
 			timestampCells: this.timestampCells(),
 			markerCells: MARKER_CELLS,
@@ -1106,6 +1152,51 @@ export class LogViewer {
 		this.newLogsButton.hidden = this.following || !this.hasUnseen;
 		this.updateStatus();
 		this.scheduleAccessories();
+		this.scheduleMeasure();
+	}
+
+	/** Returns an anchor for the row at a pixel position of the whole log. */
+	private anchorAt(topPixels: number): ViewAnchor | null {
+		const row = Math.max(0, Math.floor((topPixels - PADDING_TOP) / this.metrics.height));
+		const located = this.layout.locateRow(row);
+
+		if (!located) {
+			return null;
+		}
+
+		return {
+			entryId: located.entry.id,
+			entryRow: located.entryRow,
+			offset: PADDING_TOP + row * this.metrics.height - topPixels
+		};
+	}
+
+	/**
+	 * Lays out the entries that still have estimated row counts, a slice at a time between
+	 * frames, starting with the ones nearest to the view.
+	 */
+	private scheduleMeasure(): void {
+		if (this.measureTimer !== undefined || this.disposed || this.layout.pendingCount === 0) {
+			return;
+		}
+
+		this.measureTimer = setTimeout(() => {
+			this.measureTimer = undefined;
+
+			const started = performance.now();
+			const focus = this.following ? null : (this.anchor?.entryId ?? null);
+			let changed = false;
+
+			while (this.layout.pendingCount > 0 && performance.now() - started < MEASURE_SLICE_MS) {
+				changed = this.layout.measurePending(MEASURE_BATCH, focus) || changed;
+			}
+
+			if (changed) {
+				this.requestRender();
+			}
+
+			this.scheduleMeasure();
+		}, 0);
 	}
 
 	private decorationFor(row: VisualRow): RowDecoration {
@@ -1268,10 +1359,7 @@ export class LogViewer {
 
 	private numberFormat(locale: string | undefined): Intl.NumberFormat {
 		if (!this.cachedNumberFormat || this.cachedNumberFormat.locale !== locale) {
-			this.cachedNumberFormat = {
-				locale,
-				format: new Intl.NumberFormat(locale)
-			};
+			this.cachedNumberFormat = { locale, format: new Intl.NumberFormat(locale) };
 		}
 
 		return this.cachedNumberFormat.format;
@@ -1336,6 +1424,7 @@ export class LogViewer {
 			this.expectedScrollTop = null;
 		} else {
 			this.expectedScrollTop = null;
+			this.anchor = null;
 
 			const atBottom =
 				top + this.viewport.clientHeight >= this.viewport.scrollHeight - FOLLOW_THRESHOLD;
@@ -1547,10 +1636,7 @@ export class LogViewer {
 		}
 
 		if (input.echo !== false) {
-			this.store.append({
-				kind: 'input',
-				parts: [{ type: 'text', text: command }]
-			});
+			this.store.append({ kind: 'input', parts: [{ type: 'text', text: command }] });
 		}
 
 		this.setFollowing(true);
@@ -1587,10 +1673,6 @@ export class LogViewer {
 				? { type: 'text', text: value }
 				: { type: 'value', value: snapshotValue(value) };
 
-		this.store.append({
-			kind: 'output',
-			level: failed ? 'error' : 'log',
-			parts: [part]
-		});
+		this.store.append({ kind: 'output', level: failed ? 'error' : 'log', parts: [part] });
 	}
 }

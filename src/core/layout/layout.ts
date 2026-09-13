@@ -46,6 +46,15 @@ interface RowCount {
 	stateKey: number;
 	layoutVersion: number;
 	rows: number;
+	/** The number of logical lines, the fewest rows the entry can take. */
+	lines: number;
+	columns: number;
+	wrap: WrapMode;
+}
+
+/** How many more entries a call may measure exactly before it estimates the rest. */
+interface MeasureBudget {
+	remaining: number;
 }
 
 interface Expansion {
@@ -110,6 +119,10 @@ export class LogLayout {
 	private readonly layouts = new Map<number, EntryLayout>();
 	private readonly rowCounts = new Map<number, RowCount>();
 	private readonly expansions = new Map<number, Expansion>();
+	/** 1 where the row count of the visible entry at the same position is only an estimate. */
+	private stale: number[] = [];
+	private staleCount = 0;
+	private positions = 0;
 	private lastSyncedId = 0;
 	private needsRebuild = true;
 	private dirty = true;
@@ -137,6 +150,21 @@ export class LogLayout {
 	/** The widest row seen, in cells, including indentation. */
 	get maxCells(): number {
 		return this.widest;
+	}
+
+	/** The number of visible entries whose row count is an estimate. See `measurePending`. */
+	get pendingCount(): number {
+		return this.staleCount;
+	}
+
+	/**
+	 * Increases whenever the first row of an entry that was already visible may have moved: after
+	 * a rebuild, when entries are dropped from the front, and when a row count changes. Appending
+	 * entries at the end does not change it. A viewer compares it between frames to keep the same
+	 * entry in view.
+	 */
+	get positionsVersion(): number {
+		return this.positions;
 	}
 
 	/** Whether the store changed since the last `sync`. */
@@ -198,16 +226,24 @@ export class LogLayout {
 		return this.filter;
 	}
 
-	/** Applies pending store changes. Returns whether anything changed. */
-	sync(): boolean {
+	/**
+	 * Applies pending store changes. Returns whether anything changed.
+	 *
+	 * `budget` limits how many entries are laid out exactly. Past it, an entry gets an estimated
+	 * row count, based on its previous layout when it had one, and is left for `measureAround`
+	 * and `measurePending`. The default lays out every entry exactly.
+	 */
+	sync(budget = Number.POSITIVE_INFINITY): boolean {
 		if (!this.dirty) {
 			return false;
 		}
 
 		this.dirty = false;
 
+		const measureBudget: MeasureBudget = { remaining: budget };
+
 		if (this.needsRebuild) {
-			this.rebuild();
+			this.rebuild(measureBudget);
 
 			return true;
 		}
@@ -219,13 +255,17 @@ export class LogLayout {
 			this.visibleStart + trimmed < this.visible.length &&
 			this.visible[this.visibleStart + trimmed].id < firstId
 		) {
-			this.forget(this.visible[this.visibleStart + trimmed].id);
+			const position = this.visibleStart + trimmed;
+
+			this.forget(this.visible[position].id);
+			this.staleCount -= this.stale[position];
 			trimmed++;
 		}
 
 		if (trimmed > 0) {
 			this.visibleStart += trimmed;
 			this.rowIndex.shift(trimmed);
+			this.positions++;
 			this.compactVisible();
 		}
 
@@ -235,14 +275,81 @@ export class LogLayout {
 			const entry = this.store.get(id);
 
 			if (entry && this.isVisible(entry)) {
-				this.visible.push(entry);
-				this.rowIndex.push(this.countRows(entry));
+				this.pushVisible(entry, measureBudget);
 			}
 		}
 
 		this.lastSyncedId = lastId;
 
 		return true;
+	}
+
+	/**
+	 * Lays out exactly the entries around one entry: `rowsBefore` rows of the entries before it,
+	 * and `rowsAfter` rows starting with it. Pass `null` to start from the last visible entry.
+	 * Call it for the part of the log on screen before reading its rows. Returns whether a row
+	 * count changed.
+	 */
+	measureAround(entryId: number | null, rowsBefore: number, rowsAfter: number): boolean {
+		if (this.staleCount === 0 || this.visibleCount === 0) {
+			return false;
+		}
+
+		const index = entryId === null ? this.visibleCount - 1 : this.indexOf(entryId);
+
+		if (index < 0) {
+			return false;
+		}
+
+		const positions = this.positions;
+		let rows = 0;
+
+		for (let current = index; current < this.visibleCount && rows < rowsAfter; current++) {
+			rows += this.measureIndex(current);
+		}
+
+		rows = 0;
+
+		for (let current = index - 1; current >= 0 && rows < rowsBefore; current--) {
+			rows += this.measureIndex(current);
+		}
+
+		return this.positions !== positions;
+	}
+
+	/**
+	 * Lays out exactly up to `budget` entries whose row count is still an estimate, nearest to an
+	 * entry first, or to the end of the log when `entryId` is `null`. Call it in small pieces of
+	 * work until `pendingCount` is 0. Returns whether a row count changed.
+	 */
+	measurePending(budget: number, entryId: number | null = null): boolean {
+		if (this.staleCount === 0) {
+			return false;
+		}
+
+		const count = this.visibleCount;
+		const found = entryId === null ? count - 1 : this.firstIndexFrom(entryId);
+		const focus = Math.min(Math.max(0, found), count - 1);
+		const positions = this.positions;
+		let remaining = budget;
+
+		for (let distance = 0; remaining > 0 && this.staleCount > 0; distance++) {
+			const after = focus + distance;
+			const before = focus - distance - 1;
+
+			if (after >= count && before < 0) {
+				break;
+			}
+
+			for (const index of [after, before]) {
+				if (index >= 0 && index < count && this.stale[this.visibleStart + index]) {
+					this.measureIndex(index);
+					remaining--;
+				}
+			}
+		}
+
+		return this.positions !== positions;
 	}
 
 	/** Returns rows starting at a row index. Call `sync` first. */
@@ -295,6 +402,27 @@ export class LogLayout {
 		}
 
 		return rows;
+	}
+
+	/** Returns the entry that holds a row and the row's index within that entry. */
+	locateRow(row: number): { entry: LogEntry; entryRow: number } | null {
+		const index = this.rowIndex.find(row);
+
+		if (index < 0) {
+			return null;
+		}
+
+		return {
+			entry: this.visible[this.visibleStart + index],
+			entryRow: row - this.rowIndex.rowOf(index)
+		};
+	}
+
+	/** Returns the number of rows of a visible entry, or 0 when it is not visible. */
+	rowsOf(entryId: number): number {
+		const index = this.indexOf(entryId);
+
+		return index < 0 ? 0 : this.rowIndex.get(index);
 	}
 
 	/** Returns the entry at a visible position, where 0 is the oldest visible entry. */
@@ -360,10 +488,7 @@ export class LogLayout {
 
 	/** Expands or collapses the value at a path of an entry. */
 	setExpanded(entry: LogEntry, path: string, expanded: boolean): void {
-		const expansion = this.expansions.get(entry.id) ?? {
-			version: 0,
-			paths: new Map()
-		};
+		const expansion = this.expansions.get(entry.id) ?? { version: 0, paths: new Map() };
 
 		expansion.paths.set(path, expanded);
 		expansion.version++;
@@ -372,7 +497,16 @@ export class LogLayout {
 		const index = this.indexOf(entry.id);
 
 		if (index >= 0) {
-			this.rowIndex.set(index, this.countRows(entry));
+			const position = this.visibleStart + index;
+			const rows = this.countRows(entry);
+
+			this.staleCount -= this.stale[position];
+			this.stale[position] = 0;
+
+			if (rows !== this.rowIndex.get(index)) {
+				this.rowIndex.set(index, rows);
+				this.positions++;
+			}
 		}
 	}
 
@@ -429,11 +563,7 @@ export class LogLayout {
 			break;
 		}
 
-		return {
-			entryId: visualRow.entry.id,
-			line: visualRow.line,
-			cell: visualRow.startCell + cell
-		};
+		return { entryId: visualRow.entry.id, line: visualRow.line, cell: visualRow.startCell + cell };
 	}
 
 	/**
@@ -539,11 +669,7 @@ export class LogLayout {
 
 		return this.getText(
 			{ entryId: first.id, line: 0, cell: 0 },
-			{
-				entryId: last.id,
-				line: Number.MAX_SAFE_INTEGER,
-				cell: Number.MAX_SAFE_INTEGER
-			}
+			{ entryId: last.id, line: Number.MAX_SAFE_INTEGER, cell: Number.MAX_SAFE_INTEGER }
 		);
 	}
 
@@ -574,24 +700,89 @@ export class LogLayout {
 		this.dirty = true;
 	}
 
-	private rebuild(): void {
+	private rebuild(budget: MeasureBudget): void {
 		this.needsRebuild = false;
 		this.visible = [];
+		this.stale = [];
+		this.staleCount = 0;
 		this.visibleStart = 0;
 		this.rowIndex.clear();
 		this.widest = 0;
+		this.positions++;
 
 		for (let index = 0; index < this.store.size; index++) {
 			const entry = this.store.at(index) as LogEntry;
 
 			if (this.isVisible(entry)) {
-				this.visible.push(entry);
-				this.rowIndex.push(this.countRows(entry));
+				this.pushVisible(entry, budget);
 			}
 		}
 
 		this.lastSyncedId = this.store.lastId;
 		this.pruneCaches();
+	}
+
+	/** Adds a visible entry with its exact row count, or an estimate once the budget is spent. */
+	private pushVisible(entry: LogEntry, budget: MeasureBudget): void {
+		const cached = this.rowCounts.get(entry.id);
+		let rows: number;
+		let stale = 0;
+
+		if (
+			cached &&
+			cached.stateKey === this.stateKeyOf(entry) &&
+			cached.layoutVersion === this.layoutVersion
+		) {
+			rows = cached.rows;
+		} else if (budget.remaining > 0) {
+			budget.remaining--;
+			rows = this.countRows(entry);
+		} else {
+			rows = this.estimateRows(cached);
+			stale = 1;
+			this.staleCount++;
+		}
+
+		this.visible.push(entry);
+		this.stale.push(stale);
+		this.rowIndex.push(rows);
+	}
+
+	/**
+	 * Guesses the row count of an entry that was not laid out at the current width: its previous
+	 * row count scaled by the change in width, and never fewer rows than it has lines.
+	 */
+	private estimateRows(previous: RowCount | undefined): number {
+		if (!previous) {
+			return 1;
+		}
+
+		if (this.options.wrap === 'none' || previous.wrap === 'none') {
+			return previous.lines;
+		}
+
+		return Math.max(previous.lines, Math.round((previous.rows * previous.columns) / this.columns));
+	}
+
+	/** Lays out the visible entry at an index exactly, if it is not already. Returns its rows. */
+	private measureIndex(index: number): number {
+		const position = this.visibleStart + index;
+
+		if (!this.stale[position]) {
+			return this.rowIndex.get(index);
+		}
+
+		const rows = this.countRows(this.visible[position]);
+
+		this.stale[position] = 0;
+		this.staleCount--;
+
+		if (rows !== this.rowIndex.get(index)) {
+			this.rowIndex.set(index, rows);
+			this.positions++;
+		}
+
+		return rows;
 	}
 
 	private isVisible(entry: LogEntry): boolean {
@@ -622,12 +813,17 @@ export class LogLayout {
 			return cached.rows;
 		}
 
-		const rows = this.countPlainRows(entry) ?? this.layoutOf(entry).rows;
+		const plainRows = this.countPlainRows(entry);
+		const layout = plainRows === null ? this.layoutOf(entry) : null;
+		const rows = plainRows ?? (layout as EntryLayout).rows;
 
 		this.rowCounts.set(entry.id, {
 			stateKey,
 			layoutVersion: this.layoutVersion,
-			rows
+			rows,
+			lines: layout ? layout.lines.length : 1,
+			columns: this.columns,
+			wrap: this.options.wrap
 		});
 
 		return rows;
@@ -827,6 +1023,7 @@ export class LogLayout {
 	private compactVisible(): void {
 		if (this.visibleStart > 4096 && this.visibleStart > this.visible.length / 2) {
 			this.visible = this.visible.slice(this.visibleStart);
+			this.stale = this.stale.slice(this.visibleStart);
 			this.visibleStart = 0;
 		}
 	}
