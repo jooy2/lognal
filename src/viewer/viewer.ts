@@ -1,6 +1,6 @@
 import { entrySearchText, type LogFilter } from '../core/filter.js';
 import { DEFAULT_LAYOUT_OPTIONS, LogLayout, type LayoutOptions } from '../core/layout/layout.js';
-import { LogSearch } from '../core/layout/search.js';
+import { LogSearch, type SearchOptions } from '../core/layout/search.js';
 import type {
 	LineAction,
 	TextMatch,
@@ -409,7 +409,7 @@ export class LogViewer {
 		this.entryButton.append(createIcon(doc, 'more'));
 		this.entryButton.addEventListener('click', this.onEntryButtonClick);
 		this.searchBar = new SearchBar(doc, {
-			onQuery: (query) => this.onSearchQuery(query),
+			onQuery: (query, options) => this.onSearchQuery(query, options),
 			onNext: () => this.findNext(),
 			onPrevious: () => this.findPrevious(),
 			onClose: () => this.closeSearch()
@@ -802,10 +802,10 @@ export class LogViewer {
 
 	/**
 	 * Opens the search bar and searches for `query`, or for the text already in the bar. Without
-	 * `query`, a selection on one line becomes the text to search for. Does nothing when the
-	 * `search` option is off.
+	 * `query`, a selection on one line becomes the text to search for. `options` switches the
+	 * toggles of the bar. Does nothing when the `search` option is off.
 	 */
-	openSearch(query?: string): void {
+	openSearch(query?: string, options?: SearchOptions): void {
 		if (!this.options.search) {
 			return;
 		}
@@ -818,9 +818,14 @@ export class LogViewer {
 				: undefined);
 
 		this.popup.close(false);
+
+		if (options) {
+			this.searchBar.setOptions(options);
+		}
+
 		this.searchBar.open(text);
 		this.revealOnResults = true;
-		this.onSearchQuery(this.searchBar.value);
+		this.onSearchQuery(this.searchBar.value, this.searchBar.searchOptions);
 	}
 
 	/** Closes the search bar and removes the highlights of the search. */
@@ -1682,8 +1687,8 @@ export class LogViewer {
 		}, 0);
 	}
 
-	private readonly onSearchQuery = (query: string): void => {
-		if (this.search.setQuery(query)) {
+	private readonly onSearchQuery = (query: string, options: SearchOptions): void => {
+		if (this.search.setQuery(query, options)) {
 			this.revealOnResults = true;
 		}
 
@@ -1763,13 +1768,14 @@ export class LogViewer {
 	private updateSearchResults(): void {
 		const { labels, locale } = this.options;
 		const numberFormat = this.numberFormat(locale);
-		const { query, count, current, pending } = this.search;
+		const { query, count, current, pending, error } = this.search;
 		const text =
-			!query || (pending && count === 0)
+			!query || error || (pending && count === 0)
 				? ''
 				: labels.searchResults(current + 1, count, (value) => numberFormat.format(value));
 
 		this.searchBar.setResults(text);
+		this.searchBar.setInvalid(error ? labels.searchInvalid : null);
 	}
 
 	/** Returns an anchor for the row at a pixel position of the whole log. */

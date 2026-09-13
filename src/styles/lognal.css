@@ -662,13 +662,17 @@
 	font: inherit;
 }
 
+.lognal-search-input[aria-invalid] {
+	border-color: var(--lognal-error);
+}
+
 .lognal-search-input::placeholder {
 	color: var(--lognal-muted);
 }
 
 .lognal-search-count {
 	flex: none;
-	min-width: 48px;
+	min-width: 64px;
 	padding: 0 6px;
 	color: var(--lognal-muted);
 	font-variant-numeric: tabular-nums;
@@ -680,6 +684,13 @@
 	flex: none;
 	width: 26px;
 	height: 26px;
+}
+
+.lognal-search-toggle {
+	font-family: var(--lognal-font-family);
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1;
 }
 
 /* Input line */

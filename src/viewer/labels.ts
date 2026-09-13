@@ -43,6 +43,12 @@ export interface ViewerLabels {
 	searchPrevious: string;
 	searchNext: string;
 	searchClose: string;
+	/** The toggle that makes the search match letter case. */
+	searchCase: string;
+	/** The toggle that makes the search text a regular expression. */
+	searchRegex: string;
+	/** The title of the search field while its regular expression does not compile. */
+	searchInvalid: string;
 	/**
 	 * The position of the current match among all matches, such as `3/12`. `current` is 0 while
 	 * no match is current. `format` formats a number for the locale.
@@ -85,6 +91,9 @@ export const EN_LABELS: ViewerLabels = {
 	searchPrevious: 'Previous match',
 	searchNext: 'Next match',
 	searchClose: 'Close search',
+	searchCase: 'Match case',
+	searchRegex: 'Use regular expression',
+	searchInvalid: 'Not a valid regular expression',
 	searchResults: (current, total, format) => {
 		return total === 0 ? 'No results' : `${format(current)}/${format(total)}`;
 	},
@@ -130,6 +139,9 @@ export const KO_LABELS: ViewerLabels = {
 	searchPrevious: '이전 결과',
 	searchNext: '다음 결과',
 	searchClose: '검색 닫기',
+	searchCase: '대소문자 구분',
+	searchRegex: '정규 표현식 사용',
+	searchInvalid: '올바른 정규 표현식이 아닙니다',
 	searchResults: (current, total, format) => {
 		return total === 0 ? '결과 없음' : `${format(current)}/${format(total)}`;
 	},

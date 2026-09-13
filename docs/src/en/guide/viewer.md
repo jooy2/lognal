@@ -183,19 +183,21 @@ To keep every entry on screen and highlight the matches instead, use [Search](#s
 
 Press Ctrl+F, or Cmd+F on macOS, while focus is anywhere in the viewer, to open a search bar over the top right corner of the log. Unlike the filter, a search hides nothing: every entry stays in place, every match is highlighted, and the current match has a stronger highlight. The bar shows the position of the current match, such as `3/12`.
 
-| Key                        | Result                                     |
-| -------------------------- | ------------------------------------------ |
-| Enter, F3, Ctrl+G or Cmd+G | Goes to the next match.                    |
-| Shift with any of them     | Goes to the previous match.                |
-| Escape in the search field | Closes the bar and removes the highlights. |
+| Key                        | Result                                      |
+| -------------------------- | ------------------------------------------- |
+| Enter, F3, Ctrl+G or Cmd+G | Goes to the next match.                     |
+| Shift with any of them     | Goes to the previous match.                 |
+| Alt+C in the search field  | Turns **Match case** on or off.             |
+| Alt+R in the search field  | Turns **Use regular expression** on or off. |
+| Escape in the search field | Closes the bar and removes the highlights.  |
 
-- The search ignores letter case and takes the text as typed, not as a pattern. It compares text in Unicode normalization form C, so decomposed Hangul matches too.
+- Two toggles in the bar, `Aa` and `.*`, decide how text is compared. By default the search ignores letter case and takes the text as typed. **Match case** makes letter case count, and **Use regular expression** reads the text as a JavaScript regular expression. A pattern that does not compile marks the field and finds nothing. Text is compared in Unicode normalization form C, so decomposed Hangul matches too.
 - It searches what the log shows: the visible entries, with the rows of open values. Entries hidden by the filter or by a closed group are not searched.
 - When the bar opens with text selected on one line, the search starts with that text.
 - The first match at the top of the view or below it becomes current, and the view scrolls to the current match when it is off screen. Moving to a match pauses following.
 - A long log is searched in small steps between frames. New entries are searched as they arrive, and the count grows with them.
 
-The same actions are available as methods: `openSearch(query?)`, `closeSearch()`, `findNext()` and `findPrevious()`. `search: false` turns off the shortcut and the bar, and Ctrl+F reaches the browser again.
+The same actions are available as methods: `openSearch(query?, options?)`, `closeSearch()`, `findNext()` and `findPrevious()`. `options` is `{ caseSensitive?, regex? }` and switches the toggles. `search: false` turns off the shortcut and the bar, and Ctrl+F reaches the browser again.
 
 ## Selection and copy
 
@@ -339,25 +341,25 @@ Every label is listed in [`ViewerLabels`](/reference/log-viewer#viewerlabels).
 
 ## Methods and events
 
-| Member                                                                     | Description                                                                                |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `console`                                                                  | An object with the console methods that writes to this viewer's store.                     |
-| `write(text, options?)`                                                    | Adds text as one entry.                                                                    |
-| `writeLines(text, options?)`                                               | Adds text as one entry per line.                                                           |
-| `hookConsole(target?, options?)`                                           | Records a console into the store. Returns a function that stops recording.                 |
-| `clear()`                                                                  | Removes every entry.                                                                       |
-| `setFilter(filter)`, `getFilter()`                                         | Sets or returns the filter.                                                                |
-| `setFollowing(following)`                                                  | Turns following on or off.                                                                 |
-| `scrollToTop()`, `scrollToBottom()`, `scrollToEntry(id)`                   | Scroll the view.                                                                           |
-| `getSelectionText()`, `selectAll()`, `clearSelection()`, `copySelection()` | Work with the selection.                                                                   |
-| `getEntryText(id, options?)`, `copyEntry(id, options?)`                    | Return or copy the text of an entry.                                                       |
-| `expandEntry(id)`, `collapseEntry(id)`                                     | Open or close every value of an entry.                                                     |
-| `openSearch(query?)`, `closeSearch()`, `findNext()`, `findPrevious()`      | Open or close the search bar and move between matches.                                     |
-| `focus()`                                                                  | Focuses the input line, or the log when there is no input line.                            |
-| `refresh()`                                                                | Reads the theme and the font from CSS again.                                               |
-| `on(name, listener)`                                                       | Adds a listener for `follow`, `filter` or `selection`. Returns a function that removes it. |
-| `setOptions(options)`                                                      | Changes the options given and keeps the others.                                            |
-| `dispose()`                                                                | Removes the viewer and stops everything it started.                                        |
+| Member                                                                          | Description                                                                                |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `console`                                                                       | An object with the console methods that writes to this viewer's store.                     |
+| `write(text, options?)`                                                         | Adds text as one entry.                                                                    |
+| `writeLines(text, options?)`                                                    | Adds text as one entry per line.                                                           |
+| `hookConsole(target?, options?)`                                                | Records a console into the store. Returns a function that stops recording.                 |
+| `clear()`                                                                       | Removes every entry.                                                                       |
+| `setFilter(filter)`, `getFilter()`                                              | Sets or returns the filter.                                                                |
+| `setFollowing(following)`                                                       | Turns following on or off.                                                                 |
+| `scrollToTop()`, `scrollToBottom()`, `scrollToEntry(id)`                        | Scroll the view.                                                                           |
+| `getSelectionText()`, `selectAll()`, `clearSelection()`, `copySelection()`      | Work with the selection.                                                                   |
+| `getEntryText(id, options?)`, `copyEntry(id, options?)`                         | Return or copy the text of an entry.                                                       |
+| `expandEntry(id)`, `collapseEntry(id)`                                          | Open or close every value of an entry.                                                     |
+| `openSearch(query?, options?)`, `closeSearch()`, `findNext()`, `findPrevious()` | Open or close the search bar and move between matches.                                     |
+| `focus()`                                                                       | Focuses the input line, or the log when there is no input line.                            |
+| `refresh()`                                                                     | Reads the theme and the font from CSS again.                                               |
+| `on(name, listener)`                                                            | Adds a listener for `follow`, `filter` or `selection`. Returns a function that removes it. |
+| `setOptions(options)`                                                           | Changes the options given and keeps the others.                                            |
+| `dispose()`                                                                     | Removes the viewer and stops everything it started.                                        |
 
 The full signatures are in the [LogViewer reference](/reference/log-viewer).
 

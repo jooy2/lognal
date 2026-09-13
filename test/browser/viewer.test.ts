@@ -559,6 +559,45 @@ describe('LogViewer', () => {
 		viewer.dispose();
 	});
 
+	it('matches case and regular expressions with the toggles of the search bar', async () => {
+		const viewer = new LogViewer(container, { core: { mergeRepeats: false } });
+		const bar = viewer.element.querySelector('.lognal-search') as HTMLFormElement;
+		const input = bar.querySelector('input') as HTMLInputElement;
+		const results = bar.querySelector('.lognal-search-count') as HTMLSpanElement;
+		const [caseToggle, regexToggle] = Array.from(
+			bar.querySelectorAll<HTMLButtonElement>('.lognal-search-toggle')
+		);
+
+		viewer.write('Error 404');
+		viewer.write('error 500');
+		await nextFrame();
+		viewer.openSearch('error');
+		await waitFor(() => results.textContent === '1/2');
+
+		expect(caseToggle.getAttribute('aria-label')).toBe('Match case');
+		caseToggle.click();
+		expect(caseToggle.getAttribute('aria-pressed')).toBe('true');
+		await waitFor(() => results.textContent === '1/1');
+
+		input.value = 'error \\d+';
+		input.dispatchEvent(
+			new KeyboardEvent('keydown', { key: 'r', code: 'KeyR', altKey: true, bubbles: true })
+		);
+		expect(regexToggle.getAttribute('aria-pressed')).toBe('true');
+		await waitFor(() => results.textContent === '1/1');
+
+		viewer.openSearch('(', { regex: true });
+		expect(input.hasAttribute('aria-invalid')).toBe(true);
+		expect(input.title).toBe('Not a valid regular expression');
+		expect(results.textContent).toBe('');
+
+		viewer.openSearch('404', { caseSensitive: false, regex: false });
+		expect(input.hasAttribute('aria-invalid')).toBe(false);
+		expect(caseToggle.getAttribute('aria-pressed')).toBe('false');
+		await waitFor(() => results.textContent === '1/1');
+		viewer.dispose();
+	});
+
 	it('leaves Ctrl+F to the browser when search is off', () => {
 		const viewer = new LogViewer(container, { search: false });
 		const viewport = viewer.element.querySelector('.lognal-viewport') as HTMLDivElement;

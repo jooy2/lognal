@@ -29,6 +29,7 @@ export {
 	type LogFilter
 } from './core/filter.js';
 export { DEFAULT_LAYOUT_OPTIONS, LogLayout, type LayoutOptions } from './core/layout/layout.js';
+export type { SearchOptions } from './core/layout/search.js';
 export type {
 	LineAction,
 	TextMatch,

@@ -1,19 +1,43 @@
+import { escapeRegExp } from '../filter.js';
 import type { LogLayout } from './layout.js';
 import type { TextMatch } from './types.js';
 
 /** The most matches a search keeps. Past it, the rest of the log is not searched. */
 export const MAX_SEARCH_MATCHES = 100000;
 
-const SPECIAL_CHARACTERS = /[.*+?^${}()|[\]\\]/g;
+/** How a search compares text. */
+export interface SearchOptions {
+	/** Whether letter case must match. Defaults to `false`. */
+	caseSensitive?: boolean;
+	/** Whether the text is a regular expression rather than text to find as typed. Defaults to `false`. */
+	regex?: boolean;
+}
+
+export interface CompiledSearch {
+	/** The pattern, or `null` for empty text and for a regular expression that does not compile. */
+	pattern: RegExp | null;
+	/** Why a regular expression does not compile, or `null`. */
+	error: string | null;
+}
 
 /**
- * Builds the pattern of a search: the text as typed, ignoring letter case, in Unicode
- * normalization form C. Returns `null` for empty text.
+ * Builds the pattern of a search. The text is taken in Unicode normalization form C, as typed
+ * unless `regex` is on, and ignoring letter case unless `caseSensitive` is on.
  */
-export const compileSearch = (query: string): RegExp | null => {
+export const compileSearch = (query: string, options: SearchOptions = {}): CompiledSearch => {
 	const text = query.normalize('NFC');
 
-	return text ? new RegExp(text.replace(SPECIAL_CHARACTERS, '\\$&'), 'gi') : null;
+	if (!text) {
+		return { pattern: null, error: null };
+	}
+
+	try {
+		const source = options.regex ? text : escapeRegExp(text);
+
+		return { pattern: new RegExp(source, options.caseSensitive ? 'g' : 'gi'), error: null };
+	} catch (caught) {
+		return { pattern: null, error: caught instanceof Error ? caught.message : String(caught) };
+	}
 };
 
 const sameMatch = (a: TextMatch, b: TextMatch): boolean => {
@@ -32,6 +56,9 @@ const sameMatch = (a: TextMatch, b: TextMatch): boolean => {
 export class LogSearch {
 	private pattern: RegExp | null = null;
 	private text = '';
+	private caseSensitive = false;
+	private regex = false;
+	private compileError: string | null = null;
 	private matches: TextMatch[] = [];
 	private readonly byEntry = new Map<number, TextMatch[]>();
 	private scannedVersion = -1;
@@ -45,6 +72,16 @@ export class LogSearch {
 	/** The text searched for. */
 	get query(): string {
 		return this.text;
+	}
+
+	/** How the text is compared. */
+	get options(): Required<SearchOptions> {
+		return { caseSensitive: this.caseSensitive, regex: this.regex };
+	}
+
+	/** Why the regular expression does not compile, or `null`. */
+	get error(): string | null {
+		return this.compileError;
 	}
 
 	get count(): number {
@@ -67,14 +104,22 @@ export class LogSearch {
 		return this.scannedVersion !== this.layout.textVersion || (last?.id ?? 0) > this.scannedId;
 	}
 
-	/** Sets the text to search for. Returns whether it changed. */
-	setQuery(query: string): boolean {
-		if (query === this.text) {
+	/** Sets the text to search for and how it is compared. Returns whether either changed. */
+	setQuery(query: string, options: SearchOptions = {}): boolean {
+		const caseSensitive = options.caseSensitive ?? false;
+		const regex = options.regex ?? false;
+
+		if (query === this.text && caseSensitive === this.caseSensitive && regex === this.regex) {
 			return false;
 		}
 
+		const compiled = compileSearch(query, { caseSensitive, regex });
+
 		this.text = query;
-		this.pattern = compileSearch(query);
+		this.caseSensitive = caseSensitive;
+		this.regex = regex;
+		this.pattern = compiled.pattern;
+		this.compileError = compiled.error;
 		this.currentMatch = null;
 		this.restart();
 

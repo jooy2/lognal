@@ -183,19 +183,21 @@ viewer.setFilter(null);
 
 뷰어 안 어디에든 포커스가 있을 때 Ctrl+F나 macOS의 Cmd+F를 누르면 로그 오른쪽 위에 검색 창이 열립니다. 필터와 달리 검색은 아무것도 숨기지 않습니다. 모든 항목은 제자리에 남고, 일치하는 곳이 모두 강조되며, 현재 결과는 더 진하게 강조됩니다. 검색 창에는 `3/12`처럼 현재 결과의 순서가 나옵니다.
 
-| 키                       | 동작                            |
-| ------------------------ | ------------------------------- |
-| Enter, F3, Ctrl+G, Cmd+G | 다음 결과로 이동합니다.         |
-| 위 키와 함께 Shift       | 이전 결과로 이동합니다.         |
-| 검색 입력란에서 Escape   | 검색 창을 닫고 강조를 없앱니다. |
+| 키                       | 동작                                  |
+| ------------------------ | ------------------------------------- |
+| Enter, F3, Ctrl+G, Cmd+G | 다음 결과로 이동합니다.               |
+| 위 키와 함께 Shift       | 이전 결과로 이동합니다.               |
+| 검색 입력란에서 Alt+C    | **대소문자 구분**을 켜거나 끕니다.    |
+| 검색 입력란에서 Alt+R    | **정규 표현식 사용**을 켜거나 끕니다. |
+| 검색 입력란에서 Escape   | 검색 창을 닫고 강조를 없앱니다.       |
 
-- 검색은 대소문자를 구분하지 않고, 입력한 텍스트를 패턴이 아닌 글자 그대로 찾습니다. 텍스트를 유니코드 정규화 형식 C로 비교하므로 풀어쓴 한글도 찾습니다.
+- 검색 창의 두 토글 `Aa`와 `.*`가 비교 방식을 정합니다. 기본으로는 대소문자를 구분하지 않고 입력한 텍스트를 글자 그대로 찾습니다. **대소문자 구분**을 켜면 대소문자가 맞아야 하고, **정규 표현식 사용**을 켜면 텍스트를 JavaScript 정규 표현식으로 읽습니다. 컴파일되지 않는 패턴이면 입력란에 표시가 나고 아무것도 찾지 않습니다. 텍스트를 유니코드 정규화 형식 C로 비교하므로 풀어쓴 한글도 찾습니다.
 - 로그에 보이는 내용을 검색합니다. 보이는 항목과 펼친 값의 행이 대상이고, 필터나 접힌 그룹에 가려진 항목은 찾지 않습니다.
 - 한 줄 안의 텍스트를 선택한 채로 검색 창을 열면 그 텍스트로 검색을 시작합니다.
 - 화면 맨 위나 그 아래에서 처음 나오는 결과가 현재 결과가 되고, 현재 결과가 화면 밖에 있으면 그 위치로 스크롤합니다. 결과로 이동하면 따라가기가 멈춥니다.
 - 긴 로그는 프레임 사이에 조금씩 나눠 검색합니다. 새 항목도 들어오는 대로 검색해서 결과 수가 함께 늘어납니다.
 
-같은 동작을 메서드로도 쓸 수 있습니다. `openSearch(query?)`, `closeSearch()`, `findNext()`, `findPrevious()`가 있습니다. `search: false`를 넘기면 단축키와 검색 창이 꺼지고, Ctrl+F는 다시 브라우저의 찾기로 갑니다.
+같은 동작을 메서드로도 쓸 수 있습니다. `openSearch(query?, options?)`, `closeSearch()`, `findNext()`, `findPrevious()`가 있고, `options`는 토글을 바꾸는 `{ caseSensitive?, regex? }`입니다. `search: false`를 넘기면 단축키와 검색 창이 꺼지고, Ctrl+F는 다시 브라우저의 찾기로 갑니다.
 
 ## 선택과 복사 {#selection-and-copy}
 
@@ -338,25 +340,25 @@ new LogViewer(container, {
 
 ## 메서드와 이벤트 {#methods-and-events}
 
-| 멤버                                                                       | 설명                                                                                       |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `console`                                                                  | 이 뷰어의 스토어에 쓰는, 콘솔 메서드를 갖춘 객체입니다.                                    |
-| `write(text, options?)`                                                    | 텍스트를 항목 하나로 추가합니다.                                                           |
-| `writeLines(text, options?)`                                               | 텍스트를 줄마다 항목 하나씩 추가합니다.                                                    |
-| `hookConsole(target?, options?)`                                           | 콘솔을 스토어에 기록합니다. 기록을 멈추는 함수를 반환합니다.                               |
-| `clear()`                                                                  | 항목을 모두 지웁니다.                                                                      |
-| `setFilter(filter)`, `getFilter()`                                         | 필터를 정하거나 반환합니다.                                                                |
-| `setFollowing(following)`                                                  | 따라가기를 켜거나 끕니다.                                                                  |
-| `scrollToTop()`, `scrollToBottom()`, `scrollToEntry(id)`                   | 화면을 스크롤합니다.                                                                       |
-| `getSelectionText()`, `selectAll()`, `clearSelection()`, `copySelection()` | 선택을 다룹니다.                                                                           |
-| `getEntryText(id, options?)`, `copyEntry(id, options?)`                    | 항목의 텍스트를 반환하거나 복사합니다.                                                     |
-| `expandEntry(id)`, `collapseEntry(id)`                                     | 항목의 값을 모두 펼치거나 접습니다.                                                        |
-| `openSearch(query?)`, `closeSearch()`, `findNext()`, `findPrevious()`      | 검색 창을 열거나 닫고, 결과 사이를 이동합니다.                                             |
-| `focus()`                                                                  | 입력 줄에, 입력 줄이 없으면 로그 영역에 포커스를 줍니다.                                   |
-| `refresh()`                                                                | CSS에서 테마와 글꼴을 다시 읽습니다.                                                       |
-| `on(name, listener)`                                                       | `follow`, `filter`, `selection` 이벤트에 리스너를 답니다. 리스너를 떼는 함수를 반환합니다. |
-| `setOptions(options)`                                                      | 넘긴 옵션만 바꾸고 나머지는 그대로 둡니다.                                                 |
-| `dispose()`                                                                | 뷰어를 없애고 뷰어가 시작한 작업을 모두 멈춥니다.                                          |
+| 멤버                                                                            | 설명                                                                                       |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `console`                                                                       | 이 뷰어의 스토어에 쓰는, 콘솔 메서드를 갖춘 객체입니다.                                    |
+| `write(text, options?)`                                                         | 텍스트를 항목 하나로 추가합니다.                                                           |
+| `writeLines(text, options?)`                                                    | 텍스트를 줄마다 항목 하나씩 추가합니다.                                                    |
+| `hookConsole(target?, options?)`                                                | 콘솔을 스토어에 기록합니다. 기록을 멈추는 함수를 반환합니다.                               |
+| `clear()`                                                                       | 항목을 모두 지웁니다.                                                                      |
+| `setFilter(filter)`, `getFilter()`                                              | 필터를 정하거나 반환합니다.                                                                |
+| `setFollowing(following)`                                                       | 따라가기를 켜거나 끕니다.                                                                  |
+| `scrollToTop()`, `scrollToBottom()`, `scrollToEntry(id)`                        | 화면을 스크롤합니다.                                                                       |
+| `getSelectionText()`, `selectAll()`, `clearSelection()`, `copySelection()`      | 선택을 다룹니다.                                                                           |
+| `getEntryText(id, options?)`, `copyEntry(id, options?)`                         | 항목의 텍스트를 반환하거나 복사합니다.                                                     |
+| `expandEntry(id)`, `collapseEntry(id)`                                          | 항목의 값을 모두 펼치거나 접습니다.                                                        |
+| `openSearch(query?, options?)`, `closeSearch()`, `findNext()`, `findPrevious()` | 검색 창을 열거나 닫고, 결과 사이를 이동합니다.                                             |
+| `focus()`                                                                       | 입력 줄에, 입력 줄이 없으면 로그 영역에 포커스를 줍니다.                                   |
+| `refresh()`                                                                     | CSS에서 테마와 글꼴을 다시 읽습니다.                                                       |
+| `on(name, listener)`                                                            | `follow`, `filter`, `selection` 이벤트에 리스너를 답니다. 리스너를 떼는 함수를 반환합니다. |
+| `setOptions(options)`                                                           | 넘긴 옵션만 바꾸고 나머지는 그대로 둡니다.                                                 |
+| `dispose()`                                                                     | 뷰어를 없애고 뷰어가 시작한 작업을 모두 멈춥니다.                                          |
 
 정확한 시그니처는 [LogViewer 레퍼런스](/ko/reference/log-viewer)에 있습니다.
 

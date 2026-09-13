@@ -26,10 +26,25 @@ const scanAll = (layout: LogLayout, search: LogSearch): void => {
 
 describe('compileSearch', () => {
 	it('matches the text as typed, ignoring case and special characters', () => {
-		const pattern = compileSearch('a.b(')!;
+		const { pattern } = compileSearch('a.b(');
 
-		expect('A.B( axb('.match(pattern)).toEqual(['A.B(']);
-		expect(compileSearch('')).toBeNull();
+		expect('A.B( axb('.match(pattern!)).toEqual(['A.B(']);
+		expect(compileSearch('')).toEqual({ pattern: null, error: null });
+	});
+
+	it('matches case and regular expressions when asked, and reports a bad pattern', () => {
+		expect('Error error'.match(compileSearch('error', { caseSensitive: true }).pattern!)).toEqual([
+			'error'
+		]);
+		expect('id=12 id=345'.match(compileSearch('id=\\d+', { regex: true }).pattern!)).toEqual([
+			'id=12',
+			'id=345'
+		]);
+
+		const broken = compileSearch('(', { regex: true });
+
+		expect(broken.pattern).toBeNull();
+		expect(broken.error).toEqual(expect.any(String));
 	});
 });
 
@@ -58,6 +73,28 @@ describe('LogSearch', () => {
 
 		// `파일 ` takes five cells, and each Hangul syllable two.
 		expect(search.getMatch(0)).toMatchObject({ from: 5, to: 9 });
+	});
+
+	it('searches again when only the options change, and finds nothing for a bad pattern', () => {
+		const { layout, search } = setup(['Error 1', 'error 22']);
+
+		search.setQuery('error');
+		scanAll(layout, search);
+		expect(search.count).toBe(2);
+
+		expect(search.setQuery('error', { caseSensitive: true })).toBe(true);
+		scanAll(layout, search);
+		expect(search.count).toBe(1);
+
+		search.setQuery('\\d{2}', { regex: true });
+		scanAll(layout, search);
+		expect(search.count).toBe(1);
+		expect(search.getMatch(0)).toMatchObject({ entryId: 2, from: 6, to: 8 });
+
+		search.setQuery('[', { regex: true });
+		expect(search.error).toEqual(expect.any(String));
+		expect(search.pending).toBe(false);
+		expect(search.count).toBe(0);
 	});
 
 	it('moves through the matches and wraps around', () => {

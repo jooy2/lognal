@@ -54,7 +54,7 @@ Creates the viewer and appends its root element to `container`.
 | `copyEntry(entryId: number, options?: EntryTextOptions)`             | `Promise<boolean>`  | Copies the text `getEntryText` returns to the clipboard, together with HTML in the colors of the theme for `'formatted'`. Resolves to whether anything was copied.                                                                       |
 | `expandEntry(entryId: number)`                                       | `void`              | Expands every value of an entry, and every value inside them, as far as they were captured.                                                                                                                                              |
 | `collapseEntry(entryId: number)`                                     | `void`              | Collapses every value of an entry, including an error logged on its own.                                                                                                                                                                 |
-| `openSearch(query?: string)`                                         | `void`              | Opens the search bar and searches for `query`, for the text already in the bar, or for a selection on one line. Does nothing when `search` is off.                                                                                       |
+| `openSearch(query?: string, options?: SearchOptions)`                | `void`              | Opens the search bar and searches for `query`, for the text already in the bar, or for a selection on one line. `options` switches the toggles of the bar. Does nothing when `search` is off.                                            |
 | `closeSearch()`                                                      | `void`              | Closes the search bar and removes the highlights.                                                                                                                                                                                        |
 | `findNext()`                                                         | `void`              | Makes the next match current and scrolls to it. After the last match comes the first.                                                                                                                                                    |
 | `findPrevious()`                                                     | `void`              | Makes the previous match current and scrolls to it.                                                                                                                                                                                      |
@@ -168,6 +168,13 @@ With `copy: false` and no `items`, the menu is off. A menu that would have no it
 | `'formatted'`     | Values too long for one line broken over several indented lines. `copyEntry` also copies HTML with the colors of the theme.                                                                                                                                                                                                                 |
 | `'data'`          | The values as JSON: the value, an array of the values when there are several, or the text of the entry when it has none. `undefined` becomes `null`, sets become arrays, maps with text keys become objects, errors become objects with `name`, `message` and `stack`, and types JSON lacks, such as `10n` or `Symbol(token)`, become text. |
 
+### SearchOptions
+
+| Option          | Type      | Default | Description                                                         |
+| --------------- | --------- | ------- | ------------------------------------------------------------------- |
+| `caseSensitive` | `boolean` | `false` | Whether letter case must match.                                     |
+| `regex`         | `boolean` | `false` | Whether the text is a regular expression rather than text as typed. |
+
 ## ViewerLabels
 
 Every label is used as visible text or as an accessible name.
@@ -204,6 +211,9 @@ Every label is used as visible text or as an accessible name.
 | `searchPrevious`     | Previous match                    | 이전 결과                     |
 | `searchNext`         | Next match                        | 다음 결과                     |
 | `searchClose`        | Close search                      | 검색 닫기                     |
+| `searchCase`         | Match case                        | 대소문자 구분                 |
+| `searchRegex`        | Use regular expression            | 정규 표현식 사용              |
+| `searchInvalid`      | Not a valid regular expression    | 올바른 정규 표현식이 아닙니다 |
 | `searchResults`      | `3/12`, `No results`              | `3/12`, `결과 없음`           |
 | `following`          | Following                         | 따라가는 중                   |
 | `paused`             | Paused                            | 멈춤                          |

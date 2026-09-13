@@ -69,7 +69,8 @@ export interface CompiledFilter {
 	error: string | null;
 }
 
-const escapeRegExp = (text: string): string => {
+/** Escapes the characters that have a meaning in a regular expression. */
+export const escapeRegExp = (text: string): string => {
 	return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 };
 

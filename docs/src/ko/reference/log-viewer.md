@@ -54,7 +54,7 @@ new LogViewer(container: HTMLElement, options?: LogViewerOptions)
 | `copyEntry(entryId: number, options?: EntryTextOptions)`             | `Promise<boolean>`  | `getEntryText`가 반환하는 텍스트를 클립보드에 복사하고, `'formatted'`이면 테마 색을 입힌 HTML도 함께 넣습니다. 복사한 내용이 있는지를 이행 값으로 돌려줍니다.                     |
 | `expandEntry(entryId: number)`                                       | `void`              | 항목의 값과 그 안의 값을 캡처된 만큼 모두 펼칩니다.                                                                                                                               |
 | `collapseEntry(entryId: number)`                                     | `void`              | 따로 로그를 남긴 오류까지 포함해 항목의 값을 모두 접습니다.                                                                                                                       |
-| `openSearch(query?: string)`                                         | `void`              | 검색 창을 열고 `query`나 검색 창에 있던 텍스트, 또는 한 줄 안의 선택 영역으로 검색합니다. `search`가 꺼져 있으면 아무것도 하지 않습니다.                                          |
+| `openSearch(query?: string, options?: SearchOptions)`                | `void`              | 검색 창을 열고 `query`나 검색 창에 있던 텍스트, 또는 한 줄 안의 선택 영역으로 검색합니다. `options`로 검색 창의 토글을 바꿉니다. `search`가 꺼져 있으면 아무것도 하지 않습니다.   |
 | `closeSearch()`                                                      | `void`              | 검색 창을 닫고 강조를 없앱니다.                                                                                                                                                   |
 | `findNext()`                                                         | `void`              | 다음 결과를 현재 결과로 만들고 그 위치로 스크롤합니다. 마지막 결과 다음은 첫 결과입니다.                                                                                          |
 | `findPrevious()`                                                     | `void`              | 이전 결과를 현재 결과로 만들고 그 위치로 스크롤합니다.                                                                                                                            |
@@ -168,6 +168,13 @@ off();
 | `'formatted'`     | 한 줄에 다 들어가지 않는 값을 들여쓴 여러 줄로 나눕니다. `copyEntry`는 테마 색을 입힌 HTML도 함께 복사합니다.                                                                                                                                                                         |
 | `'data'`          | 값을 JSON으로 적습니다. 값이 하나면 그 값, 여러 개면 값의 배열, 값이 없으면 항목의 텍스트입니다. `undefined`는 `null`, Set은 배열, 텍스트 키를 쓰는 Map은 객체, 오류는 `name`, `message`, `stack`이 든 객체가 되고, `10n`이나 `Symbol(token)`처럼 JSON에 없는 타입은 텍스트가 됩니다. |
 
+### SearchOptions {#searchoptions}
+
+| 옵션            | 타입      | 기본값  | 설명                                                           |
+| --------------- | --------- | ------- | -------------------------------------------------------------- |
+| `caseSensitive` | `boolean` | `false` | 대소문자가 맞아야 하는지 정합니다.                             |
+| `regex`         | `boolean` | `false` | 텍스트를 글자 그대로가 아니라 정규 표현식으로 읽을지 정합니다. |
+
 ## ViewerLabels {#viewerlabels}
 
 레이블은 모두 화면에 보이는 텍스트나 접근성 이름으로 쓰입니다.
@@ -204,6 +211,9 @@ off();
 | `searchPrevious`     | Previous match                    | 이전 결과                     |
 | `searchNext`         | Next match                        | 다음 결과                     |
 | `searchClose`        | Close search                      | 검색 닫기                     |
+| `searchCase`         | Match case                        | 대소문자 구분                 |
+| `searchRegex`        | Use regular expression            | 정규 표현식 사용              |
+| `searchInvalid`      | Not a valid regular expression    | 올바른 정규 표현식이 아닙니다 |
 | `searchResults`      | `3/12`, `No results`              | `3/12`, `결과 없음`           |
 | `following`          | Following                         | 따라가는 중                   |
 | `paused`             | Paused                            | 멈춤                          |
