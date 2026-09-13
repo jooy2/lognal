@@ -201,6 +201,48 @@ describe('LogLayout', () => {
 		expect(rowTexts(layout).slice(1)).toEqual(['id: 1', 'tags: (2) []']);
 	});
 
+	it('expands and collapses every value of an entry at once', () => {
+		const store = new LogStore();
+		const layout = new LogLayout(store);
+		const nested: ValueNode = {
+			kind: 'object',
+			children: [
+				{ key: 'id', keyKind: 'property', value: { kind: 'number', value: '1' } },
+				{ key: 'profile', keyKind: 'property', value: object }
+			]
+		};
+		const [entry] = store.append({ parts: [{ type: 'value', value: nested }] });
+		const [plain] = store.append(text('plain'));
+
+		layout.sync();
+		expect(layout.hasExpandableValues(entry)).toBe(true);
+		expect(layout.hasExpandableValues(plain)).toBe(false);
+
+		layout.expandAll(entry.id);
+		// The object, its two properties, the nested object's two properties.
+		expect(layout.rowsOf(entry.id)).toBe(5);
+		expect(rowTexts(layout).slice(1, 5)).toEqual([
+			'id: 1',
+			'profile: {id: 1, tags: Array(2)}',
+			'id: 1',
+			'tags: (2) []'
+		]);
+
+		layout.collapseAll(entry.id);
+		expect(layout.rowsOf(entry.id)).toBe(1);
+
+		const [error] = store.append({
+			parts: [
+				{ type: 'value', value: { kind: 'error', className: 'Error', value: 'bad', stack: 'at a' } }
+			]
+		});
+
+		layout.sync();
+		expect(layout.rowsOf(error.id)).toBe(2);
+		layout.collapseAll(error.id);
+		expect(layout.rowsOf(error.id)).toBe(1);
+	});
+
 	it('opens logged errors by default so the stack is visible', () => {
 		const store = new LogStore();
 		const layout = new LogLayout(store);

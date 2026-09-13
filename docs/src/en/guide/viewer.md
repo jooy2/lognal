@@ -203,6 +203,8 @@ When the pointer is over an entry, the rows of that entry get a light background
 | Copy with timestamp    | Copies the same text after the time of the entry, in the format of the `timestamps` option, or in `'time'` when timestamps are hidden.                                                                             |
 | Copy as formatted text | Copies the entry with values that are too long for one line broken over several indented lines. The clipboard also gets the text as HTML with the colors of the theme, so an app that pastes rich text keeps them. |
 | Copy as data           | Copies the values of the entry as JSON: the value itself, or an array when the entry holds several. Shown only for entries with values.                                                                            |
+| Expand all             | Opens every value of the entry, and every value inside them, as far as they were captured. Shown only for entries with values that open.                                                                           |
+| Collapse all           | Closes every value of the entry, including an error logged on its own.                                                                                                                                             |
 
 While the log area has focus, Shift+F10 or the context menu key opens the menu for the entry where the selection ends, or for the first entry on screen. The arrow keys move through the menu, Enter chooses an item, and Escape closes the menu.
 
@@ -328,6 +330,7 @@ Every label is listed in [`ViewerLabels`](/reference/log-viewer#viewerlabels).
 | `scrollToTop()`, `scrollToBottom()`, `scrollToEntry(id)`                   | Scroll the view.                                                                           |
 | `getSelectionText()`, `selectAll()`, `clearSelection()`, `copySelection()` | Work with the selection.                                                                   |
 | `getEntryText(id, options?)`, `copyEntry(id, options?)`                    | Return or copy the text of an entry.                                                       |
+| `expandEntry(id)`, `collapseEntry(id)`                                     | Open or close every value of an entry.                                                     |
 | `focus()`                                                                  | Focuses the input line, or the log when there is no input line.                            |
 | `refresh()`                                                                | Reads the theme and the font from CSS again.                                               |
 | `on(name, listener)`                                                       | Adds a listener for `follow`, `filter` or `selection`. Returns a function that removes it. |

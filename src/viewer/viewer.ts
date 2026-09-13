@@ -752,6 +752,18 @@ export class LogViewer {
 		return copied;
 	}
 
+	/** Expands every value of an entry, and every value inside them, as far as they were captured. */
+	expandEntry(entryId: number): void {
+		this.layout.expandAll(entryId);
+		this.requestRender();
+	}
+
+	/** Collapses every value of an entry, including an error logged on its own. */
+	collapseEntry(entryId: number): void {
+		this.layout.collapseAll(entryId);
+		this.requestRender();
+	}
+
 	/** Moves keyboard focus to the input line, or to the log when there is no input line. */
 	focus(): void {
 		if (this.inputLine) {
@@ -1289,6 +1301,22 @@ export class LogViewer {
 					}
 				});
 			}
+		}
+
+		if (this.layout.hasExpandableValues(entry)) {
+			items.push(
+				{
+					label: labels.expandAll,
+					icon: 'expandAll',
+					startsGroup: items.length > 0,
+					onSelect: () => this.expandEntry(entryId)
+				},
+				{
+					label: labels.collapseAll,
+					icon: 'collapseAll',
+					onSelect: () => this.collapseEntry(entryId)
+				}
+			);
 		}
 
 		for (const [index, item] of (entryMenu.items?.(entry, this) ?? []).entries()) {

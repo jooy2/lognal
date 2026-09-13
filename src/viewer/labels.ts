@@ -34,6 +34,10 @@ export interface ViewerLabels {
 	copyEntryFormatted: string;
 	/** The menu item that copies the values of an entry as JSON. */
 	copyEntryData: string;
+	/** The menu item that expands every value of an entry. */
+	expandAll: string;
+	/** The menu item that collapses every value of an entry. */
+	collapseAll: string;
 	following: string;
 	paused: string;
 	/** The entry count in the status bar. `format` formats a number for the locale. */
@@ -65,6 +69,8 @@ export const EN_LABELS: ViewerLabels = {
 	copyEntryWithTime: 'Copy with timestamp',
 	copyEntryFormatted: 'Copy as formatted text',
 	copyEntryData: 'Copy as data',
+	expandAll: 'Expand all',
+	collapseAll: 'Collapse all',
 	following: 'Following',
 	paused: 'Paused',
 	entries: (shown, total, format) => {
@@ -101,6 +107,8 @@ export const KO_LABELS: ViewerLabels = {
 	copyEntryWithTime: '타임스탬프와 함께 복사',
 	copyEntryFormatted: '서식 있는 텍스트로 복사',
 	copyEntryData: '데이터로 복사',
+	expandAll: '모두 펼치기',
+	collapseAll: '모두 접기',
 	following: '따라가는 중',
 	paused: '멈춤',
 	entries: (shown, total, format) => {

@@ -52,6 +52,8 @@ new LogViewer(container: HTMLElement, options?: LogViewerOptions)
 | `copySelection()`                                                    | `Promise<boolean>`  | 선택한 텍스트를 클립보드에 복사합니다. 복사한 내용이 있는지를 이행 값으로 돌려줍니다.                                                                                             |
 | `getEntryText(entryId: number, options?: EntryTextOptions)`          | `string`            | 값을 펼쳤는지와 상관없이 항목 전체를 `options.format` 형식으로 반환합니다. `timestamp: true`이면 앞에 항목의 시각을 붙입니다. 스토어에 더는 없는 항목이면 빈 문자열을 반환합니다. |
 | `copyEntry(entryId: number, options?: EntryTextOptions)`             | `Promise<boolean>`  | `getEntryText`가 반환하는 텍스트를 클립보드에 복사하고, `'formatted'`이면 테마 색을 입힌 HTML도 함께 넣습니다. 복사한 내용이 있는지를 이행 값으로 돌려줍니다.                     |
+| `expandEntry(entryId: number)`                                       | `void`              | 항목의 값과 그 안의 값을 캡처된 만큼 모두 펼칩니다.                                                                                                                               |
+| `collapseEntry(entryId: number)`                                     | `void`              | 따로 로그를 남긴 오류까지 포함해 항목의 값을 모두 접습니다.                                                                                                                       |
 | `focus()`                                                            | `void`              | 입력 줄에, 입력 줄이 없으면 로그 영역에 포커스를 줍니다.                                                                                                                          |
 | `refresh()`                                                          | `void`              | 페이지가 CSS를 바꾼 뒤처럼 필요할 때 CSS에서 테마와 글꼴을 다시 읽습니다.                                                                                                         |
 | `on(name, listener)`                                                 | `() => void`        | 이벤트가 일어나면 `listener`를 호출합니다. 리스너를 떼는 함수를 반환합니다.                                                                                                       |
@@ -191,6 +193,8 @@ off();
 | `copyEntryWithTime`  | Copy with timestamp               | 타임스탬프와 함께 복사        |
 | `copyEntryFormatted` | Copy as formatted text            | 서식 있는 텍스트로 복사       |
 | `copyEntryData`      | Copy as data                      | 데이터로 복사                 |
+| `expandAll`          | Expand all                        | 모두 펼치기                   |
+| `collapseAll`        | Collapse all                      | 모두 접기                     |
 | `following`          | Following                         | 따라가는 중                   |
 | `paused`             | Paused                            | 멈춤                          |
 | `entries`            | `3 entries`, `1 of 3 entries`     | `로그 3개`, `로그 3개 중 1개` |

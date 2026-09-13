@@ -52,6 +52,8 @@ Creates the viewer and appends its root element to `container`.
 | `copySelection()`                                                    | `Promise<boolean>`  | Copies the selected text to the clipboard. Resolves to whether anything was copied.                                                                                                                                                      |
 | `getEntryText(entryId: number, options?: EntryTextOptions)`          | `string`            | Returns the whole of an entry, whether its values are open or closed, in the format of `options.format`. With `timestamp: true`, the time of the entry comes first. Returns an empty string for an entry that is no longer in the store. |
 | `copyEntry(entryId: number, options?: EntryTextOptions)`             | `Promise<boolean>`  | Copies the text `getEntryText` returns to the clipboard, together with HTML in the colors of the theme for `'formatted'`. Resolves to whether anything was copied.                                                                       |
+| `expandEntry(entryId: number)`                                       | `void`              | Expands every value of an entry, and every value inside them, as far as they were captured.                                                                                                                                              |
+| `collapseEntry(entryId: number)`                                     | `void`              | Collapses every value of an entry, including an error logged on its own.                                                                                                                                                                 |
 | `focus()`                                                            | `void`              | Moves focus to the input line, or to the log when there is no input line.                                                                                                                                                                |
 | `refresh()`                                                          | `void`              | Reads the theme and the font from CSS again, for example after the page changed them.                                                                                                                                                    |
 | `on(name, listener)`                                                 | `() => void`        | Calls `listener` for an event. Returns a function that removes the listener.                                                                                                                                                             |
@@ -191,6 +193,8 @@ Every label is used as visible text or as an accessible name.
 | `copyEntryWithTime`  | Copy with timestamp               | 타임스탬프와 함께 복사        |
 | `copyEntryFormatted` | Copy as formatted text            | 서식 있는 텍스트로 복사       |
 | `copyEntryData`      | Copy as data                      | 데이터로 복사                 |
+| `expandAll`          | Expand all                        | 모두 펼치기                   |
+| `collapseAll`        | Collapse all                      | 모두 접기                     |
 | `following`          | Following                         | 따라가는 중                   |
 | `paused`             | Paused                            | 멈춤                          |
 | `entries`            | `3 entries`, `1 of 3 entries`     | `로그 3개`, `로그 3개 중 1개` |

@@ -431,6 +431,51 @@ describe('LogViewer', () => {
 		viewer.dispose();
 	});
 
+	it('expands and collapses every value of an entry from its menu', async () => {
+		const viewer = new LogViewer(container, { timestamps: false, core: { mergeRepeats: false } });
+		const button = viewer.element.querySelector('.lognal-entry-actions') as HTMLButtonElement;
+		const popup = viewer.element.querySelector('.lognal-popup') as HTMLDivElement;
+		const labelsAt = (y: number): string[] => {
+			hover(viewer, 200, y);
+			button.click();
+
+			return Array.from(popup.querySelectorAll('[role="menuitem"]')).map(
+				(item) => item.textContent ?? ''
+			);
+		};
+		const choose = (label: string): void => {
+			(
+				Array.from(popup.querySelectorAll('[role="menuitem"]')).find(
+					(item) => item.textContent === label
+				) as HTMLElement
+			).click();
+		};
+
+		viewer.console.log({ user: { id: 1, roles: ['admin'] } });
+		viewer.console.log('plain text');
+		await nextFrame();
+
+		const [entry, plain] = viewer.store.toArray();
+
+		expect(labelsAt(8)).toContain('Expand all');
+		choose('Expand all');
+		await nextFrame();
+		// The object, `user`, its `id` and `roles`, and the item of `roles`.
+		expect(viewer.layout.rowsOf(entry.id)).toBe(5);
+
+		expect(labelsAt(8)).toContain('Collapse all');
+		choose('Collapse all');
+		await nextFrame();
+		expect(viewer.layout.rowsOf(entry.id)).toBe(1);
+
+		const rowHeight = parseFloat(viewer.element.style.getPropertyValue('--lognal-cell-height'));
+
+		expect(labelsAt(4 + rowHeight * 1.5)).not.toContain('Expand all');
+		popup.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+		expect(viewer.getEntryText(plain.id)).toBe('plain text');
+		viewer.dispose();
+	});
+
 	it('escapes log text in the HTML of a formatted copy', async () => {
 		const viewer = new LogViewer(container);
 		const write = vi.spyOn(navigator.clipboard, 'write').mockResolvedValue(undefined);

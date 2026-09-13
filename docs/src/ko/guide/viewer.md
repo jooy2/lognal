@@ -203,6 +203,8 @@ viewer.setFilter(null);
 | 타임스탬프와 함께 복사  | 같은 텍스트 앞에 항목의 시각을 붙여 복사합니다. 시각은 `timestamps` 옵션의 형식을 따르고, 타임스탬프를 숨겼다면 `'time'` 형식을 씁니다.                           |
 | 서식 있는 텍스트로 복사 | 한 줄에 다 들어가지 않는 값을 들여쓴 여러 줄로 나눠 복사합니다. 클립보드에는 테마 색을 입힌 HTML도 함께 들어가서, 리치 텍스트를 붙여 넣는 앱에서는 색이 남습니다. |
 | 데이터로 복사           | 항목의 값을 JSON으로 복사합니다. 값이 하나면 그 값을, 여러 개면 배열을 복사합니다. 값이 있는 항목에만 나옵니다.                                                   |
+| 모두 펼치기             | 항목의 값과 그 안의 값을 캡처된 만큼 모두 펼칩니다. 펼칠 수 있는 값이 있는 항목에만 나옵니다.                                                                     |
+| 모두 접기               | 따로 로그를 남긴 오류까지 포함해 항목의 값을 모두 접습니다.                                                                                                       |
 
 로그 영역에 포커스가 있을 때 Shift+F10이나 컨텍스트 메뉴 키를 누르면, 선택이 끝나는 항목이나 화면 맨 위 항목의 메뉴가 열립니다. 메뉴에서는 화살표 키로 이동하고, Enter로 고르고, Escape로 닫습니다.
 
@@ -327,6 +329,7 @@ new LogViewer(container, {
 | `scrollToTop()`, `scrollToBottom()`, `scrollToEntry(id)`                   | 화면을 스크롤합니다.                                                                       |
 | `getSelectionText()`, `selectAll()`, `clearSelection()`, `copySelection()` | 선택을 다룹니다.                                                                           |
 | `getEntryText(id, options?)`, `copyEntry(id, options?)`                    | 항목의 텍스트를 반환하거나 복사합니다.                                                     |
+| `expandEntry(id)`, `collapseEntry(id)`                                     | 항목의 값을 모두 펼치거나 접습니다.                                                        |
 | `focus()`                                                                  | 입력 줄에, 입력 줄이 없으면 로그 영역에 포커스를 줍니다.                                   |
 | `refresh()`                                                                | CSS에서 테마와 글꼴을 다시 읽습니다.                                                       |
 | `on(name, listener)`                                                       | `follow`, `filter`, `selection` 이벤트에 리스너를 답니다. 리스너를 떼는 함수를 반환합니다. |

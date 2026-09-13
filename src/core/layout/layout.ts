@@ -8,7 +8,8 @@ import {
 	type ShapeOptions
 } from '../text/shape.js';
 import { wrapLine } from '../text/wrap.js';
-import type { LogEntry } from '../types.js';
+import type { LogEntry, ValueNode } from '../types.js';
+import { isExpandable } from '../value/preview.js';
 import { buildEntryLines, INDENT_CELLS, isExpandedByDefault } from './entry-lines.js';
 import { RowIndex } from './row-index.js';
 import type { LineAction, RowRun, ShapedLine, TextPosition, VisualRow, WrapMode } from './types.js';
@@ -493,7 +494,59 @@ export class LogLayout {
 		expansion.paths.set(path, expanded);
 		expansion.version++;
 		this.expansions.set(entry.id, expansion);
+		this.onExpansionChange(entry);
+	}
 
+	/** Returns whether an entry holds a value that can be expanded. */
+	hasExpandableValues(entry: LogEntry): boolean {
+		return entry.parts.some((part) => part.type === 'value' && isExpandable(part.value));
+	}
+
+	/** Expands every value of an entry, and every value inside them, as far as they were captured. */
+	expandAll(entryId: number): void {
+		this.setAllExpanded(entryId, true);
+	}
+
+	/** Collapses every value of an entry, including errors, which are open until closed. */
+	collapseAll(entryId: number): void {
+		this.setAllExpanded(entryId, false);
+	}
+
+	private setAllExpanded(entryId: number, expanded: boolean): void {
+		const entry = this.store.get(entryId);
+
+		if (!entry) {
+			return;
+		}
+
+		const paths = new Map<string, boolean>();
+		const visit = (node: ValueNode, path: string): void => {
+			if (!isExpandable(node)) {
+				return;
+			}
+
+			paths.set(path, expanded);
+			node.children?.forEach((child, index) => visit(child.value, `${path}.${index}`));
+		};
+
+		entry.parts.forEach((part, index) => {
+			if (part.type === 'value') {
+				visit(part.value, String(index));
+			}
+		});
+
+		if (paths.size === 0) {
+			return;
+		}
+
+		const version = (this.expansions.get(entry.id)?.version ?? 0) + 1;
+
+		this.expansions.set(entry.id, { version, paths });
+		this.onExpansionChange(entry);
+	}
+
+	/** Counts the rows of an entry again after its expanded values changed. */
+	private onExpansionChange(entry: LogEntry): void {
 		const index = this.indexOf(entry.id);
 
 		if (index >= 0) {
