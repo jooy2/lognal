@@ -30,6 +30,8 @@ export interface RenderTheme {
 	selection: string;
 	match: string;
 	separator: string;
+	/** The background of the rows of the entry under the pointer. */
+	hover: string;
 	error: string;
 	errorBackground: string;
 	warn: string;
@@ -45,6 +47,8 @@ export interface RenderTheme {
 export interface RowDecoration {
 	selection?: [number, number];
 	matches?: [number, number][];
+	/** Whether the row belongs to the entry under the pointer, or to the entry whose menu is open. */
+	hovered?: boolean;
 }
 
 /** Everything needed to draw one frame. */

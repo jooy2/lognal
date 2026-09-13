@@ -39,7 +39,7 @@ viewer.dispose();
 | `input`      | `InputOptions \| null`                  | `null`       | 입력 줄입니다. 읽기 전용 뷰어라면 생략합니다.                                                      |
 | `locale`     | `string`                                | 없음         | 내장 레이블과 숫자 서식의 언어입니다. 예를 들면 `'ko'`입니다.                                      |
 | `labels`     | `Partial<ViewerLabels>`                 | 내장 레이블  | 내장 레이블 대신 쓸 레이블입니다.                                                                  |
-| `entryMenu`  | `boolean`                               | `true`       | 포인터가 올라간 항목에 작업 메뉴 버튼을 보여 줄지 정합니다. [항목 메뉴](#entry-menu)를 참고하세요. |
+| `entryMenu`  | `boolean \| EntryMenuOptions`           | `true`       | 포인터가 올라간 항목의 작업 메뉴입니다. `false`이면 끕니다. [항목 메뉴](#entry-menu)를 참고하세요. |
 | `renderer`   | `(ownerDocument: Document) => Renderer` | Canvas 2D    | 렌더러를 만듭니다. [레이아웃과 렌더러](/ko/reference/layout#renderer)를 참고하세요.                |
 
 ### 코어 옵션 {#core-options}
@@ -195,21 +195,54 @@ viewer.setFilter(null);
 
 ## 항목 메뉴 {#entry-menu}
 
-포인터를 항목 위에 올리면, 화면에 보이는 그 항목의 첫 행 오른쪽 끝에 세로 점 세 개 모양의 버튼이 나옵니다. 이 버튼을 누르면 그 항목의 작업 메뉴가 열립니다.
+포인터를 항목 위에 올리면 그 항목의 행에 옅은 배경이 깔리고, 화면에 보이는 첫 행의 오른쪽 끝에 세로 점 세 개 모양의 버튼이 나옵니다. 이 버튼을 누르면 그 항목의 작업 메뉴가 열립니다. 터치 화면에서는 항목을 길게 누르면 같은 메뉴가 열립니다.
 
-| 메뉴 항목     | 동작                                                                                                 |
-| ------------- | ---------------------------------------------------------------------------------------------------- |
-| 텍스트로 복사 | 항목 전체를 선택해 복사할 때처럼, 펼친 값의 행을 포함해 항목의 모든 줄을 타임스탬프 없이 복사합니다. |
+| 메뉴 항목              | 동작                                                                                                                                    |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| 텍스트로 복사          | 항목 전체를 선택해 복사할 때처럼, 펼친 값의 행을 포함해 항목의 모든 줄을 타임스탬프 없이 복사합니다.                                    |
+| 타임스탬프와 함께 복사 | 같은 텍스트 앞에 항목의 시각을 붙여 복사합니다. 시각은 `timestamps` 옵션의 형식을 따르고, 타임스탬프를 숨겼다면 `'time'` 형식을 씁니다. |
 
-로그 영역에 포커스가 있을 때 Shift+F10이나 컨텍스트 메뉴 키를 누르면, 선택이 끝나는 항목이나 화면 맨 위 항목의 메뉴가 열립니다. 메뉴에서는 화살표 키로 이동하고, Enter로 고르고, Escape로 닫습니다. 터치 입력에서는 버튼이 나오지 않습니다.
+로그 영역에 포커스가 있을 때 Shift+F10이나 컨텍스트 메뉴 키를 누르면, 선택이 끝나는 항목이나 화면 맨 위 항목의 메뉴가 열립니다. 메뉴에서는 화살표 키로 이동하고, Enter로 고르고, Escape로 닫습니다.
 
-`entryMenu: false`를 넘기면 버튼과 단축키가 모두 꺼집니다. 복사는 메서드로도 할 수 있습니다. `getEntryText(id)`는 항목의 텍스트를 반환하고, `copyEntry(id)`는 그 텍스트를 복사한 뒤 복사한 내용이 있는지를 불리언으로 이행합니다.
+### 메뉴 항목 추가 {#add-your-own-items}
+
+`entryMenu`에 객체를 넘기면 내장 메뉴 항목 뒤에 직접 만든 메뉴 항목을 붙일 수 있습니다. `items`는 메뉴가 열릴 때마다 호출되며 메뉴를 연 로그 항목을 인자로 받고, `onSelect`도 같은 로그 항목을 받습니다.
+
+```ts
+const socket = new WebSocket('wss://example.com/reports');
+
+new LogViewer(container, {
+	entryMenu: {
+		items: (entry) => [
+			{
+				label: '이 수준만 보기',
+				onSelect: (_, viewer) => viewer.setFilter({ levels: [entry.level] })
+			},
+			{
+				label: '이 로그 보고하기',
+				onSelect: (item, viewer) => socket.send(viewer.getEntryText(item.id, { timestamp: true }))
+			}
+		]
+	}
+});
+```
+
+| `EntryMenuOptions` 필드 | 타입                                                      | 기본값 | 설명                                        |
+| ----------------------- | --------------------------------------------------------- | ------ | ------------------------------------------- |
+| `copy`                  | `boolean`                                                 | `true` | 메뉴를 두 복사 항목으로 시작할지 정합니다.  |
+| `items`                 | `(entry: LogEntry, viewer: LogViewer) => EntryMenuItem[]` | 없음   | 내장 메뉴 항목 뒤에 붙일 항목을 반환합니다. |
+
+`EntryMenuItem`은 `label`과 `onSelect(entry, viewer)` 함수로 이루어집니다. 직접 만든 메뉴 항목은 구분선 아래, 내장 항목 다음에 나옵니다. `copy: false`이면서 `items`가 없으면 메뉴가 꺼지고, 메뉴 항목이 하나도 없는 메뉴는 열리지 않습니다.
+
+`entryMenu: false`를 넘기면 버튼, 길게 누르기, 단축키가 모두 꺼집니다. 호버 배경은 남으며, 없애려면 `--lognal-hover`를 `transparent`로 지정하세요.
+
+복사는 메서드로도 할 수 있습니다. `getEntryText(id, options?)`는 항목의 텍스트를 반환하고, `options.timestamp`가 `true`이면 앞에 시각을 붙입니다. `copyEntry(id, options?)`는 그 텍스트를 복사한 뒤 복사한 내용이 있는지를 불리언으로 이행합니다.
 
 ```ts
 const entry = viewer.store.write('Deploy finished', { level: 'info' });
 
 if (entry) {
-	await viewer.copyEntry(entry.id);
+	await viewer.copyEntry(entry.id, { timestamp: true });
 }
 ```
 
@@ -291,7 +324,7 @@ new LogViewer(container, {
 | `setFollowing(following)`                                                  | 따라가기를 켜거나 끕니다.                                                                  |
 | `scrollToTop()`, `scrollToBottom()`, `scrollToEntry(id)`                   | 화면을 스크롤합니다.                                                                       |
 | `getSelectionText()`, `selectAll()`, `clearSelection()`, `copySelection()` | 선택을 다룹니다.                                                                           |
-| `getEntryText(id)`, `copyEntry(id)`                                        | 항목의 텍스트를 반환하거나 복사합니다.                                                     |
+| `getEntryText(id, options?)`, `copyEntry(id, options?)`                    | 항목의 텍스트를 반환하거나 복사합니다.                                                     |
 | `focus()`                                                                  | 입력 줄에, 입력 줄이 없으면 로그 영역에 포커스를 줍니다.                                   |
 | `refresh()`                                                                | CSS에서 테마와 글꼴을 다시 읽습니다.                                                       |
 | `on(name, listener)`                                                       | `follow`, `filter`, `selection` 이벤트에 리스너를 답니다. 리스너를 떼는 함수를 반환합니다. |
@@ -305,7 +338,7 @@ new LogViewer(container, {
 - 뷰어 전체는 `viewer` 레이블을 이름으로 쓰는 region 역할의 요소이고, 도구 모음은 이름이 붙은 버튼을 담은 toolbar 역할의 요소입니다. 따라가기 버튼과 줄 바꿈 버튼은 눌린 상태를 알립니다.
 - 로그 영역은 키보드 포커스를 받을 수 있고, 다른 스크롤 영역처럼 화살표 키와 Page Up, Page Down으로 스크롤합니다.
 - 수준 메뉴는 목록 상자를 여는 버튼입니다. 화살표 키, Home, End로 수준을 오가고, Enter나 Space로 고르고, Escape로 목록을 닫으면 포커스가 버튼으로 돌아갑니다.
-- 항목 메뉴 버튼의 이름은 `entryActions` 레이블이고, 포인터가 없어도 Shift+F10이나 컨텍스트 메뉴 키로 메뉴를 열 수 있습니다.
+- 항목 메뉴 버튼의 이름은 `entryActions` 레이블입니다. 포인터가 없어도 Shift+F10이나 컨텍스트 메뉴 키로 메뉴를 열 수 있고, 터치 화면에서는 길게 눌러 엽니다.
 - 화면에 보이지 않는 목록이 화면의 항목을 스크린 리더에 전달합니다. 경고와 오류는 `warn:`, `error:`로 시작합니다.
 - 입력 줄은 이름이 붙은 `<textarea>`입니다.
 - 로그 영역과 입력 줄에는 포커스 윤곽선을 그리지 않고, 입력 줄에서는 캐럿이 포커스를 보여 줍니다. 포커스를 받은 로그 영역에 윤곽선이 필요하면 `.lognal-viewport:focus-visible { box-shadow: inset 0 0 0 2px var(--lognal-focus-ring); }` 같은 규칙을 추가하세요.

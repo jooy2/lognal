@@ -104,6 +104,9 @@ export { DEFAULT_RENDER_THEME } from './renderer/theme.js';
 export {
 	LogViewer,
 	type CoreOptions,
+	type EntryMenuItem,
+	type EntryMenuOptions,
+	type EntryTextOptions,
 	type InputOptions,
 	type LogViewerEvents,
 	type LogViewerOptions,

@@ -33,29 +33,29 @@ Creates the viewer and appends its root element to `container`.
 
 ## Methods
 
-| Method                                                               | Returns             | Description                                                                                                                                         |
-| -------------------------------------------------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `setOptions(options: Omit<LogViewerOptions, 'store' \| 'renderer'>)` | `void`              | Changes the options given and keeps the others. A new `locale` switches the built-in labels and keeps the overrides from `labels`.                  |
-| `write(text: string, options?: WriteOptions)`                        | `void`              | Adds text as one entry. Line breaks stay inside the entry.                                                                                          |
-| `writeLines(text: string, options?: WriteOptions)`                   | `void`              | Adds text as one entry per line.                                                                                                                    |
-| `hookConsole(target?: Console, options?: HookConsoleOptions)`        | `() => void`        | Records a console, `console` by default, into the store. Returns a function that stops recording. Recording also stops when the viewer is disposed. |
-| `clear()`                                                            | `void`              | Removes every entry from the store and clears the selection.                                                                                        |
-| `setFilter(filter: LogFilter \| null)`                               | `void`              | Sets the filter. `null` shows every entry. Emits `filter`.                                                                                          |
-| `getFilter()`                                                        | `LogFilter \| null` | Returns the filter.                                                                                                                                 |
-| `setFollowing(following: boolean)`                                   | `void`              | Turns following on or off. Turning it on scrolls to the newest entry. Emits `follow` when the value changes.                                        |
-| `scrollToTop()`                                                      | `void`              | Stops following and scrolls to the first row.                                                                                                       |
-| `scrollToBottom()`                                                   | `void`              | Turns following on, which scrolls to the newest entry.                                                                                              |
-| `scrollToEntry(entryId: number)`                                     | `void`              | Stops following and scrolls so the entry is at the top. Does nothing when the entry is not visible.                                                 |
-| `getSelectionText()`                                                 | `string`            | Returns the selected text, or an empty string.                                                                                                      |
-| `selectAll()`                                                        | `void`              | Selects the text of every visible entry. Emits `selection`.                                                                                         |
-| `clearSelection()`                                                   | `void`              | Clears the selection. Emits `selection` when there was one.                                                                                         |
-| `copySelection()`                                                    | `Promise<boolean>`  | Copies the selected text to the clipboard. Resolves to whether anything was copied.                                                                 |
-| `getEntryText(entryId: number)`                                      | `string`            | Returns every line of an entry, with the rows of open values and without the timestamp. Returns an empty string for an entry that is not visible.   |
-| `copyEntry(entryId: number)`                                         | `Promise<boolean>`  | Copies the text of an entry to the clipboard. Resolves to whether anything was copied.                                                              |
-| `focus()`                                                            | `void`              | Moves focus to the input line, or to the log when there is no input line.                                                                           |
-| `refresh()`                                                          | `void`              | Reads the theme and the font from CSS again, for example after the page changed them.                                                               |
-| `on(name, listener)`                                                 | `() => void`        | Calls `listener` for an event. Returns a function that removes the listener.                                                                        |
-| `dispose()`                                                          | `void`              | Removes the viewer from the page and stops everything it started. Calling it again does nothing.                                                    |
+| Method                                                               | Returns             | Description                                                                                                                                                                        |
+| -------------------------------------------------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `setOptions(options: Omit<LogViewerOptions, 'store' \| 'renderer'>)` | `void`              | Changes the options given and keeps the others. A new `locale` switches the built-in labels and keeps the overrides from `labels`.                                                 |
+| `write(text: string, options?: WriteOptions)`                        | `void`              | Adds text as one entry. Line breaks stay inside the entry.                                                                                                                         |
+| `writeLines(text: string, options?: WriteOptions)`                   | `void`              | Adds text as one entry per line.                                                                                                                                                   |
+| `hookConsole(target?: Console, options?: HookConsoleOptions)`        | `() => void`        | Records a console, `console` by default, into the store. Returns a function that stops recording. Recording also stops when the viewer is disposed.                                |
+| `clear()`                                                            | `void`              | Removes every entry from the store and clears the selection.                                                                                                                       |
+| `setFilter(filter: LogFilter \| null)`                               | `void`              | Sets the filter. `null` shows every entry. Emits `filter`.                                                                                                                         |
+| `getFilter()`                                                        | `LogFilter \| null` | Returns the filter.                                                                                                                                                                |
+| `setFollowing(following: boolean)`                                   | `void`              | Turns following on or off. Turning it on scrolls to the newest entry. Emits `follow` when the value changes.                                                                       |
+| `scrollToTop()`                                                      | `void`              | Stops following and scrolls to the first row.                                                                                                                                      |
+| `scrollToBottom()`                                                   | `void`              | Turns following on, which scrolls to the newest entry.                                                                                                                             |
+| `scrollToEntry(entryId: number)`                                     | `void`              | Stops following and scrolls so the entry is at the top. Does nothing when the entry is not visible.                                                                                |
+| `getSelectionText()`                                                 | `string`            | Returns the selected text, or an empty string.                                                                                                                                     |
+| `selectAll()`                                                        | `void`              | Selects the text of every visible entry. Emits `selection`.                                                                                                                        |
+| `clearSelection()`                                                   | `void`              | Clears the selection. Emits `selection` when there was one.                                                                                                                        |
+| `copySelection()`                                                    | `Promise<boolean>`  | Copies the selected text to the clipboard. Resolves to whether anything was copied.                                                                                                |
+| `getEntryText(entryId: number, options?: EntryTextOptions)`          | `string`            | Returns every line of an entry, with the rows of open values. With `timestamp: true`, the time of the entry comes first. Returns an empty string for an entry that is not visible. |
+| `copyEntry(entryId: number, options?: EntryTextOptions)`             | `Promise<boolean>`  | Copies the text `getEntryText` returns to the clipboard. Resolves to whether anything was copied.                                                                                  |
+| `focus()`                                                            | `void`              | Moves focus to the input line, or to the log when there is no input line.                                                                                                          |
+| `refresh()`                                                          | `void`              | Reads the theme and the font from CSS again, for example after the page changed them.                                                                                              |
+| `on(name, listener)`                                                 | `() => void`        | Calls `listener` for an event. Returns a function that removes the listener.                                                                                                       |
+| `dispose()`                                                          | `void`              | Removes the viewer from the page and stops everything it started. Calling it again does nothing.                                                                                   |
 
 ## Events
 
@@ -79,21 +79,21 @@ The events and their values are described by the `LogViewerEvents` type.
 
 ## LogViewerOptions
 
-| Option       | Type                                    | Default          | Description                                                                             |
-| ------------ | --------------------------------------- | ---------------- | --------------------------------------------------------------------------------------- |
-| `store`      | `LogStore`                              | A new store      | A store to show. Several viewers can share one store.                                   |
-| `core`       | `Partial<CoreOptions>`                  | `{}`             | Core options. The store options also apply to a store passed in `store`.                |
-| `theme`      | `ThemeMode`                             | `'auto'`         | The color scheme. `'auto'` follows the operating system.                                |
-| `font`       | `Partial<FontSettings>`                 | `{}`             | The font. Values left out come from the `--lognal-font-*` CSS properties.               |
-| `timestamps` | `boolean \| TimestampFormat`            | `true`           | Whether each entry shows its time, and in which format. `true` is `'time'`.             |
-| `follow`     | `boolean`                               | `true`           | Whether the view follows new entries at the start.                                      |
-| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`           | The toolbar, or `false` to hide it. An object turns single controls off.                |
-| `statusBar`  | `boolean`                               | `true`           | Whether the status bar is shown.                                                        |
-| `input`      | `InputOptions \| null`                  | `null`           | The input line. Leave it out for a read-only viewer.                                    |
-| `locale`     | `string`                                | `undefined`      | The language of the built-in labels and number formatting, such as `'en'` or `'ko'`.    |
-| `labels`     | `Partial<ViewerLabels>`                 | `{}`             | Labels that replace the built-in ones.                                                  |
-| `entryMenu`  | `boolean`                               | `true`           | Whether the entry under the pointer shows a button that opens a menu of actions for it. |
-| `renderer`   | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | Creates the renderer.                                                                   |
+| Option       | Type                                    | Default          | Description                                                                          |
+| ------------ | --------------------------------------- | ---------------- | ------------------------------------------------------------------------------------ |
+| `store`      | `LogStore`                              | A new store      | A store to show. Several viewers can share one store.                                |
+| `core`       | `Partial<CoreOptions>`                  | `{}`             | Core options. The store options also apply to a store passed in `store`.             |
+| `theme`      | `ThemeMode`                             | `'auto'`         | The color scheme. `'auto'` follows the operating system.                             |
+| `font`       | `Partial<FontSettings>`                 | `{}`             | The font. Values left out come from the `--lognal-font-*` CSS properties.            |
+| `timestamps` | `boolean \| TimestampFormat`            | `true`           | Whether each entry shows its time, and in which format. `true` is `'time'`.          |
+| `follow`     | `boolean`                               | `true`           | Whether the view follows new entries at the start.                                   |
+| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`           | The toolbar, or `false` to hide it. An object turns single controls off.             |
+| `statusBar`  | `boolean`                               | `true`           | Whether the status bar is shown.                                                     |
+| `input`      | `InputOptions \| null`                  | `null`           | The input line. Leave it out for a read-only viewer.                                 |
+| `locale`     | `string`                                | `undefined`      | The language of the built-in labels and number formatting, such as `'en'` or `'ko'`. |
+| `labels`     | `Partial<ViewerLabels>`                 | `{}`             | Labels that replace the built-in ones.                                               |
+| `entryMenu`  | `boolean \| EntryMenuOptions`           | `true`           | The menu of actions of the entry under the pointer, or `false` to turn it off.       |
+| `renderer`   | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | Creates the renderer.                                                                |
 
 ## CoreOptions
 
@@ -132,36 +132,59 @@ Every control is `true` by default.
 | `echo`        | `boolean`                                         | `true`                    | Whether the command is added to the log before it runs.                                                                                                |
 | `historySize` | `number`                                          | `100`                     | How many past commands the arrow keys go through.                                                                                                      |
 
+## EntryMenuOptions
+
+| Option  | Type                                                      | Default | Description                                                                                         |
+| ------- | --------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------- |
+| `copy`  | `boolean`                                                 | `true`  | Whether the menu starts with **Copy as text** and **Copy with timestamp**.                          |
+| `items` | `(entry: LogEntry, viewer: LogViewer) => EntryMenuItem[]` | None    | Called every time the menu opens. The items it returns follow the built-in ones, below a separator. |
+
+With `copy: false` and no `items`, the menu is off. A menu that would have no items does not open.
+
+### EntryMenuItem
+
+| Field      | Type                                           | Description                                             |
+| ---------- | ---------------------------------------------- | ------------------------------------------------------- |
+| `label`    | `string`                                       | The text of the item.                                   |
+| `onSelect` | `(entry: LogEntry, viewer: LogViewer) => void` | Called with the entry the menu opened for, when chosen. |
+
+### EntryTextOptions
+
+| Option      | Type      | Default | Description                                                                                                    |
+| ----------- | --------- | ------- | -------------------------------------------------------------------------------------------------------------- |
+| `timestamp` | `boolean` | `false` | Whether the text starts with the time of the entry, in the format of `timestamps`, or `'time'` when it is off. |
+
 ## ViewerLabels
 
 Every label is used as visible text or as an accessible name.
 
-| Label              | English (`EN_LABELS`)             | Korean (`KO_LABELS`)          |
-| ------------------ | --------------------------------- | ----------------------------- |
-| `viewer`           | Log viewer                        | 로그 뷰어                     |
-| `toolbar`          | Log viewer tools                  | 로그 뷰어 도구                |
-| `follow`           | Follow new logs                   | 새 로그 따라가기              |
-| `clear`            | Clear logs                        | 로그 지우기                   |
-| `scrollToTop`      | Scroll to top                     | 맨 위로 이동                  |
-| `scrollToBottom`   | Scroll to bottom                  | 맨 아래로 이동                |
-| `wrap`             | Wrap long lines                   | 긴 줄 바꾸기                  |
-| `filter`           | Filter                            | 필터                          |
-| `invalidFilter`    | The filter is not a valid pattern | 필터 패턴이 올바르지 않습니다 |
-| `levels`           | Log levels                        | 로그 수준                     |
-| `levelAll`         | All levels                        | 모든 수준                     |
-| `levelLog`         | Log and above                     | 로그 이상                     |
-| `levelInfo`        | Info and above                    | 정보 이상                     |
-| `levelWarn`        | Warnings and errors               | 경고와 오류                   |
-| `levelError`       | Errors only                       | 오류만                        |
-| `input`            | Command                           | 명령                          |
-| `inputPlaceholder` | Type a command                    | 명령을 입력하세요             |
-| `newLogs`          | New logs                          | 새 로그                       |
-| `entryList`        | Visible log entries               | 화면에 보이는 로그            |
-| `entryActions`     | Entry actions                     | 항목 작업                     |
-| `copyEntry`        | Copy as text                      | 텍스트로 복사                 |
-| `following`        | Following                         | 따라가는 중                   |
-| `paused`           | Paused                            | 멈춤                          |
-| `entries`          | `3 entries`, `1 of 3 entries`     | `로그 3개`, `로그 3개 중 1개` |
+| Label               | English (`EN_LABELS`)             | Korean (`KO_LABELS`)          |
+| ------------------- | --------------------------------- | ----------------------------- |
+| `viewer`            | Log viewer                        | 로그 뷰어                     |
+| `toolbar`           | Log viewer tools                  | 로그 뷰어 도구                |
+| `follow`            | Follow new logs                   | 새 로그 따라가기              |
+| `clear`             | Clear logs                        | 로그 지우기                   |
+| `scrollToTop`       | Scroll to top                     | 맨 위로 이동                  |
+| `scrollToBottom`    | Scroll to bottom                  | 맨 아래로 이동                |
+| `wrap`              | Wrap long lines                   | 긴 줄 바꾸기                  |
+| `filter`            | Filter                            | 필터                          |
+| `invalidFilter`     | The filter is not a valid pattern | 필터 패턴이 올바르지 않습니다 |
+| `levels`            | Log levels                        | 로그 수준                     |
+| `levelAll`          | All levels                        | 모든 수준                     |
+| `levelLog`          | Log and above                     | 로그 이상                     |
+| `levelInfo`         | Info and above                    | 정보 이상                     |
+| `levelWarn`         | Warnings and errors               | 경고와 오류                   |
+| `levelError`        | Errors only                       | 오류만                        |
+| `input`             | Command                           | 명령                          |
+| `inputPlaceholder`  | Type a command                    | 명령을 입력하세요             |
+| `newLogs`           | New logs                          | 새 로그                       |
+| `entryList`         | Visible log entries               | 화면에 보이는 로그            |
+| `entryActions`      | Entry actions                     | 항목 작업                     |
+| `copyEntry`         | Copy as text                      | 텍스트로 복사                 |
+| `copyEntryWithTime` | Copy with timestamp               | 타임스탬프와 함께 복사        |
+| `following`         | Following                         | 따라가는 중                   |
+| `paused`            | Paused                            | 멈춤                          |
+| `entries`           | `3 entries`, `1 of 3 entries`     | `로그 3개`, `로그 3개 중 1개` |
 
 `entries` is a function: `(shown: number, total: number, format: (value: number) => string) => string`. `format` formats a number for the locale.
 

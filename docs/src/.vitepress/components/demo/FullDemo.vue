@@ -7,6 +7,7 @@
  * reads the page's CSS. The page wraps it in `<ClientOnly>`.
  */
 import type {
+	EntryMenuOptions,
 	FileHandleLike,
 	FollowHandle,
 	InputOptions,
@@ -216,6 +217,26 @@ const viewerToolbar = (): boolean | Partial<ToolbarOptions> => {
 	return settings.toolbar ? { ...settings.toolbarControls } : false;
 };
 
+/** The entry menu, with two items of the demo after the built-in ones. */
+const viewerEntryMenu = (): boolean | EntryMenuOptions => {
+	if (!settings.entryMenu) {
+		return false;
+	}
+
+	return {
+		items: (entry) => [
+			{
+				label: t('menu', 'only-level'),
+				onSelect: (_, target) => target.setFilter({ levels: [entry.level] })
+			},
+			{
+				label: t('menu', 'add-event'),
+				onSelect: (item, target) => addEvent('entryMenu', target.getEntryText(item.id))
+			}
+		]
+	};
+};
+
 const viewerInput = (): InputOptions | null => {
 	if (!settings.input) {
 		return null;
@@ -234,7 +255,7 @@ const initialOptions = (): LogViewerOptions => ({
 	labels: viewerLabels(),
 	timestamps: viewerTimestamps(),
 	statusBar: settings.statusBar,
-	entryMenu: settings.entryMenu,
+	entryMenu: viewerEntryMenu(),
 	toolbar: viewerToolbar(),
 	input: viewerInput(),
 	core: {
@@ -561,7 +582,7 @@ watch(
 );
 watch(
 	() => settings.entryMenu,
-	(entryMenu) => applyOptions({ entryMenu })
+	() => applyOptions({ entryMenu: viewerEntryMenu() })
 );
 watch(
 	[() => settings.toolbar, () => settings.toolbarControls],
@@ -825,6 +846,7 @@ onBeforeUnmount(() => {
 						<input v-model="settings.entryMenu" type="checkbox" />
 						{{ t('control', 'entry-menu') }}
 					</label>
+					<p class="demo-hint">{{ t('hint', 'entry-menu') }}</p>
 					<label class="demo-check">
 						<input v-model="settings.secondViewer" type="checkbox" :disabled="!ready" />
 						{{ t('control', 'second-viewer') }}

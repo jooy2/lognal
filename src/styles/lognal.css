@@ -37,6 +37,7 @@
 	--lognal-selection: rgba(31, 111, 214, 0.22);
 	--lognal-match: rgba(240, 173, 0, 0.3);
 	--lognal-separator: rgba(29, 33, 41, 0.06);
+	--lognal-hover: rgba(29, 33, 41, 0.04);
 	--lognal-error: #c4262c;
 	--lognal-error-background: rgba(222, 53, 58, 0.07);
 	--lognal-warn: #8a5a00;
@@ -111,6 +112,7 @@
 	--lognal-selection: rgba(90, 162, 255, 0.3);
 	--lognal-match: rgba(252, 191, 50, 0.3);
 	--lognal-separator: rgba(227, 229, 234, 0.05);
+	--lognal-hover: rgba(227, 229, 234, 0.06);
 	--lognal-error: #ff8a8d;
 	--lognal-error-background: rgba(252, 79, 83, 0.1);
 	--lognal-warn: #fcc549;
@@ -170,6 +172,7 @@
 		--lognal-selection: rgba(90, 162, 255, 0.3);
 		--lognal-match: rgba(252, 191, 50, 0.3);
 		--lognal-separator: rgba(227, 229, 234, 0.05);
+		--lognal-hover: rgba(227, 229, 234, 0.06);
 		--lognal-error: #ff8a8d;
 		--lognal-error-background: rgba(252, 79, 83, 0.1);
 		--lognal-warn: #fcc549;
@@ -428,6 +431,17 @@
 	visibility: visible;
 }
 
+.lognal-popup-icon-space {
+	flex: none;
+	width: 16px;
+}
+
+.lognal-popup-separator {
+	height: 1px;
+	margin: 4px 0;
+	background: var(--lognal-border);
+}
+
 .lognal-popup-label {
 	min-width: 0;
 	overflow: hidden;
@@ -460,6 +474,8 @@
 	cursor: text;
 	-webkit-user-select: none;
 	user-select: none;
+	/* A long press opens the entry menu, not the callout of the browser. */
+	-webkit-touch-callout: none;
 	touch-action: pan-x pan-y;
 }
 

@@ -156,11 +156,17 @@ const EN = {
 		locale:
 			'Languages other than Korean use the English labels, and numbers are formatted for the language.',
 		'custom-labels': 'Changes the filter placeholder, the following state and the entry count.',
+		'entry-menu':
+			'Hover an entry, or press and hold it on a touch screen. The last two items of the menu come from the items option.',
 		'second-viewer': 'Warnings and errors from the same store',
 		font: 'A font that is not installed on your device falls back to the next one in the list.',
 		input: 'Type help in the input line to list the commands.',
 		'filter-levels': 'When a level is checked, the minimum level is ignored.',
 		'events-empty': 'No events yet. Scroll the log, select text or change the filter.'
+	},
+	menu: {
+		'only-level': 'Show only this level',
+		'add-event': 'Add to the event list'
 	},
 	label: {
 		filter: 'Search the log',
@@ -339,12 +345,18 @@ const KO: Messages = {
 			'파일 따라 읽기에는 File System Access API가 필요합니다. 이 API는 Chromium 계열 브라우저에만 있습니다.',
 		locale: '한국어가 아닌 언어는 영어 레이블을 쓰고, 숫자는 그 언어의 형식으로 씁니다.',
 		'custom-labels': '필터 안내 문구, 따라가기 상태, 항목 수 표시를 바꿉니다.',
+		'entry-menu':
+			'항목에 포인터를 올리거나, 터치 화면에서 항목을 길게 누르세요. 메뉴의 마지막 두 항목은 items 옵션으로 넣은 것입니다.',
 		'second-viewer': '같은 스토어의 경고와 오류',
 		font: '기기에 설치되지 않은 글꼴은 목록의 다음 글꼴로 대신합니다.',
 		input: '입력 줄에 help를 입력하면 명령 목록이 나옵니다.',
 		'filter-levels': '수준을 하나라도 고르면 최소 수준은 무시합니다.',
 		'events-empty':
 			'아직 이벤트가 없습니다. 로그를 스크롤하거나, 텍스트를 선택하거나, 필터를 바꿔 보세요.'
+	},
+	menu: {
+		'only-level': '이 수준만 보기',
+		'add-event': '이벤트 목록에 추가'
 	},
 	label: {
 		filter: '로그 검색',

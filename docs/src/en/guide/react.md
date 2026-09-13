@@ -37,7 +37,7 @@ Every [viewer option](/guide/viewer#options) is also a prop: `store`, `core`, `t
 - Option props are compared by their data. Writing an object inline, such as a `toolbar` object that is new on every render, costs nothing as long as its contents stay the same.
 - Only the props whose data changed are passed to `viewer.setOptions`, and each key of `core` is compared on its own. A new viewer is not created.
 - A change to one prop leaves the others alone. When `theme` changes, `follow`, `core.filter` and `core.wrap` are not applied again, so following, the filter and the wrapping the user changed in the toolbar stay as they are. A prop overrides the user's choice only when its own data changes.
-- Functions inside options, such as `input.onSubmit`, a `timestamps` function or `labels.entries`, always call the function from the latest render. Passing a new function does not count as a change.
+- Functions inside options, such as `input.onSubmit`, a `timestamps` function, `labels.entries` or `entryMenu.items`, always call the function from the latest render. Passing a new function does not count as a change.
 - Changing `store` or `renderer` disposes the viewer and creates a new one.
 
 A prop that you remove goes back to its default:

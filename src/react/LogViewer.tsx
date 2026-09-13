@@ -158,6 +158,17 @@ export const LogViewer = forwardRef<Viewer | null, LogViewerProps>(function LogV
 			};
 		}
 
+		if (typeof current.entryMenu === 'object' && current.entryMenu.items) {
+			result.entryMenu = {
+				...current.entryMenu,
+				items: (entry, instance) => {
+					const menu = latest.current.entryMenu;
+
+					return typeof menu === 'object' && menu.items ? menu.items(entry, instance) : [];
+				}
+			};
+		}
+
 		if (current.labels?.entries) {
 			result.labels = {
 				...current.labels,

@@ -37,7 +37,7 @@ export function Logs() {
 - 옵션 prop은 데이터로 비교합니다. 렌더링할 때마다 `toolbar` 객체를 새로 만들어 넘겨도 내용이 같으면 아무 비용이 들지 않습니다.
 - 데이터가 바뀐 prop만 `viewer.setOptions`에 넘기고, `core`는 키마다 따로 비교합니다. 새 뷰어는 만들지 않습니다.
 - prop 하나가 바뀌어도 다른 prop은 다시 적용하지 않습니다. `theme`이 바뀔 때 `follow`, `core.filter`, `core.wrap`은 적용하지 않으므로, 사용자가 도구 모음에서 바꾼 따라가기, 필터, 줄 바꿈이 그대로 남습니다. prop이 사용자의 선택을 덮어쓰는 것은 그 prop의 데이터가 바뀔 때뿐입니다.
-- `input.onSubmit`, `timestamps` 함수, `labels.entries`처럼 옵션 안에 있는 함수는 늘 가장 최근 렌더링의 함수를 호출합니다. 새 함수를 넘겨도 바뀐 것으로 보지 않습니다.
+- `input.onSubmit`, `timestamps` 함수, `labels.entries`, `entryMenu.items`처럼 옵션 안에 있는 함수는 늘 가장 최근 렌더링의 함수를 호출합니다. 새 함수를 넘겨도 바뀐 것으로 보지 않습니다.
 - `store`나 `renderer`를 바꾸면 뷰어를 정리하고 새로 만듭니다.
 
 prop을 빼면 그 옵션은 기본값으로 돌아갑니다.

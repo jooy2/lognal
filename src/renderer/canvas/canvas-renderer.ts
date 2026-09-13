@@ -169,7 +169,7 @@ export class CanvasRenderer implements Renderer {
 		frame.rows.forEach((row, index) => {
 			const top = frame.offsetY + index * rowHeight;
 
-			this.drawRowBackground(row, top);
+			this.drawRowBackground(row, frame.decorations[index], top);
 		});
 
 		context.save();
@@ -210,7 +210,11 @@ export class CanvasRenderer implements Renderer {
 		this.element.remove();
 	}
 
-	private drawRowBackground(row: VisualRow, top: number): void {
+	private drawRowBackground(
+		row: VisualRow,
+		decoration: RowDecoration | undefined,
+		top: number
+	): void {
 		const { entry } = row;
 		let color: string | null = null;
 
@@ -222,6 +226,12 @@ export class CanvasRenderer implements Renderer {
 
 		if (color) {
 			this.context.fillStyle = color;
+			this.context.fillRect(0, top, this.width, this.metrics.height);
+		}
+
+		// The hover color is translucent, so it also shows on the background of a warning or an error.
+		if (decoration?.hovered) {
+			this.context.fillStyle = this.theme.hover;
 			this.context.fillRect(0, top, this.width, this.metrics.height);
 		}
 	}

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import '../../src/styles/lognal.css';
+import { CanvasRenderer } from '../../src/renderer/canvas/canvas-renderer.ts';
 import { LogViewer } from '../../src/viewer/viewer.ts';
 import { KO_LABELS } from '../../src/viewer/labels.ts';
 
@@ -257,11 +258,15 @@ describe('LogViewer', () => {
 		button.click();
 
 		const popup = viewer.element.querySelector('.lognal-popup') as HTMLDivElement;
-		const item = popup.querySelector('[role="menuitem"]') as HTMLElement;
+		const items = Array.from(popup.querySelectorAll<HTMLElement>('[role="menuitem"]'));
+		const [item] = items;
 
 		expect(popup.getAttribute('role')).toBe('menu');
 		expect(button.getAttribute('aria-expanded')).toBe('true');
-		expect(item.textContent).toBe('Copy as text');
+		expect(items.map((element) => element.textContent)).toEqual([
+			'Copy as text',
+			'Copy with timestamp'
+		]);
 
 		item.click();
 		await waitFor(() => writeText.mock.calls.length === 1);
@@ -279,6 +284,126 @@ describe('LogViewer', () => {
 		expect(button.hidden).toBe(true);
 
 		writeText.mockRestore();
+		viewer.dispose();
+	});
+
+	it('marks the rows of the hovered entry for the renderer', async () => {
+		const render = vi.spyOn(CanvasRenderer.prototype, 'render');
+		const viewer = new LogViewer(container, { timestamps: false, core: { mergeRepeats: false } });
+		const hoveredRows = (): boolean[] => {
+			const frame = render.mock.calls[render.mock.calls.length - 1][0];
+
+			return frame.decorations.map((decoration) => Boolean(decoration.hovered));
+		};
+
+		viewer.console.log('first entry');
+		viewer.write('second entry\nline two', { level: 'warn' });
+		await nextFrame();
+		expect(hoveredRows()).toEqual([false, false, false]);
+
+		const rowHeight = parseFloat(viewer.element.style.getPropertyValue('--lognal-cell-height'));
+
+		hover(viewer, 100, 4 + rowHeight * 1.5);
+		await nextFrame();
+		expect(hoveredRows()).toEqual([false, true, true]);
+
+		viewer.element
+			.querySelector('.lognal-body')
+			?.dispatchEvent(new PointerEvent('pointerleave', { pointerType: 'mouse' }));
+		await nextFrame();
+		expect(hoveredRows()).toEqual([false, false, false]);
+
+		render.mockRestore();
+		viewer.dispose();
+	});
+
+	it('copies an entry with its timestamp and adds menu items of its own', async () => {
+		const onSelect = vi.fn();
+		const viewer = new LogViewer(container, {
+			timestamps: 'iso',
+			entryMenu: { items: (entry) => [{ label: `Pin ${entry.id}`, onSelect }] }
+		});
+		const button = viewer.element.querySelector('.lognal-entry-actions') as HTMLButtonElement;
+		const popup = viewer.element.querySelector('.lognal-popup') as HTMLDivElement;
+
+		viewer.write('hello', { time: 0 });
+		await nextFrame();
+
+		const [entry] = viewer.store.toArray();
+
+		expect(viewer.getEntryText(entry.id, { timestamp: true })).toBe(
+			'1970-01-01T00:00:00.000Z hello'
+		);
+
+		hover(viewer, 200, 8);
+		button.click();
+
+		const labels = Array.from(popup.children).map((child) =>
+			child.getAttribute('role') === 'separator' ? '---' : child.textContent
+		);
+
+		expect(labels).toEqual(['Copy as text', 'Copy with timestamp', '---', `Pin ${entry.id}`]);
+
+		(popup.querySelector('[role="menuitem"]:last-child') as HTMLElement).click();
+		expect(onSelect).toHaveBeenCalledWith(entry, viewer);
+		expect(popup.matches(':popover-open')).toBe(false);
+
+		viewer.setOptions({ entryMenu: { copy: false } });
+		hover(viewer, 200, 30);
+		hover(viewer, 200, 8);
+		expect(button.hidden).toBe(true);
+		viewer.dispose();
+	});
+
+	it('opens the entry menu on a long press and not on a touch that moves', async () => {
+		const viewer = new LogViewer(container, { toolbar: false });
+		const viewport = viewer.element.querySelector('.lognal-viewport') as HTMLDivElement;
+		const popup = viewer.element.querySelector('.lognal-popup') as HTMLDivElement;
+		const rect = (): DOMRect => viewport.getBoundingClientRect();
+		const touch = (type: string, x: number, y: number): PointerEvent => {
+			const event = new PointerEvent(type, {
+				clientX: rect().left + x,
+				clientY: rect().top + y,
+				bubbles: true,
+				cancelable: true,
+				isPrimary: true,
+				pointerId: 7,
+				pointerType: 'touch'
+			});
+
+			viewport.dispatchEvent(event);
+
+			return event;
+		};
+
+		viewer.console.log('touch me');
+		await nextFrame();
+
+		touch('pointerdown', 100, 8);
+		touch('pointermove', 100, 40);
+		await new Promise((resolve) => setTimeout(resolve, 600));
+		expect(popup.matches(':popover-open')).toBe(false);
+
+		touch('pointerdown', 100, 8);
+		await new Promise((resolve) => setTimeout(resolve, 600));
+		expect(popup.getAttribute('role')).toBe('menu');
+		expect(popup.matches(':popover-open')).toBe(true);
+
+		const menu = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+
+		viewport.dispatchEvent(menu);
+		expect(menu.defaultPrevented).toBe(true);
+		touch('pointerup', 100, 8);
+		popup.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+		// A browser that opens its own menu first opens the entry menu at once instead.
+		touch('pointerdown', 100, 8);
+
+		const early = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+
+		viewport.dispatchEvent(early);
+		expect(early.defaultPrevented).toBe(true);
+		expect(popup.matches(':popover-open')).toBe(true);
 		viewer.dispose();
 	});
 

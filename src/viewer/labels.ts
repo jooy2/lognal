@@ -28,6 +28,8 @@ export interface ViewerLabels {
 	entryActions: string;
 	/** The menu item that copies the text of an entry. */
 	copyEntry: string;
+	/** The menu item that copies the text of an entry after its timestamp. */
+	copyEntryWithTime: string;
 	following: string;
 	paused: string;
 	/** The entry count in the status bar. `format` formats a number for the locale. */
@@ -56,6 +58,7 @@ export const EN_LABELS: ViewerLabels = {
 	entryList: 'Visible log entries',
 	entryActions: 'Entry actions',
 	copyEntry: 'Copy as text',
+	copyEntryWithTime: 'Copy with timestamp',
 	following: 'Following',
 	paused: 'Paused',
 	entries: (shown, total, format) => {
@@ -89,6 +92,7 @@ export const KO_LABELS: ViewerLabels = {
 	entryList: '화면에 보이는 로그',
 	entryActions: '항목 작업',
 	copyEntry: '텍스트로 복사',
+	copyEntryWithTime: '타임스탬프와 함께 복사',
 	following: '따라가는 중',
 	paused: '멈춤',
 	entries: (shown, total, format) => {

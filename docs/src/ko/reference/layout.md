@@ -284,10 +284,11 @@ interface Renderer {
 
 ### RowDecoration {#rowdecoration}
 
-| 필드        | 타입                 | 설명                                                 |
-| ----------- | -------------------- | ---------------------------------------------------- |
-| `selection` | `[number, number]`   | 콘텐츠 영역에서 선택된 열 범위가 있으면 그 값입니다. |
-| `matches`   | `[number, number][]` | 필터와 일치한 열 범위가 있으면 그 값입니다.          |
+| 필드        | 타입                 | 설명                                                                  |
+| ----------- | -------------------- | --------------------------------------------------------------------- |
+| `selection` | `[number, number]`   | 콘텐츠 영역에서 선택된 열 범위가 있으면 그 값입니다.                  |
+| `matches`   | `[number, number][]` | 필터와 일치한 열 범위가 있으면 그 값입니다.                           |
+| `hovered`   | `boolean`            | 행이 포인터가 올라간 항목이나 메뉴가 열린 항목에 속하는지 나타냅니다. |
 
 ### CellMetrics와 FontSettings {#cellmetrics-and-fontsettings}
 
@@ -311,7 +312,7 @@ interface Renderer {
 | 필드                                                                  | 타입                                             | CSS 속성                                         |
 | --------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------ |
 | `background`, `foreground`, `muted`, `accent`                         | `string`                                         | `--lognal-background` 등                         |
-| `selection`, `match`, `separator`                                     | `string`                                         | `--lognal-selection` 등                          |
+| `selection`, `match`, `separator`, `hover`                            | `string`                                         | `--lognal-selection` 등                          |
 | `error`, `errorBackground`, `warn`, `warnBackground`, `info`, `debug` | `string`                                         | `--lognal-error`, `--lognal-error-background` 등 |
 | `tokens`                                                              | `Record<Exclude<StyleToken, 'default'>, string>` | `--lognal-token-*`                               |
 | `ansi`                                                                | `string[]`                                       | `--lognal-ansi-0`부터 `--lognal-ansi-15`까지     |

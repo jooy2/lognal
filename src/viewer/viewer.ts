@@ -10,7 +10,7 @@ import {
 } from '../core/store.js';
 import { measureCells } from '../core/text/measure.js';
 import { formatTimestamp, type TimestampFormat } from '../core/time.js';
-import type { LogLevel, LogPart } from '../core/types.js';
+import type { LogEntry, LogLevel, LogPart } from '../core/types.js';
 import { CanvasRenderer } from '../renderer/canvas/canvas-renderer.js';
 import type { CellMetrics, FontSettings, Renderer, RowDecoration } from '../renderer/types.js';
 import {
@@ -23,7 +23,7 @@ import { snapshotValue } from '../sources/console/snapshot.js';
 import { createIcon, type IconName } from './icons.js';
 import { InputLine } from './input-line.js';
 import { labelsFor, type ViewerLabels } from './labels.js';
-import { PopupMenu, type PopupAnchor } from './popup-menu.js';
+import { PopupMenu, type PopupAnchor, type PopupItem } from './popup-menu.js';
 import { Scrollbar } from './scrollbar.js';
 import { readFont, readTheme, type ThemeMode } from './theme.js';
 
@@ -59,6 +59,28 @@ export interface InputOptions {
 	historySize?: number;
 }
 
+/** An action in the menu of an entry. */
+export interface EntryMenuItem {
+	/** The text of the item. */
+	label: string;
+	/** Called with the entry the menu was opened for, when the item is chosen. */
+	onSelect: (entry: LogEntry, viewer: LogViewer) => void;
+}
+
+/** The menu that opens from the button at the end of the entry under the pointer. */
+export interface EntryMenuOptions {
+	/** Whether the menu starts with the built-in copy items. Defaults to `true`. */
+	copy?: boolean;
+	/** Returns the items that follow the built-in ones, for the entry the menu opens for. */
+	items?: (entry: LogEntry, viewer: LogViewer) => EntryMenuItem[];
+}
+
+/** Options of `getEntryText` and `copyEntry`. */
+export interface EntryTextOptions {
+	/** Whether the text starts with the time of the entry, in the format of the `timestamps` option. */
+	timestamp?: boolean;
+}
+
 export interface LogViewerOptions {
 	/** A store to show. Several viewers can share one store. A new store is created when absent. */
 	store?: LogStore;
@@ -82,8 +104,11 @@ export interface LogViewerOptions {
 	locale?: string;
 	/** Labels that replace the built-in ones. */
 	labels?: Partial<ViewerLabels>;
-	/** Whether the entry under the pointer shows a button that opens a menu of actions for it. */
-	entryMenu?: boolean;
+	/**
+	 * The menu of actions that opens from a button at the end of the entry under the pointer, or
+	 * `false` to turn the button off.
+	 */
+	entryMenu?: boolean | EntryMenuOptions;
 	/** Creates the renderer. Defaults to the Canvas 2D renderer. */
 	renderer?: (ownerDocument: Document) => Renderer;
 }
@@ -111,7 +136,8 @@ interface ResolvedOptions {
 	/** The built-in labels for the locale with `labelOverrides` applied. */
 	labels: ViewerLabels;
 	labelOverrides: Partial<ViewerLabels>;
-	entryMenu: boolean;
+	/** The entry menu, or `null` when it is off or would have no items. */
+	entryMenu: EntryMenuOptions | null;
 }
 
 interface Selection {
@@ -166,6 +192,10 @@ const DRAG_THRESHOLD = 4;
 const SYNC_BUDGET = 2000;
 /** Rows laid out exactly above and below the view, so a short scroll finds them ready. */
 const MEASURE_MARGIN_ROWS = 50;
+/** How long a touch stays in place before it opens the entry menu, in milliseconds. */
+const LONG_PRESS_DELAY = 500;
+/** How far a touch may move, in CSS pixels, and still count as a long press. */
+const LONG_PRESS_SLOP = 10;
 /** How long one slice of background layout may run, and how many entries it takes at a time. */
 const MEASURE_SLICE_MS = 8;
 const MEASURE_BATCH = 200;
@@ -268,6 +298,15 @@ export class LogViewer {
 	private hoverEntryId: number | null = null;
 	/** The entry whose menu is open. Its button stays in place while the pointer moves away. */
 	private menuEntryId: number | null = null;
+	/** A touch that opens the entry menu if it stays in place long enough. */
+	private longPress: {
+		pointerId: number;
+		clientX: number;
+		clientY: number;
+		timer: ReturnType<typeof setTimeout>;
+	} | null = null;
+	/** Whether the last touch opened the entry menu, so the menu of the browser stays closed. */
+	private longPressOpened = false;
 	private frame = 0;
 	private accessoryTimer: ReturnType<typeof setTimeout> | undefined;
 	private filterTimer: ReturnType<typeof setTimeout> | undefined;
@@ -578,22 +617,30 @@ export class LogViewer {
 	 * rows of open values, and without the timestamp. Returns an empty string for an entry that
 	 * is not visible.
 	 */
-	getEntryText(entryId: number): string {
+	getEntryText(entryId: number, options: EntryTextOptions = {}): string {
 		this.layout.sync();
 
-		if (this.layout.indexOf(entryId) < 0) {
+		const entry = this.store.get(entryId);
+
+		if (!entry || this.layout.indexOf(entryId) < 0) {
 			return '';
 		}
 
-		return this.layout.getText(
+		const text = this.layout.getText(
 			{ entryId, line: 0, cell: 0 },
 			{ entryId, line: Number.MAX_SAFE_INTEGER, cell: Number.MAX_SAFE_INTEGER }
 		);
+
+		if (!options.timestamp) {
+			return text;
+		}
+
+		return `${formatTimestamp(entry.time, this.options.timestamps ?? 'time')} ${text}`;
 	}
 
 	/** Copies the text of an entry to the clipboard. Resolves to whether anything was copied. */
-	copyEntry(entryId: number): Promise<boolean> {
-		return this.writeClipboard(this.getEntryText(entryId));
+	copyEntry(entryId: number, options?: EntryTextOptions): Promise<boolean> {
+		return this.writeClipboard(this.getEntryText(entryId, options));
 	}
 
 	/** Writes text to the clipboard. Resolves to whether anything was copied. */
@@ -676,6 +723,7 @@ export class LogViewer {
 		this.disposed = true;
 		cancelAnimationFrame(this.frame);
 		cancelAnimationFrame(this.autoScrollFrame);
+		this.cancelLongPress();
 		clearTimeout(this.accessoryTimer);
 		clearTimeout(this.filterTimer);
 		clearTimeout(this.measureTimer);
@@ -703,6 +751,11 @@ export class LogViewer {
 				: options.toolbar === true || options.toolbar === undefined
 					? DEFAULT_TOOLBAR
 					: { ...DEFAULT_TOOLBAR, ...options.toolbar };
+		const menu = typeof options.entryMenu === 'object' ? options.entryMenu : {};
+		const entryMenu =
+			options.entryMenu === false || (menu.copy === false && !menu.items)
+				? null
+				: { copy: menu.copy ?? true, items: menu.items };
 		const timestamps =
 			options.timestamps === false
 				? null
@@ -720,7 +773,7 @@ export class LogViewer {
 			locale: options.locale,
 			labels,
 			labelOverrides,
-			entryMenu: options.entryMenu ?? true
+			entryMenu
 		};
 	}
 
@@ -746,7 +799,7 @@ export class LogViewer {
 			input,
 			locale,
 			labels: labelOverrides,
-			entryMenu
+			entryMenu: entryMenu ?? false
 		};
 	}
 
@@ -777,6 +830,7 @@ export class LogViewer {
 		this.listen(this.viewport, 'dblclick', this.onDoubleClick);
 		this.listen(this.viewport, 'keydown', this.onKeyDown);
 		this.listen(this.viewport, 'copy', this.onCopy);
+		this.listen(this.viewport, 'contextmenu', this.onContextMenu);
 		this.listen(this.body, 'pointerleave', this.onPointerLeave);
 		this.cleanups.push(this.store.subscribe(this.onStoreChange));
 		this.renderer.onFontsChanged(() => this.applyFont());
@@ -1123,7 +1177,45 @@ export class LogViewer {
 	}
 
 	private openEntryMenu(entryId: number): void {
-		const { labels } = this.options;
+		const { labels, entryMenu } = this.options;
+		const entry = this.store.get(entryId);
+
+		if (!entryMenu || !entry) {
+			return;
+		}
+
+		const items: PopupItem[] = [];
+
+		if (entryMenu.copy) {
+			items.push(
+				{
+					label: labels.copyEntry,
+					icon: 'copy',
+					onSelect: () => {
+						void this.copyEntry(entryId);
+					}
+				},
+				{
+					label: labels.copyEntryWithTime,
+					icon: 'clock',
+					onSelect: () => {
+						void this.copyEntry(entryId, { timestamp: true });
+					}
+				}
+			);
+		}
+
+		for (const [index, item] of (entryMenu.items?.(entry, this) ?? []).entries()) {
+			items.push({
+				label: item.label,
+				startsGroup: index === 0 && items.length > 0,
+				onSelect: () => item.onSelect(entry, this)
+			});
+		}
+
+		if (items.length === 0) {
+			return;
+		}
 
 		this.popup.close(false);
 		this.menuEntryId = entryId;
@@ -1139,15 +1231,7 @@ export class LogViewer {
 		this.popup.open({
 			role: 'menu',
 			label: labels.entryActions,
-			items: [
-				{
-					label: labels.copyEntry,
-					icon: 'copy',
-					onSelect: () => {
-						void this.copyEntry(entryId);
-					}
-				}
-			],
+			items,
 			anchor,
 			align: 'end',
 			trigger: this.entryButton,
@@ -1156,8 +1240,10 @@ export class LogViewer {
 				this.menuEntryId = null;
 				this.entryButton.setAttribute('aria-expanded', 'false');
 				this.updateEntryButton();
+				this.requestRender();
 			}
 		});
+		this.requestRender();
 	}
 
 	private syncWrapButton(): void {
@@ -1324,6 +1410,12 @@ export class LogViewer {
 			this.following || !rows[0]
 				? null
 				: { entryId: rows[0].entry.id, entryRow: rows[0].entryRow, offset: offsetY };
+
+		// The rows under a still pointer change when the log scrolls or grows.
+		if (this.hoverPoint && !this.drag) {
+			this.hoverEntryId = this.hitTest(this.hoverPoint).visualRow?.entry.id ?? null;
+		}
+
 		this.renderer.render({
 			rows,
 			decorations: rows.map((row) => this.decorationFor(row)),
@@ -1336,11 +1428,6 @@ export class LogViewer {
 		});
 		this.verticalScrollbar.update();
 		this.horizontalScrollbar.update();
-
-		if (this.hoverPoint && !this.drag) {
-			this.hoverEntryId = this.hitTest(this.hoverPoint).visualRow?.entry.id ?? null;
-		}
-
 		this.updateEntryButton();
 		this.newLogsButton.hidden = this.following || !this.hasUnseen;
 		this.updateStatus();
@@ -1395,6 +1482,10 @@ export class LogViewer {
 	private decorationFor(row: VisualRow): RowDecoration {
 		const decoration: RowDecoration = {};
 		const selection = this.selection;
+
+		if (row.entry.id === (this.menuEntryId ?? this.hoverEntryId)) {
+			decoration.hovered = true;
+		}
 
 		if (selection && comparePositions(selection.anchor, selection.head) !== 0) {
 			const [start, end] =
@@ -1632,7 +1723,15 @@ export class LogViewer {
 	};
 
 	private readonly onPointerDown = (event: PointerEvent): void => {
-		if (event.button !== 0 || event.pointerType === 'touch') {
+		this.longPressOpened = false;
+
+		if (event.pointerType === 'touch') {
+			this.startLongPress(event);
+
+			return;
+		}
+
+		if (event.button !== 0) {
 			return;
 		}
 
@@ -1668,6 +1767,17 @@ export class LogViewer {
 	};
 
 	private readonly onPointerMove = (event: PointerEvent): void => {
+		const press = this.longPress;
+
+		if (press && event.pointerId === press.pointerId) {
+			if (
+				Math.hypot(event.clientX - press.clientX, event.clientY - press.clientY) > LONG_PRESS_SLOP
+			) {
+				this.cancelLongPress();
+			}
+
+			return;
+		}
 		if (!this.drag || event.pointerId !== this.drag.pointerId) {
 			const hit = this.hitTest(event);
 
@@ -1700,8 +1810,62 @@ export class LogViewer {
 		if (entryId !== this.hoverEntryId) {
 			this.hoverEntryId = entryId;
 			this.updateEntryButton();
+			this.requestRender();
 		}
 	}
+
+	private startLongPress(event: PointerEvent): void {
+		this.cancelLongPress();
+
+		if (!this.options.entryMenu || !event.isPrimary) {
+			return;
+		}
+
+		this.longPress = {
+			pointerId: event.pointerId,
+			clientX: event.clientX,
+			clientY: event.clientY,
+			timer: setTimeout(() => this.finishLongPress(), LONG_PRESS_DELAY)
+		};
+	}
+
+	/** Opens the entry menu for the entry under a touch that stayed in place. */
+	private finishLongPress(): void {
+		const press = this.longPress;
+
+		if (!press) {
+			return;
+		}
+
+		this.cancelLongPress();
+
+		const entryId = this.hitTest(press).visualRow?.entry.id;
+
+		if (entryId !== undefined) {
+			this.longPressOpened = true;
+			this.openEntryMenu(entryId);
+		}
+	}
+
+	private cancelLongPress(): void {
+		if (this.longPress) {
+			clearTimeout(this.longPress.timer);
+			this.longPress = null;
+		}
+	}
+
+	/**
+	 * Some browsers open their own menu on a long press, sometimes before the long press of the
+	 * viewer fires. Open the entry menu then instead, and keep the menu of the browser closed.
+	 */
+	private readonly onContextMenu = (event: MouseEvent): void => {
+		if (this.longPress) {
+			event.preventDefault();
+			this.finishLongPress();
+		} else if (this.longPressOpened) {
+			event.preventDefault();
+		}
+	};
 
 	private readonly onPointerLeave = (): void => {
 		this.setHover(null, null);
@@ -1716,6 +1880,10 @@ export class LogViewer {
 	};
 
 	private readonly onPointerUp = (event: PointerEvent): void => {
+		if (this.longPress?.pointerId === event.pointerId) {
+			this.cancelLongPress();
+		}
+
 		if (!this.drag || event.pointerId !== this.drag.pointerId) {
 			return;
 		}

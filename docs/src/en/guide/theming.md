@@ -104,21 +104,22 @@ These style the parts of the viewer that are regular HTML.
 
 The canvas draws with these. `background`, `foreground`, `muted` and `accent` also color the toolbar, the input line and the status bar.
 
-| Property                    | Light                      | Dark                        | Description                                                                |
-| --------------------------- | -------------------------- | --------------------------- | -------------------------------------------------------------------------- |
-| `--lognal-background`       | `#ffffff`                  | `#16181d`                   | The background of the log and the input line.                              |
-| `--lognal-foreground`       | `#1d2129`                  | `#e3e5ea`                   | Regular text.                                                              |
-| `--lognal-muted`            | `#646a78`                  | `#8f94a1`                   | Timestamps, notices, expander triangles and the output marker.             |
-| `--lognal-accent`           | `#1f6fd6`                  | `#5aa2ff`                   | The input marker, the prompt, pressed buttons and the **New logs** button. |
-| `--lognal-selection`        | `rgba(31, 111, 214, 0.22)` | `rgba(90, 162, 255, 0.3)`   | Selected text.                                                             |
-| `--lognal-match`            | `rgba(240, 173, 0, 0.3)`   | `rgba(252, 191, 50, 0.3)`   | Filter matches.                                                            |
-| `--lognal-separator`        | `rgba(29, 33, 41, 0.06)`   | `rgba(227, 229, 234, 0.05)` | The line between entries.                                                  |
-| `--lognal-error`            | `#c4262c`                  | `#ff8a8d`                   | Error text, marker and repeat badge.                                       |
-| `--lognal-error-background` | `rgba(222, 53, 58, 0.07)`  | `rgba(252, 79, 83, 0.1)`    | The row background of errors.                                              |
-| `--lognal-warn`             | `#8a5a00`                  | `#fcc549`                   | Warning text, marker and repeat badge.                                     |
-| `--lognal-warn-background`  | `rgba(240, 173, 0, 0.1)`   | `rgba(252, 191, 50, 0.08)`  | The row background of warnings.                                            |
-| `--lognal-info`             | `#1f6fd6`                  | `#5aa2ff`                   | The marker of info entries.                                                |
-| `--lognal-debug`            | `#646a78`                  | `#8f94a1`                   | The text of debug entries.                                                 |
+| Property                    | Light                      | Dark                        | Description                                                                                  |
+| --------------------------- | -------------------------- | --------------------------- | -------------------------------------------------------------------------------------------- |
+| `--lognal-background`       | `#ffffff`                  | `#16181d`                   | The background of the log and the input line.                                                |
+| `--lognal-foreground`       | `#1d2129`                  | `#e3e5ea`                   | Regular text.                                                                                |
+| `--lognal-muted`            | `#646a78`                  | `#8f94a1`                   | Timestamps, notices, expander triangles and the output marker.                               |
+| `--lognal-accent`           | `#1f6fd6`                  | `#5aa2ff`                   | The input marker, the prompt, pressed buttons and the **New logs** button.                   |
+| `--lognal-selection`        | `rgba(31, 111, 214, 0.22)` | `rgba(90, 162, 255, 0.3)`   | Selected text.                                                                               |
+| `--lognal-match`            | `rgba(240, 173, 0, 0.3)`   | `rgba(252, 191, 50, 0.3)`   | Filter matches.                                                                              |
+| `--lognal-separator`        | `rgba(29, 33, 41, 0.06)`   | `rgba(227, 229, 234, 0.05)` | The line between entries.                                                                    |
+| `--lognal-hover`            | `rgba(29, 33, 41, 0.04)`   | `rgba(227, 229, 234, 0.06)` | The background of the rows of the entry under the pointer. Use `transparent` to turn it off. |
+| `--lognal-error`            | `#c4262c`                  | `#ff8a8d`                   | Error text, marker and repeat badge.                                                         |
+| `--lognal-error-background` | `rgba(222, 53, 58, 0.07)`  | `rgba(252, 79, 83, 0.1)`    | The row background of errors.                                                                |
+| `--lognal-warn`             | `#8a5a00`                  | `#fcc549`                   | Warning text, marker and repeat badge.                                                       |
+| `--lognal-warn-background`  | `rgba(240, 173, 0, 0.1)`   | `rgba(252, 191, 50, 0.08)`  | The row background of warnings.                                                              |
+| `--lognal-info`             | `#1f6fd6`                  | `#5aa2ff`                   | The marker of info entries.                                                                  |
+| `--lognal-debug`            | `#646a78`                  | `#8f94a1`                   | The text of debug entries.                                                                   |
 
 ### Value colors
 

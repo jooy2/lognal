@@ -26,21 +26,21 @@ viewer.dispose();
 
 ## Options
 
-| Option       | Type                                    | Default         | Description                                                                                               |
-| ------------ | --------------------------------------- | --------------- | --------------------------------------------------------------------------------------------------------- |
-| `store`      | `LogStore`                              | A new store     | The store to show. Several viewers can share one store.                                                   |
-| `core`       | `Partial<CoreOptions>`                  | See below       | What is kept, how lines are laid out, and which entries are shown.                                        |
-| `theme`      | `'auto' \| 'light' \| 'dark'`           | `'auto'`        | The color scheme. `'auto'` follows the operating system.                                                  |
-| `font`       | `Partial<FontSettings>`                 | From CSS        | The font of the log. Values left out come from the `--lognal-font-*` properties.                          |
-| `timestamps` | `boolean \| TimestampFormat`            | `true`          | Whether each entry shows its time, and in which format. `true` means `'time'`.                            |
-| `follow`     | `boolean`                               | `true`          | Whether the view follows new entries at the start.                                                        |
-| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`          | The toolbar controls, or `false` to hide the toolbar.                                                     |
-| `statusBar`  | `boolean`                               | `true`          | Whether the status bar is shown.                                                                          |
-| `input`      | `InputOptions \| null`                  | `null`          | The input line. Leave it out for a read-only viewer.                                                      |
-| `locale`     | `string`                                | None            | The language of the built-in labels and of number formatting, such as `'ko'`.                             |
-| `labels`     | `Partial<ViewerLabels>`                 | Built-in labels | Labels that replace the built-in ones.                                                                    |
-| `entryMenu`  | `boolean`                               | `true`          | Whether the entry under the pointer shows a button with a menu of actions. See [Entry menu](#entry-menu). |
-| `renderer`   | `(ownerDocument: Document) => Renderer` | Canvas 2D       | Creates the renderer. See [Layout and renderers](/reference/layout#renderer).                             |
+| Option       | Type                                    | Default         | Description                                                                                                   |
+| ------------ | --------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------- |
+| `store`      | `LogStore`                              | A new store     | The store to show. Several viewers can share one store.                                                       |
+| `core`       | `Partial<CoreOptions>`                  | See below       | What is kept, how lines are laid out, and which entries are shown.                                            |
+| `theme`      | `'auto' \| 'light' \| 'dark'`           | `'auto'`        | The color scheme. `'auto'` follows the operating system.                                                      |
+| `font`       | `Partial<FontSettings>`                 | From CSS        | The font of the log. Values left out come from the `--lognal-font-*` properties.                              |
+| `timestamps` | `boolean \| TimestampFormat`            | `true`          | Whether each entry shows its time, and in which format. `true` means `'time'`.                                |
+| `follow`     | `boolean`                               | `true`          | Whether the view follows new entries at the start.                                                            |
+| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`          | The toolbar controls, or `false` to hide the toolbar.                                                         |
+| `statusBar`  | `boolean`                               | `true`          | Whether the status bar is shown.                                                                              |
+| `input`      | `InputOptions \| null`                  | `null`          | The input line. Leave it out for a read-only viewer.                                                          |
+| `locale`     | `string`                                | None            | The language of the built-in labels and of number formatting, such as `'ko'`.                                 |
+| `labels`     | `Partial<ViewerLabels>`                 | Built-in labels | Labels that replace the built-in ones.                                                                        |
+| `entryMenu`  | `boolean \| EntryMenuOptions`           | `true`          | The menu of actions of the entry under the pointer, or `false` to turn it off. See [Entry menu](#entry-menu). |
+| `renderer`   | `(ownerDocument: Document) => Renderer` | Canvas 2D       | Creates the renderer. See [Layout and renderers](/reference/layout#renderer).                                 |
 
 ### Core options
 
@@ -195,21 +195,54 @@ The same actions are available as methods: `getSelectionText()`, `selectAll()`, 
 
 ## Entry menu
 
-When the pointer is over an entry, a button with three vertical dots appears at the right end of the first row of that entry on screen. The button opens a menu of actions for the entry.
+When the pointer is over an entry, the rows of that entry get a light background, and a button with three vertical dots appears at the right end of its first row on screen. The button opens a menu of actions for the entry. On a touch screen, press and hold an entry to open the same menu.
 
-| Menu item    | What it does                                                                                                                |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| Copy as text | Copies every line of the entry, with the rows of open values and without the timestamp, as selecting the whole entry would. |
+| Menu item           | What it does                                                                                                                           |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Copy as text        | Copies every line of the entry, with the rows of open values and without the timestamp, as selecting the whole entry would.            |
+| Copy with timestamp | Copies the same text after the time of the entry, in the format of the `timestamps` option, or in `'time'` when timestamps are hidden. |
 
-While the log area has focus, Shift+F10 or the context menu key opens the same menu for the entry where the selection ends, or for the first entry on screen. The arrow keys move through the menu, Enter chooses an item, and Escape closes the menu. Touch input shows no button.
+While the log area has focus, Shift+F10 or the context menu key opens the menu for the entry where the selection ends, or for the first entry on screen. The arrow keys move through the menu, Enter chooses an item, and Escape closes the menu.
 
-`entryMenu: false` turns off the button and the keyboard shortcut. The copy is also available as methods: `getEntryText(id)` returns the text of an entry, and `copyEntry(id)` copies it and resolves to whether anything was copied.
+### Add your own items
+
+Pass an object as `entryMenu` to add items after the built-in ones. `items` is called every time the menu opens, with the entry the menu opens for, and `onSelect` receives the same entry.
+
+```ts
+const socket = new WebSocket('wss://example.com/reports');
+
+new LogViewer(container, {
+	entryMenu: {
+		items: (entry) => [
+			{
+				label: 'Show only this level',
+				onSelect: (_, viewer) => viewer.setFilter({ levels: [entry.level] })
+			},
+			{
+				label: 'Report this entry',
+				onSelect: (item, viewer) => socket.send(viewer.getEntryText(item.id, { timestamp: true }))
+			}
+		]
+	}
+});
+```
+
+| `EntryMenuOptions` field | Type                                                      | Default | Description                                      |
+| ------------------------ | --------------------------------------------------------- | ------- | ------------------------------------------------ |
+| `copy`                   | `boolean`                                                 | `true`  | Whether the menu starts with the two copy items. |
+| `items`                  | `(entry: LogEntry, viewer: LogViewer) => EntryMenuItem[]` | None    | Returns the items that follow the built-in ones. |
+
+An `EntryMenuItem` has a `label` and an `onSelect(entry, viewer)` function. Your items come after the built-in ones, below a separator. `copy: false` without `items` turns the menu off, and a menu that would have no items does not open.
+
+`entryMenu: false` turns off the button, the long press and the keyboard shortcut. The hover background stays; set `--lognal-hover` to `transparent` to remove it.
+
+The copies are also available as methods. `getEntryText(id, options?)` returns the text of an entry, with the time in front when `options.timestamp` is `true`, and `copyEntry(id, options?)` copies that text and resolves to whether anything was copied.
 
 ```ts
 const entry = viewer.store.write('Deploy finished', { level: 'info' });
 
 if (entry) {
-	await viewer.copyEntry(entry.id);
+	await viewer.copyEntry(entry.id, { timestamp: true });
 }
 ```
 
@@ -292,7 +325,7 @@ Every label is listed in [`ViewerLabels`](/reference/log-viewer#viewerlabels).
 | `setFollowing(following)`                                                  | Turns following on or off.                                                                 |
 | `scrollToTop()`, `scrollToBottom()`, `scrollToEntry(id)`                   | Scroll the view.                                                                           |
 | `getSelectionText()`, `selectAll()`, `clearSelection()`, `copySelection()` | Work with the selection.                                                                   |
-| `getEntryText(id)`, `copyEntry(id)`                                        | Return or copy the text of an entry.                                                       |
+| `getEntryText(id, options?)`, `copyEntry(id, options?)`                    | Return or copy the text of an entry.                                                       |
 | `focus()`                                                                  | Focuses the input line, or the log when there is no input line.                            |
 | `refresh()`                                                                | Reads the theme and the font from CSS again.                                               |
 | `on(name, listener)`                                                       | Adds a listener for `follow`, `filter` or `selection`. Returns a function that removes it. |
@@ -306,7 +339,7 @@ The full signatures are in the [LogViewer reference](/reference/log-viewer).
 - The viewer is a region named by the `viewer` label, and the toolbar is a toolbar of labeled buttons. The follow and wrap buttons report whether they are pressed.
 - The log area can take keyboard focus, and the arrow keys and Page Up and Page Down scroll it the way they scroll any scrollable element.
 - The level menu is a button that opens a list box. The arrow keys, Home and End move through the levels, Enter or Space chooses one, and Escape closes the list and gives focus back to the button.
-- The entry menu button is named by the `entryActions` label, and Shift+F10 or the context menu key opens the menu without a pointer.
+- The entry menu button is named by the `entryActions` label. Shift+F10 or the context menu key opens the menu without a pointer, and a long press opens it on a touch screen.
 - A visually hidden list mirrors the entries on screen for screen readers. Warnings and errors start with `warn:` and `error:`.
 - The input line is a labeled `<textarea>`.
 - The log area and the input line draw no focus outline, and the caret shows focus in the input line. To outline the focused log area, add a rule such as `.lognal-viewport:focus-visible { box-shadow: inset 0 0 0 2px var(--lognal-focus-ring); }`.

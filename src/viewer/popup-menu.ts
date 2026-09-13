@@ -13,6 +13,8 @@ export interface PopupItem {
 	icon?: IconName;
 	/** Marks the chosen option of a list box. */
 	selected?: boolean;
+	/** Draws a line before the item, to set it apart from the items above it. */
+	startsGroup?: boolean;
 	onSelect: () => void;
 }
 
@@ -99,6 +101,7 @@ export class PopupMenu {
 
 		const doc = this.ownerDocument;
 		const itemRole = options.role === 'listbox' ? 'option' : 'menuitem';
+		const hasIcons = options.items.some((item) => item.icon);
 
 		this.current = options;
 		this.element.setAttribute('role', options.role);
@@ -122,6 +125,12 @@ export class PopupMenu {
 
 			if (item.icon) {
 				element.append(createIcon(doc, item.icon));
+			} else if (hasIcons) {
+				// Keeps the label in line with the labels of the items that have an icon.
+				const space = doc.createElement('span');
+
+				space.className = 'lognal-popup-icon-space';
+				element.append(space);
 			}
 
 			label.className = 'lognal-popup-label';
@@ -130,7 +139,20 @@ export class PopupMenu {
 
 			return element;
 		});
-		this.element.replaceChildren(...this.itemElements);
+		this.element.replaceChildren(
+			...this.itemElements.flatMap((element, index) => {
+				if (!options.items[index].startsGroup || index === 0) {
+					return [element];
+				}
+
+				const separator = doc.createElement('div');
+
+				separator.className = 'lognal-popup-separator';
+				separator.setAttribute('role', 'separator');
+
+				return [separator, element];
+			})
+		);
 
 		if (this.usesPopover) {
 			this.element.showPopover();

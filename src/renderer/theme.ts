@@ -9,6 +9,7 @@ export const DEFAULT_RENDER_THEME: RenderTheme = {
 	selection: 'rgba(90, 162, 255, 0.3)',
 	match: 'rgba(252, 191, 50, 0.3)',
 	separator: 'rgba(227, 229, 234, 0.05)',
+	hover: 'rgba(227, 229, 234, 0.06)',
 	error: '#ff8a8d',
 	errorBackground: 'rgba(252, 79, 83, 0.1)',
 	warn: '#fcc549',

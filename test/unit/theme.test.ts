@@ -21,6 +21,7 @@ describe('default render theme', () => {
 		expect(DEFAULT_RENDER_THEME.background).toBe(dark.get('background'));
 		expect(DEFAULT_RENDER_THEME.debug).toBe(dark.get('debug'));
 		expect(DEFAULT_RENDER_THEME.errorBackground).toBe(dark.get('error-background'));
+		expect(DEFAULT_RENDER_THEME.hover).toBe(dark.get('hover'));
 
 		for (const [token, color] of Object.entries(DEFAULT_RENDER_THEME.tokens)) {
 			expect(color, token).toBe(dark.get(`token-${token}`));

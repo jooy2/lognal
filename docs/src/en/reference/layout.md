@@ -284,10 +284,11 @@ The content area starts at `paddingLeft + (timestampCells + markerCells) * cellW
 
 ### RowDecoration
 
-| Field       | Type                 | Description                                       |
-| ----------- | -------------------- | ------------------------------------------------- |
-| `selection` | `[number, number]`   | The selected columns of the content area, if any. |
-| `matches`   | `[number, number][]` | The columns of filter matches, if any.            |
+| Field       | Type                 | Description                                                                                 |
+| ----------- | -------------------- | ------------------------------------------------------------------------------------------- |
+| `selection` | `[number, number]`   | The selected columns of the content area, if any.                                           |
+| `matches`   | `[number, number][]` | The columns of filter matches, if any.                                                      |
+| `hovered`   | `boolean`            | Whether the row belongs to the entry under the pointer, or to the entry whose menu is open. |
 
 ### CellMetrics and FontSettings
 
@@ -311,7 +312,7 @@ The colors a renderer draws with. `readTheme` builds it from the `--lognal-*` cu
 | Field                                                                 | Type                                             | CSS property                                            |
 | --------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------- |
 | `background`, `foreground`, `muted`, `accent`                         | `string`                                         | `--lognal-background` and so on                         |
-| `selection`, `match`, `separator`                                     | `string`                                         | `--lognal-selection` and so on                          |
+| `selection`, `match`, `separator`, `hover`                            | `string`                                         | `--lognal-selection` and so on                          |
 | `error`, `errorBackground`, `warn`, `warnBackground`, `info`, `debug` | `string`                                         | `--lognal-error`, `--lognal-error-background` and so on |
 | `tokens`                                                              | `Record<Exclude<StyleToken, 'default'>, string>` | `--lognal-token-*`                                      |
 | `ansi`                                                                | `string[]`                                       | `--lognal-ansi-0` to `--lognal-ansi-15`                 |
