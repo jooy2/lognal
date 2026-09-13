@@ -20,10 +20,17 @@ export interface InputLineOptions {
  * It is a real `<textarea>`, so the browser handles focus, the caret, selection, paste and
  * input method composition. Enter submits and Shift+Enter adds a line.
  *
- * Enter is ignored while an IME composition is open. Safari through version 26 fires
- * `compositionend` before the `keydown` of the key that commits the composition, so that
- * `keydown` reports `isComposing` as false. The input therefore also checks key code 229 and
- * keeps treating the composition as open until the task after `compositionend`.
+ * A key press that belongs to an IME composition never submits by itself. Safari through
+ * version 26 fires `compositionend` before the `keydown` of the key that commits the
+ * composition, so that `keydown` reports `isComposing` as false. The input therefore also checks
+ * key code 229 and keeps treating the composition as open until the task after `compositionend`.
+ *
+ * Input methods differ in what the Enter that ends a composition does next. A Japanese or Chinese
+ * input method uses it to confirm a candidate, and nothing else happens. A Korean input method
+ * finishes the syllable and passes the Enter on, so the browser goes on to insert a line break,
+ * and the `keydown` of that Enter can arrive while the composition still counts as open. The
+ * input cancels that line break in `beforeinput` and submits instead, unless Shift was held, so
+ * one press is enough.
  */
 export class InputLine {
 	readonly element: HTMLFormElement;
@@ -34,6 +41,8 @@ export class InputLine {
 	private draft = '';
 	private composing = false;
 	private compositionTimer: ReturnType<typeof setTimeout> | undefined;
+	/** Whether Shift was held on the last key press, which makes a line break a new line. */
+	private shiftHeld = false;
 
 	constructor(
 		ownerDocument: Document,
@@ -56,6 +65,7 @@ export class InputLine {
 
 		this.element.addEventListener('submit', this.onFormSubmit);
 		this.textarea.addEventListener('keydown', this.onKeyDown);
+		this.textarea.addEventListener('beforeinput', this.onBeforeInput);
 		this.textarea.addEventListener('input', this.onInput);
 		this.textarea.addEventListener('compositionstart', this.onCompositionStart);
 		this.textarea.addEventListener('compositionend', this.onCompositionEnd);
@@ -133,6 +143,8 @@ export class InputLine {
 	};
 
 	private readonly onKeyDown = (event: KeyboardEvent): void => {
+		this.shiftHeld = event.shiftKey;
+
 		if (this.isComposing(event)) {
 			return;
 		}
@@ -170,6 +182,23 @@ export class InputLine {
 			event.preventDefault();
 			this.showHistory(this.historyIndex + 1 < this.history.length ? this.historyIndex + 1 : -1);
 		}
+	};
+
+	/**
+	 * Submits instead of inserting a line break that no `keydown` handled, such as the Enter a
+	 * Korean input method passes on after finishing a syllable.
+	 */
+	private readonly onBeforeInput = (event: InputEvent): void => {
+		if (event.inputType !== 'insertLineBreak' && event.inputType !== 'insertParagraph') {
+			return;
+		}
+
+		if (this.shiftHeld) {
+			return;
+		}
+
+		event.preventDefault();
+		this.submit();
 	};
 
 	private readonly onInput = (): void => {

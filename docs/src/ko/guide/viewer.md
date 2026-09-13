@@ -235,7 +235,7 @@ socket.addEventListener('message', (event) => viewer.write(String(event.data)));
 - 프로미스는 이행을 기다렸다가 그 값을 같은 방식으로 출력합니다.
 - 함수가 던진 오류나 거부된 프로미스는 error 수준의 항목으로 출력합니다.
 
-Enter는 명령을 제출하고, Shift+Enter는 줄을 추가합니다. 입력란은 여섯 줄까지 늘어납니다. 공백만 있는 명령은 무시합니다. 캐럿이 첫 줄이나 마지막 줄에 있을 때 ArrowUp과 ArrowDown으로 이전 명령을 오갑니다. 명령을 제출하면 따라가기가 켜집니다. IME 조합 중에 누른 Enter는 조합만 끝내고 명령을 제출하지 않습니다.
+Enter는 명령을 제출하고, Shift+Enter는 줄을 추가합니다. 입력란은 여섯 줄까지 늘어납니다. 공백만 있는 명령은 무시합니다. 캐럿이 첫 줄이나 마지막 줄에 있을 때 ArrowUp과 ArrowDown으로 이전 명령을 오갑니다. 명령을 제출하면 따라가기가 켜집니다. IME 조합 중에 누른 Enter는 한글 음절이면 완성하면서 제출하고, 일본어나 중국어 후보면 확정만 합니다. [입력 줄과 IME](/ko/guide/cjk#input-line-and-ime)를 참고하세요.
 
 ## 레이블과 로케일 {#labels-and-locale}
 

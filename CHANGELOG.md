@@ -2,6 +2,10 @@
 
 Changes to `lognal` that affect its users, newest first.
 
+## vNext (2026--)
+
+- Enter at the end of Korean text in the input line submits the command with one press. Before, the first press added a line and the second one submitted. Enter that confirms a Japanese or Chinese candidate still does not submit.
+
 ## 0.1.0 (2026-09-13)
 
 The first release.

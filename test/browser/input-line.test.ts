@@ -42,6 +42,14 @@ const keydown = (
 	return event;
 };
 
+const beforeinput = (field: HTMLTextAreaElement, inputType: string): InputEvent => {
+	const event = new InputEvent('beforeinput', { inputType, bubbles: true, cancelable: true });
+
+	field.dispatchEvent(event);
+
+	return event;
+};
+
 afterEach(() => {
 	for (const input of created.splice(0)) {
 		input.dispose();
@@ -69,6 +77,65 @@ describe('InputLine', () => {
 		field.value = '한';
 		keydown(field, 'Enter', { isComposing: true });
 		keydown(field, 'Enter', { keyCode: 229 });
+		expect(onSubmit).not.toHaveBeenCalled();
+	});
+
+	it('submits instead of the line break that ends a Korean composition', async () => {
+		const onSubmit = vi.fn();
+		const { field } = createInput(onSubmit);
+
+		field.value = '한글';
+		keydown(field, 'Process', { keyCode: 229, isComposing: true });
+		field.dispatchEvent(new CompositionEvent('compositionstart'));
+		field.dispatchEvent(new CompositionEvent('compositionend', { data: '글' }));
+		expect(keydown(field, 'Enter').defaultPrevented).toBe(false);
+		expect(onSubmit).not.toHaveBeenCalled();
+		expect(beforeinput(field, 'insertLineBreak').defaultPrevented).toBe(true);
+		expect(onSubmit).toHaveBeenCalledTimes(1);
+		expect(onSubmit).toHaveBeenCalledWith('한글');
+		expect(field.value).toBe('');
+
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		expect(onSubmit).toHaveBeenCalledTimes(1);
+	});
+
+	it('does not submit when Enter only confirms a candidate', async () => {
+		const onSubmit = vi.fn();
+		const { field } = createInput(onSubmit);
+
+		field.value = '日本';
+		field.dispatchEvent(new CompositionEvent('compositionstart'));
+		field.dispatchEvent(new CompositionEvent('compositionend', { data: '日本' }));
+		keydown(field, 'Enter', { keyCode: 229 });
+
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		expect(onSubmit).not.toHaveBeenCalled();
+		expect(field.value).toBe('日本');
+	});
+
+	it('keeps the line break of Shift+Enter, also at the end of a composition', () => {
+		const onSubmit = vi.fn();
+		const { field } = createInput(onSubmit);
+
+		field.value = 'first';
+		keydown(field, 'Enter', { shiftKey: true });
+		expect(beforeinput(field, 'insertLineBreak').defaultPrevented).toBe(false);
+
+		field.value = '한글';
+		field.dispatchEvent(new CompositionEvent('compositionstart'));
+		keydown(field, 'Process', { keyCode: 229, isComposing: true, shiftKey: true });
+		field.dispatchEvent(new CompositionEvent('compositionend', { data: '글' }));
+		expect(beforeinput(field, 'insertLineBreak').defaultPrevented).toBe(false);
+		expect(onSubmit).not.toHaveBeenCalled();
+	});
+
+	it('leaves other input alone', () => {
+		const onSubmit = vi.fn();
+		const { field } = createInput(onSubmit);
+
+		field.value = 'text';
+		expect(beforeinput(field, 'insertText').defaultPrevented).toBe(false);
+		expect(beforeinput(field, 'insertFromPaste').defaultPrevented).toBe(false);
 		expect(onSubmit).not.toHaveBeenCalled();
 	});
 

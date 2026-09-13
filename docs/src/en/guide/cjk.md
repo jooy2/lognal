@@ -74,9 +74,11 @@ A double-click selects a word: a run of letters, digits, combining marks, unders
 
 The input line is a real `<textarea>`, so the operating system's input method works as it does in any text field: the composition is shown in place, and the candidate window follows the caret.
 
-- Pressing Enter while a syllable is still being composed finishes the composition and does not submit the command. A second Enter submits it.
-- The input line checks the composition events, `KeyboardEvent.isComposing`, and key code 229, which browsers report for key presses that belong to a composition.
+- Pressing Enter while a Korean syllable is still being composed finishes the syllable and submits the command, so one press is enough, as it is for Latin text.
+- Pressing Enter to confirm a Japanese or Chinese candidate only confirms it. Press Enter again to submit.
+- The input line checks the composition events, `KeyboardEvent.isComposing`, and key code 229, which browsers report for key presses that belong to a composition. Such a key press never submits the command by itself.
 - Safari up to version 26 fires `compositionend` before the `keydown` of the key that commits the composition, so that `keydown` reports no composition. The input line keeps treating the composition as open until the task after `compositionend`, so Safari behaves like the other browsers.
+- A Korean input method passes the Enter on after finishing the syllable, and the browser goes on to insert a line break. The input line cancels that line break in `beforeinput` and submits instead. With Shift held, the line break stays.
 - ArrowUp and ArrowDown are left to the input method during a composition, and go through past commands otherwise.
 
 ## Filtering decomposed Hangul

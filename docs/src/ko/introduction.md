@@ -50,4 +50,4 @@ lognal은 Chrome, Edge, Firefox, Safari의 최신 버전을 대상으로 합니�
 - **그래핌 클러스터.** lognal은 `Intl.Segmenter`로 텍스트를 사용자가 인식하는 글자 단위로 나눕니다. Chrome 87, Firefox 125, Safari 14.1부터 쓸 수 있습니다. 이 API가 없으면 내장된 대체 구현이 결합 문자, 이형 선택자, 이모지 수식자, 폭 없는 결합자 시퀀스, 국기 쌍을 앞 글자에 붙입니다. `setGraphemeSplitter`로 직접 만든 분할 함수를 쓸 수도 있습니다.
 - **파일 따라 읽기.** `followTextFile`에는 File System Access API(`showOpenFilePicker`)의 파일 핸들이 필요합니다. 이 API는 Chromium 계열 브라우저에만 있고, HTTPS나 `localhost`로 연 보안 페이지에서만 동작합니다. `readTextFile`은 모든 브라우저에서 동작합니다.
 - **복사.** `copySelection`은 보안 페이지에서는 비동기 Clipboard API를 쓰고, 그 밖의 환경에서는 `document.execCommand('copy')`로 대신합니다.
-- **Safari의 IME 입력.** Safari 26까지는 조합을 끝내는 키의 `keydown`보다 `compositionend`가 먼저 발생합니다. 입력 줄은 이 순서를 고려하므로, 한글 음절을 마무리하려고 Enter를 눌러도 명령이 제출되지 않습니다.
+- **Safari의 IME 입력.** Safari 26까지는 조합을 끝내는 키의 `keydown`보다 `compositionend`가 먼저 발생합니다. 입력 줄은 이 순서를 고려하므로, 일본어나 중국어 후보를 확정하려고 Enter를 눌러도 명령이 제출되지 않습니다.

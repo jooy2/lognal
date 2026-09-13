@@ -235,7 +235,7 @@ What `onSubmit` returns decides the reply:
 - A promise is awaited, and the value it resolves to is printed the same way.
 - An error thrown by the function, or a rejected promise, is printed as an error-level entry.
 
-Enter submits the command, and Shift+Enter adds a line. The field grows up to six lines. A command made only of spaces is ignored. ArrowUp and ArrowDown go through past commands when the caret is on the first or the last line. Submitting a command turns following on. While an IME composition is open, Enter finishes the composition and does not submit.
+Enter submits the command, and Shift+Enter adds a line. The field grows up to six lines. A command made only of spaces is ignored. ArrowUp and ArrowDown go through past commands when the caret is on the first or the last line. Submitting a command turns following on. While an IME composition is open, Enter finishes a Korean syllable and submits, and only confirms a Japanese or Chinese candidate. See [Input line and IME](/guide/cjk#input-line-and-ime).
 
 ## Labels and locale
 
