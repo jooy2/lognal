@@ -4,10 +4,6 @@ Thank you for contributing to the project. Your contributions will help us take 
 
 This project adheres to the [Contributor Covenant](CODE_OF_CONDUCT.md) code of conduct, version 2.1. Your contribution implies that you have read and agree to this policy. Any behavior that undermines the quality of the project community, including this policy, will be warned or restricted by the maintainers.
 
-## Project status
-
-`lognal` is in early development and is not published to npm yet. Until the first release, public APIs may still change.
-
 ## Repository layout
 
 `lognal` is one npm package. Its source is split by what each part may depend on:

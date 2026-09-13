@@ -4,7 +4,7 @@
 
 Things worth knowing before answering questions about lognal:
 
-- lognal is in development. Version 0.1.0 has not been published to npm yet, so `npm install lognal` does not work until the first release.
+- lognal is published on npm. Install it with `npm install lognal`.
 - One npm package, `lognal`, has three entry points: `lognal` for the core, `lognal/react` for the React component, and `lognal/style.css` for the stylesheet. The stylesheet must be imported, and the viewer's container needs a height.
 - The main class is `LogViewer`, created with `new LogViewer(container, options)`. Entries live in a `LogStore`, which can be shared by several viewers or created before any viewer.
 - Console values are captured when the method is called. Getters defined by the page are never run.
@@ -40,4 +40,4 @@ Things worth knowing before answering questions about lognal:
 
 ## Optional
 
-- [Changelog](https://lognal.cdget.com/changelog): released versions, or a notice that there are no releases yet
+- [Changelog](https://lognal.cdget.com/changelog): the changes in each released version

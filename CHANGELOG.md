@@ -2,7 +2,7 @@
 
 Changes to `lognal` that affect its users, newest first.
 
-## vNext (2026--)
+## 0.1.0 (2026-09-13)
 
 The first release.
 

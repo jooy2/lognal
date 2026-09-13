@@ -7,23 +7,8 @@ description: Install lognal, add its stylesheet, create a viewer in plain JavaSc
 
 ## Install
 
-::: warning Not published yet
-
-lognal 0.1.0 is in development and is not on npm yet. The command below works once the first version is released.
-
-:::
-
 ```sh
 npm install lognal
-```
-
-Until then, you can build a package from the repository. `npm pack` runs the build and writes `lognal-0.1.0.tgz`, which another project can install with `npm install ./path/to/lognal-0.1.0.tgz`.
-
-```sh
-git clone https://github.com/jooy2/lognal.git
-cd lognal
-npm install
-npm pack
 ```
 
 ## Add the stylesheet

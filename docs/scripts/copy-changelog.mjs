@@ -1,6 +1,6 @@
 /**
  * Copies the repository's `CHANGELOG.md` into the site, so the site shows the same file the
- * package ships. Before the first release there is no changelog, and a short page says so.
+ * package ships. When the file is missing, a short page points to the repository instead.
  *
  * - `src/changelog.md` is the English page, the file as it is.
  * - `src/ko/changelog.md` is the Korean page. Release notes are written in English only, so the
@@ -19,7 +19,7 @@ const KOREAN_TARGET = join(DOCS_ROOT, 'src', 'ko', 'changelog.md');
 const EMPTY_CHANGELOG = [
 	'# Changelog',
 	'',
-	'There are no releases yet. lognal 0.1.0 is in development and has not been published to npm.',
+	'The changelog is kept in `CHANGELOG.md` in the [repository](https://github.com/jooy2/lognal).',
 	''
 ].join('\n');
 const KOREAN_HEADER = ['# 변경 내역', '', '변경 내역은 영어로 작성합니다.', ''].join('\n');

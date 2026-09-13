@@ -7,23 +7,8 @@ description: lognal을 설치하고, 스타일시트를 추가하고, 순수 Jav
 
 ## 설치 {#install}
 
-::: warning 아직 배포되지 않았습니다
-
-lognal 0.1.0은 개발 중이며 아직 npm에 없습니다. 아래 명령은 첫 버전이 릴리스된 뒤에 동작합니다.
-
-:::
-
 ```sh
 npm install lognal
-```
-
-그전까지는 저장소에서 패키지를 직접 만들 수 있습니다. `npm pack`을 실행하면 빌드를 거쳐 `lognal-0.1.0.tgz` 파일이 생기고, 다른 프로젝트에서 `npm install ./path/to/lognal-0.1.0.tgz`로 설치할 수 있습니다.
-
-```sh
-git clone https://github.com/jooy2/lognal.git
-cd lognal
-npm install
-npm pack
 ```
 
 ## 스타일시트 추가 {#add-the-stylesheet}

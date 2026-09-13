@@ -6,7 +6,7 @@ Guidance for AI agents and people working in this repository. Read it before sta
 
 lognal is a JavaScript log viewer library that looks like a terminal. It displays a fast stream of log messages and a long history, and it can also take input when something is connected to answer it. The core is plain TypeScript with no framework dependency. React is the first framework adapter, and other frameworks are meant to follow.
 
-The library is in early development and not published to npm yet. The documentation site is `docs/`, published to https://lognal.cdget.com.
+The library is published on npm as `lognal`, starting with 0.1.0 on 2026-09-13. The documentation site is `docs/`, published to https://lognal.cdget.com.
 
 ## Use cases
 
@@ -31,7 +31,8 @@ These come from the project owner and define the scope of the library.
 - **Options are grouped by layer.** Core options (`maxEntries`, `mergeRepeats`, `wrap`, `tabSize`, `ambiguousWidth`, `maxClusters`, `filter`) go in `core`, and viewer options (theme, font, timestamps, toolbar, status bar, input, labels, locale) sit at the top level of `LogViewerOptions`. Every part of the viewer can be configured or turned off.
 - **Modern, simple design.** A toolbar at the top, the log in the middle, an optional input line and status bar at the bottom, and a custom overlay scrollbar. Lines wrap by default; wrapping can be turned off. Styles ship as a separate CSS file, and every color and size is a `--lognal-*` custom property that the canvas also reads.
 - **Toolchain.** TypeScript compiled with `tsc`, ESLint and Prettier, Vitest for unit tests in Node.js and Vitest Browser Mode with Playwright for Chromium, Firefox and WebKit, VitePress with `vitepress-sidebar` and `vitepress-i18n` for the English and Korean documentation, and GitHub Actions for tests and publishing the documentation.
-- **Name.** The project and the npm package are `lognal`. The name was not registered on npm as of 2026-09-13.
+- **Name.** The project and the npm package are `lognal`.
+- **First release.** 0.1.0 was published to npm on 2026-09-13. Later changes go under `vNext` in `CHANGELOG.md` until the owner names the next version.
 
 ## References
 
@@ -46,8 +47,7 @@ The [WHATWG Console Standard](https://console.spec.whatwg.org/) is the primary s
 
 Do not pick one of these on your own; ask the owner.
 
-- License. `LICENSE` is MIT with copyright CDGet, carried over from the owner's `qsu` skeleton. Confirm it before the first release.
-- The version of the first release. `package.json` says `0.1.0`, and `CHANGELOG.md` keeps its entries under `vNext`.
+- License. `LICENSE` is MIT with copyright CDGet, carried over from the owner's `qsu` skeleton, and 0.1.0 was published with it. Confirm that it stays.
 - Whether to add a WebGL2 renderer, and when.
 
 ## Repository layout

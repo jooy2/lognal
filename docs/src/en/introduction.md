@@ -7,8 +7,6 @@ description: What lognal is, why it draws logs on a canvas, what it can do, and 
 
 lognal is a log viewer for web pages that looks and works like a terminal. It draws log output on a canvas, so it keeps up with a fast stream of messages and a long history without slowing the page down.
 
-lognal is in development. Version 0.1.0 has not been published to npm yet, and the API can still change before the first release.
-
 ## What it does
 
 - **Mirror the console.** Record `console.log`, `console.warn`, `console.table`, `console.group` and the other console methods, and show them the way browser developer tools do. The original console keeps working. See [Console capture](/guide/console).

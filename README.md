@@ -6,8 +6,6 @@
 
 **lognal** is a log viewer for web pages that looks and behaves like a terminal. It draws log output on a canvas instead of creating a DOM element for every line, so a fast stream of messages and a long history do not slow the page down.
 
-> **lognal is not published to npm yet.** The API described here works in this repository and may still change before the first release.
-
 ## What it does
 
 - **Shows the browser console inside your page.** Hook `console.log`, `console.warn`, `console.table`, `console.group` and the rest. Arguments are captured at the moment of the call, and the original console keeps working.
