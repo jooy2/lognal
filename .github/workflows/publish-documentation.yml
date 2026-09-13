@@ -1,0 +1,50 @@
+name: publish-documentation
+
+on:
+  # The live demos import the library source, so a change there is published too.
+  push:
+    branches: [main]
+    paths:
+      - docs/**
+      - src/**
+      - CHANGELOG.md
+      - .github/workflows/publish-documentation.yml
+  workflow_dispatch:
+
+jobs:
+  publish-documentation:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./docs
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Fetch every commit so VitePress can show when each page was last updated.
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # `prebuild` copies the root CHANGELOG.md into the site.
+      - name: Build VitePress site
+        run: npm run build
+
+      # See https://github.com/crazy-max/ghaction-github-pages for the options.
+      - name: Deploy to GitHub Pages
+        uses: crazy-max/ghaction-github-pages@v4
+        with:
+          target_branch: gh-pages
+          build_dir: docs/dist
+          jekyll: false
+          fqdn: 'lognal.cdget.com'
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
