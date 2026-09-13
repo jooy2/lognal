@@ -6,15 +6,15 @@ Changes to `lognal` that affect its users, newest first.
 
 ### Breaking changes
 
-- `ViewerLabels` has three new labels, `entryActions`, `copyEntry` and `copyEntryWithTime`. A complete `ViewerLabels` object of your own needs all three. Overrides passed in `labels` are not affected.
+- `ViewerLabels` has five new labels, `entryActions`, `copyEntry`, `copyEntryWithTime`, `copyEntryFormatted` and `copyEntryData`. A complete `ViewerLabels` object of your own needs all five. Overrides passed in `labels` are not affected.
 - `RenderTheme` has a new color, `hover`, and `RowDecoration` a new flag, `hovered`. A `RenderTheme` object built by hand needs `hover`; spreading `DEFAULT_RENDER_THEME` covers it.
 - The level menu in the toolbar is a `<button class="lognal-levels">` that opens a list box, instead of a `<select>`. Styles or tests written for the `<select>` need to target the button and its menu.
 
 ### Changes
 
 - The level menu follows the theme of the viewer. The arrow keys, Home and End move through the levels, Enter or Space chooses one, and Escape closes it.
-- The entry under the pointer gets a light background, set with `--lognal-hover`, and a button that opens a menu of actions for it. **Copy as text** copies the whole entry, with every captured value written out in full the way code writes it, even when the value is closed, and **Copy with timestamp** puts the time of the entry in front. A long press opens the menu on a touch screen, and Shift+F10 or the context menu key opens it from the keyboard.
-- `entryMenu` takes `false` to turn the menu off, or an object whose `items` function adds items of your own after the built-in ones. `getEntryText` and `copyEntry` copy an entry from code, with `{ timestamp: true }` for the time.
+- The entry under the pointer gets a light background, set with `--lognal-hover`, and a button that opens a menu of actions for it. **Copy as text** copies the whole entry as plain text, with every captured value written out in full on one line, even when the value is closed, and **Copy with timestamp** puts the time of the entry in front. **Copy as formatted text** breaks long values over indented lines and adds HTML with the colors of the theme for rich text, and **Copy as data** copies the values as JSON. A long press opens the menu on a touch screen, and Shift+F10 or the context menu key opens it from the keyboard.
+- `entryMenu` takes `false` to turn the menu off, or an object whose `items` function adds items of your own after the built-in ones. `getEntryText` and `copyEntry` do the same from code, with `format: 'text' | 'formatted' | 'data'` and `timestamp: true`.
 - The log area, the input line and the filter field no longer draw a focus outline.
 - `--lognal-popup-shadow` sets the shadow of the level menu and the entry menu.
 - Enter at the end of Korean text in the input line submits the command with one press. Before, the first press added a line and the second one submitted. Enter that confirms a Japanese or Chinese candidate still does not submit.

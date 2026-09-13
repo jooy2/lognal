@@ -106,6 +106,7 @@ export {
 	type CoreOptions,
 	type EntryMenuItem,
 	type EntryMenuOptions,
+	type EntryTextFormat,
 	type EntryTextOptions,
 	type InputOptions,
 	type LogViewerEvents,

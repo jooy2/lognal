@@ -1,7 +1,16 @@
-import type { LogEntry, ValueEntry, ValueNode } from '../types.js';
+import type { LineTextSpan } from '../layout/types.js';
+import type { LogEntry, StyleToken, ValueEntry, ValueNode } from '../types.js';
 import { errorTitle, formatKey, previewValue } from './preview.js';
 
-/** A container fits on one line when it takes at most this many characters with its indent. */
+export interface ValueTextOptions {
+	/**
+	 * Whether a value that is too long for one line is broken over several lines, with an indent
+	 * for every level. Without it, every value stays on one line. Defaults to `false`.
+	 */
+	multiline?: boolean;
+}
+
+/** With `multiline`, a container stays on one line when it takes at most this many characters. */
 const BREAK_LENGTH = 72;
 const INDENT = '  ';
 /** Elements that never have content, so they have no closing tag. */
@@ -21,10 +30,32 @@ const VOID_ELEMENTS = new Set([
 	'wbr'
 ]);
 
-const spansText = (node: ValueNode): string => {
-	return previewValue(node)
-		.map((span) => span.text)
-		.join('');
+type Spans = LineTextSpan[];
+
+interface Context {
+	multiline: boolean;
+	/** The indent of the line the value starts on. */
+	indent: string;
+}
+
+const span = (text: string, token?: StyleToken): LineTextSpan => {
+	return token ? { text, token } : { text };
+};
+
+const lengthOf = (spans: Spans): number => {
+	let length = 0;
+
+	for (const item of spans) {
+		length += item.text.length;
+	}
+
+	return length;
+};
+
+const hasLineBreak = (spans: Spans): boolean => spans.some((item) => item.text.includes('\n'));
+
+const childContext = (context: Context): Context => {
+	return { ...context, indent: context.multiline ? context.indent + INDENT : '' };
 };
 
 /** The name written before the contents of a container, such as `User ` or `Map(2) `. */
@@ -43,7 +74,7 @@ const labelOf = (node: ValueNode): string => {
 };
 
 /** A container whose children were not captured, because the depth limit was reached. */
-const uncapturedText = (node: ValueNode): string => {
+export const uncapturedText = (node: ValueNode): string => {
 	if (node.kind === 'array' && (!node.className || node.className === 'Array')) {
 		return `Array(${node.size ?? 0}) […]`;
 	}
@@ -51,165 +82,217 @@ const uncapturedText = (node: ValueNode): string => {
 	return `${labelOf(node)}${node.kind === 'array' ? '[…]' : '{…}'}`;
 };
 
-const keyText = (entry: ValueEntry): string => {
-	const key = formatKey(entry).text;
+const keySpan = (entry: ValueEntry): LineTextSpan => {
+	const key = formatKey(entry);
 
-	return entry.keyKind === 'symbol' ? `[${key}]` : key;
+	return entry.keyKind === 'symbol' ? { ...key, text: `[${key.text}]` } : key;
 };
 
-const omittedText = (node: ValueNode): string[] => {
-	return (node.omitted ?? 0) > 0 ? [`… ${node.omitted} more`] : [];
+const omittedSpans = (node: ValueNode): Spans[] => {
+	return (node.omitted ?? 0) > 0 ? [[span(`… ${node.omitted} more`, 'muted')]] : [];
 };
 
-/** Joins the items of a container on one line when they fit, and one per line otherwise. */
+/** Joins the items of a container on one line, or one item per line when they do not fit. */
 const joinItems = (options: {
-	label: string;
+	label: Spans;
 	open: string;
 	close: string;
-	items: string[];
-	indent: string;
+	items: Spans[];
 	padding: string;
-}): string => {
-	const { label, open, close, items, indent, padding } = options;
+	context: Context;
+}): Spans => {
+	const { label, open, close, items, padding, context } = options;
 
 	if (items.length === 0) {
-		return `${label}${open}${close}`;
+		return [...label, span(`${open}${close}`)];
 	}
 
-	const single = `${label}${open}${padding}${items.join(', ')}${padding}${close}`;
+	const single = [
+		...label,
+		span(`${open}${padding}`),
+		...items.flatMap((item, index) => (index === 0 ? item : [span(', '), ...item])),
+		span(`${padding}${close}`)
+	];
 
-	if (!single.includes('\n') && indent.length + single.length <= BREAK_LENGTH) {
+	if (
+		!context.multiline ||
+		(!hasLineBreak(single) && context.indent.length + lengthOf(single) <= BREAK_LENGTH)
+	) {
 		return single;
 	}
 
-	const childIndent = indent + INDENT;
+	const childIndent = context.indent + INDENT;
 
-	return `${label}${open}\n${items.map((item) => childIndent + item).join(',\n')}\n${indent}${close}`;
+	return [
+		...label,
+		span(`${open}\n`),
+		...items.flatMap((item, index) => [
+			span(childIndent),
+			...item,
+			span(index < items.length - 1 ? ',\n' : '\n')
+		]),
+		span(`${context.indent}${close}`)
+	];
 };
 
-const containerText = (node: ValueNode, indent: string): string => {
+const containerSpans = (node: ValueNode, context: Context): Spans => {
+	const label = labelOf(node);
+
 	if (node.children === undefined) {
-		return uncapturedText(node);
+		return [span(uncapturedText(node))];
 	}
 
-	const childIndent = indent + INDENT;
-	const items = node.children.map((child) => {
-		const value = formatValue(child.value, childIndent);
+	const child = childContext(context);
+	const items = node.children.map((entry) => {
+		const value = valueSpans(entry.value, child);
 
-		if (node.kind === 'map' && child.keyValue) {
-			return `${formatValue(child.keyValue, childIndent)} => ${value}`;
+		if (node.kind === 'map' && entry.keyValue) {
+			return [...valueSpans(entry.keyValue, child), span(' => '), ...value];
 		}
 
-		if (node.kind === 'set' || child.key === undefined || child.keyKind === 'index') {
+		if (node.kind === 'set' || entry.key === undefined || entry.keyKind === 'index') {
 			return value;
 		}
 
-		return `${keyText(child)}: ${value}`;
+		return [keySpan(entry), span(': '), ...value];
 	});
 	const isArray = node.kind === 'array';
 
 	return joinItems({
-		label: labelOf(node),
+		label: label ? [span(label, node.kind === 'object' ? undefined : 'muted')] : [],
 		open: isArray ? '[' : '{',
 		close: isArray ? ']' : '}',
-		items: [...items, ...omittedText(node)],
-		indent,
-		padding: isArray ? '' : ' '
+		items: [...items, ...omittedSpans(node)],
+		padding: isArray ? '' : ' ',
+		context
 	});
 };
 
-const errorText = (node: ValueNode, indent: string): string => {
-	const lines = [errorTitle(node)];
+const errorSpans = (node: ValueNode, context: Context): Spans => {
+	const spans = [span(errorTitle(node), 'error')];
 
 	for (const line of node.stack?.split('\n') ?? []) {
-		lines.push(`${indent}${INDENT}${INDENT}${line.trim()}`);
+		spans.push(span(`\n${context.indent}${INDENT}${INDENT}${line.trim()}`, 'muted'));
 	}
 
-	const text = lines.join('\n');
-
 	if (!node.children?.length && !node.omitted) {
-		return text;
+		return spans;
 	}
 
 	// The properties of an error, such as its `cause`, follow it the way an object's would.
-	const properties = containerText(
-		{ kind: 'object', children: node.children ?? [], omitted: node.omitted },
-		indent
-	);
+	const properties: ValueNode = {
+		kind: 'object',
+		children: node.children ?? [],
+		omitted: node.omitted
+	};
 
-	return `${text} ${properties}`;
+	return [...spans, span(' '), ...containerSpans(properties, context)];
 };
 
-const elementText = (node: ValueNode, indent: string): string => {
+const elementSpans = (node: ValueNode, context: Context): Spans => {
 	const tag = node.value ?? 'element';
-	const open = spansText(node);
-	const close = `</${tag}>`;
+	const open = previewValue(node);
+	const close = span(`</${tag}>`, 'tag');
 
 	if (VOID_ELEMENTS.has(tag)) {
 		return open;
 	}
 
 	if (node.children === undefined) {
-		return `${open}…${close}`;
+		return [...open, span('…', 'muted'), close];
 	}
 
-	const childIndent = indent + INDENT;
+	const child = childContext(context);
 	const items = [
-		...node.children.map((child) =>
-			child.value.kind === 'text'
-				? (child.value.value ?? '')
-				: formatValue(child.value, childIndent)
+		...node.children.map((entry) =>
+			entry.value.kind === 'text' ? [span(entry.value.value ?? '')] : valueSpans(entry.value, child)
 		),
-		...omittedText(node)
+		...omittedSpans(node)
 	];
 
 	if (items.length === 0) {
-		return `${open}${close}`;
+		return [...open, close];
 	}
 
-	const single = `${open}${items[0]}${close}`;
+	const single = [...open, ...items.flat(), close];
 
 	if (
-		items.length === 1 &&
-		!single.includes('\n') &&
-		indent.length + single.length <= BREAK_LENGTH
+		!context.multiline ||
+		(items.length === 1 &&
+			!hasLineBreak(single) &&
+			context.indent.length + lengthOf(single) <= BREAK_LENGTH)
 	) {
 		return single;
 	}
 
-	return `${open}\n${items.map((item) => childIndent + item).join('\n')}\n${indent}${close}`;
+	return [
+		...open,
+		...items.flatMap((item) => [span(`\n${child.indent}`), ...item]),
+		span(`\n${context.indent}`),
+		close
+	];
 };
 
-/** Formats a value starting at a line that is indented by `indent`. */
-const formatValue = (node: ValueNode, indent: string): string => {
+const valueSpans = (node: ValueNode, context: Context): Spans => {
 	switch (node.kind) {
 		case 'object':
 		case 'array':
 		case 'map':
 		case 'set':
-			return containerText(node, indent);
+			return containerSpans(node, context);
 		case 'error':
-			return errorText(node, indent);
+			return errorSpans(node, context);
 		case 'element':
-			return elementText(node, indent);
+			return elementSpans(node, context);
 		default:
-			return spansText(node);
+			return previewValue(node);
 	}
 };
 
+const textOf = (spans: Spans): string => spans.map((item) => item.text).join('');
+
 /**
  * Writes out a value in full, the way code writes it, as far as it was captured: every
- * property, item and entry, with nested values on lines of their own once they are too long for
- * one line. Leaf values are written the way previews write them, such as `'text'` or
- * `ƒ handleClick()`.
+ * property, item and entry. Leaf values are written the way previews write them, such as
+ * `'text'` or `ƒ handleClick()`. Each span carries the token that colors it.
  */
-export const formatValueText = (node: ValueNode): string => {
-	return formatValue(node, '');
+export const formatValueSpans = (
+	node: ValueNode,
+	options: ValueTextOptions = {}
+): LineTextSpan[] => {
+	return valueSpans(node, { multiline: options.multiline ?? false, indent: '' });
 };
 
-/** Returns the text of an entry: its text as it was written, and every value in full. */
-export const formatEntryText = (entry: LogEntry): string => {
-	return entry.parts
-		.map((part) => (part.type === 'text' ? part.text : formatValueText(part.value)))
-		.join('');
+/** The text of `formatValueSpans`. */
+export const formatValueText = (node: ValueNode, options: ValueTextOptions = {}): string => {
+	return textOf(formatValueSpans(node, options));
+};
+
+/** Returns the spans of an entry: its text as it was written, and every value in full. */
+export const formatEntrySpans = (
+	entry: LogEntry,
+	options: ValueTextOptions = {}
+): LineTextSpan[] => {
+	return entry.parts.flatMap((part): Spans => {
+		if (part.type === 'value') {
+			return formatValueSpans(part.value, options);
+		}
+
+		const text: LineTextSpan = { text: part.text };
+
+		if (part.token) {
+			text.token = part.token;
+		}
+
+		if (part.style) {
+			text.style = part.style;
+		}
+
+		return [text];
+	});
+};
+
+/** The text of `formatEntrySpans`. */
+export const formatEntryText = (entry: LogEntry, options: ValueTextOptions = {}): string => {
+	return textOf(formatEntrySpans(entry, options));
 };

@@ -197,10 +197,12 @@ The same actions are available as methods: `getSelectionText()`, `selectAll()`, 
 
 When the pointer is over an entry, the rows of that entry get a light background, and a button with three vertical dots appears at the right end of its first row on screen. The button opens a menu of actions for the entry. On a touch screen, press and hold an entry to open the same menu.
 
-| Menu item           | What it does                                                                                                                                                                |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Copy as text        | Copies the whole entry without the timestamp, whether its values are open or closed. Every value is written out in full, the way code writes it, as far as it was captured. |
-| Copy with timestamp | Copies the same text after the time of the entry, in the format of the `timestamps` option, or in `'time'` when timestamps are hidden.                                      |
+| Menu item              | What it does                                                                                                                                                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Copy as text           | Copies the whole entry as plain text, whether its values are open or closed. Every value is written out in full on one line, as far as it was captured.                                                            |
+| Copy with timestamp    | Copies the same text after the time of the entry, in the format of the `timestamps` option, or in `'time'` when timestamps are hidden.                                                                             |
+| Copy as formatted text | Copies the entry with values that are too long for one line broken over several indented lines. The clipboard also gets the text as HTML with the colors of the theme, so an app that pastes rich text keeps them. |
+| Copy as data           | Copies the values of the entry as JSON: the value itself, or an array when the entry holds several. Shown only for entries with values.                                                                            |
 
 While the log area has focus, Shift+F10 or the context menu key opens the menu for the entry where the selection ends, or for the first entry on screen. The arrow keys move through the menu, Enter chooses an item, and Escape closes the menu.
 
@@ -227,22 +229,22 @@ new LogViewer(container, {
 });
 ```
 
-| `EntryMenuOptions` field | Type                                                      | Default | Description                                      |
-| ------------------------ | --------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `copy`                   | `boolean`                                                 | `true`  | Whether the menu starts with the two copy items. |
-| `items`                  | `(entry: LogEntry, viewer: LogViewer) => EntryMenuItem[]` | None    | Returns the items that follow the built-in ones. |
+| `EntryMenuOptions` field | Type                                                      | Default | Description                                           |
+| ------------------------ | --------------------------------------------------------- | ------- | ----------------------------------------------------- |
+| `copy`                   | `boolean`                                                 | `true`  | Whether the menu starts with the built-in copy items. |
+| `items`                  | `(entry: LogEntry, viewer: LogViewer) => EntryMenuItem[]` | None    | Returns the items that follow the built-in ones.      |
 
 An `EntryMenuItem` has a `label` and an `onSelect(entry, viewer)` function. Your items come after the built-in ones, below a separator. `copy: false` without `items` turns the menu off, and a menu that would have no items does not open.
 
 `entryMenu: false` turns off the button, the long press and the keyboard shortcut. The hover background stays; set `--lognal-hover` to `transparent` to remove it.
 
-The copies are also available as methods. `getEntryText(id, options?)` returns the text of an entry, with the time in front when `options.timestamp` is `true`, and `copyEntry(id, options?)` copies that text and resolves to whether anything was copied.
+The copies are also available as methods. `getEntryText(id, options?)` returns an entry in the format `options.format` names, `'text'`, `'formatted'` or `'data'`, with the time in front when `options.timestamp` is `true`. `copyEntry(id, options?)` copies the same text, adds the HTML for `'formatted'`, and resolves to whether anything was copied.
 
 ```ts
 const entry = viewer.store.write('Deploy finished', { level: 'info' });
 
 if (entry) {
-	await viewer.copyEntry(entry.id, { timestamp: true });
+	await viewer.copyEntry(entry.id, { format: 'formatted', timestamp: true });
 }
 ```
 

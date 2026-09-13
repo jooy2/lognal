@@ -11,7 +11,8 @@ import {
 import { measureCells } from '../core/text/measure.js';
 import { formatTimestamp, type TimestampFormat } from '../core/time.js';
 import type { LogEntry, LogLevel, LogPart } from '../core/types.js';
-import { formatEntryText } from '../core/value/text.js';
+import { formatEntryData } from '../core/value/data.js';
+import { formatEntrySpans, formatEntryText } from '../core/value/text.js';
 import { CanvasRenderer } from '../renderer/canvas/canvas-renderer.js';
 import type { CellMetrics, FontSettings, Renderer, RowDecoration } from '../renderer/types.js';
 import {
@@ -21,6 +22,7 @@ import {
 	type LognalConsole
 } from '../sources/console/hook.js';
 import { snapshotValue } from '../sources/console/snapshot.js';
+import { entryHtml } from './entry-html.js';
 import { createIcon, type IconName } from './icons.js';
 import { InputLine } from './input-line.js';
 import { labelsFor, type ViewerLabels } from './labels.js';
@@ -76,9 +78,24 @@ export interface EntryMenuOptions {
 	items?: (entry: LogEntry, viewer: LogViewer) => EntryMenuItem[];
 }
 
+/**
+ * How `getEntryText` and `copyEntry` write an entry.
+ *
+ * - `text`: every value on one line, without colors.
+ * - `formatted`: values that are too long for one line broken over several lines. `copyEntry`
+ *   also puts the text on the clipboard as HTML with the colors of the theme.
+ * - `data`: the values of the entry as JSON.
+ */
+export type EntryTextFormat = 'text' | 'formatted' | 'data';
+
 /** Options of `getEntryText` and `copyEntry`. */
 export interface EntryTextOptions {
-	/** Whether the text starts with the time of the entry, in the format of the `timestamps` option. */
+	/** How the entry is written. Defaults to `text`. */
+	format?: EntryTextFormat;
+	/**
+	 * Whether the text starts with the time of the entry, in the format of the `timestamps`
+	 * option. Ignored for `data`.
+	 */
 	timestamp?: boolean;
 }
 
@@ -614,10 +631,10 @@ export class LogViewer {
 	}
 
 	/**
-	 * Returns the whole text of an entry, whether its values are open or closed: the text as it
-	 * was written, and every value written out in full the way code writes it, as far as it was
-	 * captured. The timestamp comes first with `timestamp: true`. Returns an empty string for an
-	 * entry that is no longer in the store.
+	 * Returns the whole of an entry, whether its values are open or closed: the text as it was
+	 * written, and every value written out in full as far as it was captured. See
+	 * `EntryTextFormat` for the formats. Returns an empty string for an entry that is no longer in
+	 * the store.
 	 */
 	getEntryText(entryId: number, options: EntryTextOptions = {}): string {
 		const entry = this.store.get(entryId);
@@ -626,55 +643,109 @@ export class LogViewer {
 			return '';
 		}
 
-		const text = formatEntryText(entry);
-
-		if (!options.timestamp) {
-			return text;
+		if (options.format === 'data') {
+			return formatEntryData(entry);
 		}
 
-		return `${formatTimestamp(entry.time, this.options.timestamps ?? 'time')} ${text}`;
+		const text = formatEntryText(entry, { multiline: options.format === 'formatted' });
+
+		return options.timestamp ? `${this.timeOf(entry)} ${text}` : text;
 	}
 
-	/** Copies the text of an entry to the clipboard. Resolves to whether anything was copied. */
-	copyEntry(entryId: number, options?: EntryTextOptions): Promise<boolean> {
-		return this.writeClipboard(this.getEntryText(entryId, options));
+	/**
+	 * Copies an entry to the clipboard in a format of `EntryTextFormat`. With `formatted`, the
+	 * clipboard also gets HTML with the colors of the theme, for pages and apps that paste rich
+	 * text. Resolves to whether anything was copied.
+	 */
+	copyEntry(entryId: number, options: EntryTextOptions = {}): Promise<boolean> {
+		const entry = this.store.get(entryId);
+		const text = this.getEntryText(entryId, options);
+
+		if (!entry || options.format !== 'formatted') {
+			return this.writeClipboard(text);
+		}
+
+		const spans = formatEntrySpans(entry, { multiline: true });
+		const html = entryHtml({
+			entry,
+			spans: options.timestamp
+				? [{ text: `${this.timeOf(entry)} `, token: 'muted' }, ...spans]
+				: spans,
+			theme: readTheme(this.element),
+			font: readFont(this.element, this.options.font)
+		});
+
+		return this.writeClipboard(text, html);
 	}
 
-	/** Writes text to the clipboard. Resolves to whether anything was copied. */
-	private async writeClipboard(text: string): Promise<boolean> {
+	private timeOf(entry: LogEntry): string {
+		return formatTimestamp(entry.time, this.options.timestamps ?? 'time');
+	}
+
+	/** Writes text, and HTML when given, to the clipboard. Resolves to whether anything was copied. */
+	private async writeClipboard(text: string, html?: string): Promise<boolean> {
 		if (!text) {
 			return false;
 		}
 
-		const view = this.ownerDocument.defaultView;
+		const doc = this.ownerDocument;
+		const view = doc.defaultView as (Window & typeof globalThis) | null;
 		const clipboard = view?.navigator.clipboard;
 
-		if (clipboard?.writeText && view?.isSecureContext) {
+		if (clipboard && view?.isSecureContext) {
 			try {
-				await clipboard.writeText(text);
+				if (html && clipboard.write && typeof view.ClipboardItem === 'function') {
+					await clipboard.write([
+						new view.ClipboardItem({
+							'text/plain': new Blob([text], { type: 'text/plain' }),
+							'text/html': new Blob([html], { type: 'text/html' })
+						})
+					]);
 
-				return true;
+					return true;
+				}
+
+				if (clipboard.writeText) {
+					await clipboard.writeText(text);
+
+					return true;
+				}
 			} catch {
 				// Fall back to the copy command below.
 			}
 		}
 
-		const textarea = this.ownerDocument.createElement('textarea');
+		// The copy command copies the selected text of a hidden field. A listener sets the data
+		// itself, so the HTML goes along too.
+		const textarea = doc.createElement('textarea');
+		const onCopy = (event: ClipboardEvent): void => {
+			if (event.clipboardData) {
+				event.clipboardData.setData('text/plain', text);
+
+				if (html) {
+					event.clipboardData.setData('text/html', html);
+				}
+
+				event.preventDefault();
+			}
+		};
 
 		textarea.value = text;
 		textarea.setAttribute('readonly', '');
 		textarea.className = 'lognal-clipboard';
 		this.element.append(textarea);
 		textarea.select();
+		doc.addEventListener('copy', onCopy, true);
 
 		let copied: boolean;
 
 		try {
-			copied = this.ownerDocument.execCommand('copy');
+			copied = doc.execCommand('copy');
 		} catch {
 			copied = false;
 		}
 
+		doc.removeEventListener('copy', onCopy, true);
 		textarea.remove();
 		this.viewport.focus({ preventScroll: true });
 
@@ -1198,8 +1269,26 @@ export class LogViewer {
 					onSelect: () => {
 						void this.copyEntry(entryId, { timestamp: true });
 					}
+				},
+				{
+					label: labels.copyEntryFormatted,
+					icon: 'code',
+					onSelect: () => {
+						void this.copyEntry(entryId, { format: 'formatted' });
+					}
 				}
 			);
+
+			// Data is only worth copying from an entry that holds values.
+			if (entry.parts.some((part) => part.type === 'value')) {
+				items.push({
+					label: labels.copyEntryData,
+					icon: 'braces',
+					onSelect: () => {
+						void this.copyEntry(entryId, { format: 'data' });
+					}
+				});
+			}
 		}
 
 		for (const [index, item] of (entryMenu.items?.(entry, this) ?? []).entries()) {

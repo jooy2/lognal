@@ -33,29 +33,29 @@ new LogViewer(container: HTMLElement, options?: LogViewerOptions)
 
 ## 메서드 {#methods}
 
-| 메서드                                                               | 반환값              | 설명                                                                                                                                                                                                                |
-| -------------------------------------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `setOptions(options: Omit<LogViewerOptions, 'store' \| 'renderer'>)` | `void`              | 넘긴 옵션만 바꾸고 나머지는 그대로 둡니다. `locale`을 바꾸면 내장 레이블이 바뀌고, `labels`로 넘긴 레이블은 그대로 남습니다.                                                                                        |
-| `write(text: string, options?: WriteOptions)`                        | `void`              | 텍스트를 항목 하나로 추가합니다. 줄 바꿈은 항목 안에 그대로 둡니다.                                                                                                                                                 |
-| `writeLines(text: string, options?: WriteOptions)`                   | `void`              | 텍스트를 줄마다 항목 하나씩 추가합니다.                                                                                                                                                                             |
-| `hookConsole(target?: Console, options?: HookConsoleOptions)`        | `() => void`        | 콘솔을 스토어에 기록합니다. 기본 대상은 `console`입니다. 기록을 멈추는 함수를 반환하며, 뷰어를 정리해도 기록이 멈춥니다.                                                                                            |
-| `clear()`                                                            | `void`              | 스토어의 항목을 모두 지우고 선택을 해제합니다.                                                                                                                                                                      |
-| `setFilter(filter: LogFilter \| null)`                               | `void`              | 필터를 정합니다. `null`이면 모든 항목을 보여 줍니다. `filter` 이벤트가 발생합니다.                                                                                                                                  |
-| `getFilter()`                                                        | `LogFilter \| null` | 필터를 반환합니다.                                                                                                                                                                                                  |
-| `setFollowing(following: boolean)`                                   | `void`              | 따라가기를 켜거나 끕니다. 켜면 가장 새 항목으로 스크롤합니다. 값이 바뀌면 `follow` 이벤트가 발생합니다.                                                                                                             |
-| `scrollToTop()`                                                      | `void`              | 따라가기를 멈추고 첫 행으로 스크롤합니다.                                                                                                                                                                           |
-| `scrollToBottom()`                                                   | `void`              | 따라가기를 켜서 가장 새 항목으로 스크롤합니다.                                                                                                                                                                      |
-| `scrollToEntry(entryId: number)`                                     | `void`              | 따라가기를 멈추고 항목이 맨 위에 오도록 스크롤합니다. 보이지 않는 항목이면 아무것도 하지 않습니다.                                                                                                                  |
-| `getSelectionText()`                                                 | `string`            | 선택한 텍스트를 반환합니다. 선택이 없으면 빈 문자열입니다.                                                                                                                                                          |
-| `selectAll()`                                                        | `void`              | 보이는 항목의 텍스트를 모두 선택합니다. `selection` 이벤트가 발생합니다.                                                                                                                                            |
-| `clearSelection()`                                                   | `void`              | 선택을 해제합니다. 선택이 있었다면 `selection` 이벤트가 발생합니다.                                                                                                                                                 |
-| `copySelection()`                                                    | `Promise<boolean>`  | 선택한 텍스트를 클립보드에 복사합니다. 복사한 내용이 있는지를 이행 값으로 돌려줍니다.                                                                                                                               |
-| `getEntryText(entryId: number, options?: EntryTextOptions)`          | `string`            | 항목의 텍스트 전체를 반환합니다. 값은 펼쳤는지와 상관없이 캡처된 만큼 모두, 코드에서 쓰는 모양으로 적습니다. `timestamp: true`이면 앞에 항목의 시각을 붙입니다. 스토어에 더는 없는 항목이면 빈 문자열을 반환합니다. |
-| `copyEntry(entryId: number, options?: EntryTextOptions)`             | `Promise<boolean>`  | `getEntryText`가 반환하는 텍스트를 클립보드에 복사합니다. 복사한 내용이 있는지를 이행 값으로 돌려줍니다.                                                                                                            |
-| `focus()`                                                            | `void`              | 입력 줄에, 입력 줄이 없으면 로그 영역에 포커스를 줍니다.                                                                                                                                                            |
-| `refresh()`                                                          | `void`              | 페이지가 CSS를 바꾼 뒤처럼 필요할 때 CSS에서 테마와 글꼴을 다시 읽습니다.                                                                                                                                           |
-| `on(name, listener)`                                                 | `() => void`        | 이벤트가 일어나면 `listener`를 호출합니다. 리스너를 떼는 함수를 반환합니다.                                                                                                                                         |
-| `dispose()`                                                          | `void`              | 페이지에서 뷰어를 없애고 뷰어가 시작한 작업을 모두 멈춥니다. 두 번 호출해도 문제없습니다.                                                                                                                           |
+| 메서드                                                               | 반환값              | 설명                                                                                                                                                                              |
+| -------------------------------------------------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `setOptions(options: Omit<LogViewerOptions, 'store' \| 'renderer'>)` | `void`              | 넘긴 옵션만 바꾸고 나머지는 그대로 둡니다. `locale`을 바꾸면 내장 레이블이 바뀌고, `labels`로 넘긴 레이블은 그대로 남습니다.                                                      |
+| `write(text: string, options?: WriteOptions)`                        | `void`              | 텍스트를 항목 하나로 추가합니다. 줄 바꿈은 항목 안에 그대로 둡니다.                                                                                                               |
+| `writeLines(text: string, options?: WriteOptions)`                   | `void`              | 텍스트를 줄마다 항목 하나씩 추가합니다.                                                                                                                                           |
+| `hookConsole(target?: Console, options?: HookConsoleOptions)`        | `() => void`        | 콘솔을 스토어에 기록합니다. 기본 대상은 `console`입니다. 기록을 멈추는 함수를 반환하며, 뷰어를 정리해도 기록이 멈춥니다.                                                          |
+| `clear()`                                                            | `void`              | 스토어의 항목을 모두 지우고 선택을 해제합니다.                                                                                                                                    |
+| `setFilter(filter: LogFilter \| null)`                               | `void`              | 필터를 정합니다. `null`이면 모든 항목을 보여 줍니다. `filter` 이벤트가 발생합니다.                                                                                                |
+| `getFilter()`                                                        | `LogFilter \| null` | 필터를 반환합니다.                                                                                                                                                                |
+| `setFollowing(following: boolean)`                                   | `void`              | 따라가기를 켜거나 끕니다. 켜면 가장 새 항목으로 스크롤합니다. 값이 바뀌면 `follow` 이벤트가 발생합니다.                                                                           |
+| `scrollToTop()`                                                      | `void`              | 따라가기를 멈추고 첫 행으로 스크롤합니다.                                                                                                                                         |
+| `scrollToBottom()`                                                   | `void`              | 따라가기를 켜서 가장 새 항목으로 스크롤합니다.                                                                                                                                    |
+| `scrollToEntry(entryId: number)`                                     | `void`              | 따라가기를 멈추고 항목이 맨 위에 오도록 스크롤합니다. 보이지 않는 항목이면 아무것도 하지 않습니다.                                                                                |
+| `getSelectionText()`                                                 | `string`            | 선택한 텍스트를 반환합니다. 선택이 없으면 빈 문자열입니다.                                                                                                                        |
+| `selectAll()`                                                        | `void`              | 보이는 항목의 텍스트를 모두 선택합니다. `selection` 이벤트가 발생합니다.                                                                                                          |
+| `clearSelection()`                                                   | `void`              | 선택을 해제합니다. 선택이 있었다면 `selection` 이벤트가 발생합니다.                                                                                                               |
+| `copySelection()`                                                    | `Promise<boolean>`  | 선택한 텍스트를 클립보드에 복사합니다. 복사한 내용이 있는지를 이행 값으로 돌려줍니다.                                                                                             |
+| `getEntryText(entryId: number, options?: EntryTextOptions)`          | `string`            | 값을 펼쳤는지와 상관없이 항목 전체를 `options.format` 형식으로 반환합니다. `timestamp: true`이면 앞에 항목의 시각을 붙입니다. 스토어에 더는 없는 항목이면 빈 문자열을 반환합니다. |
+| `copyEntry(entryId: number, options?: EntryTextOptions)`             | `Promise<boolean>`  | `getEntryText`가 반환하는 텍스트를 클립보드에 복사하고, `'formatted'`이면 테마 색을 입힌 HTML도 함께 넣습니다. 복사한 내용이 있는지를 이행 값으로 돌려줍니다.                     |
+| `focus()`                                                            | `void`              | 입력 줄에, 입력 줄이 없으면 로그 영역에 포커스를 줍니다.                                                                                                                          |
+| `refresh()`                                                          | `void`              | 페이지가 CSS를 바꾼 뒤처럼 필요할 때 CSS에서 테마와 글꼴을 다시 읽습니다.                                                                                                         |
+| `on(name, listener)`                                                 | `() => void`        | 이벤트가 일어나면 `listener`를 호출합니다. 리스너를 떼는 함수를 반환합니다.                                                                                                       |
+| `dispose()`                                                          | `void`              | 페이지에서 뷰어를 없애고 뷰어가 시작한 작업을 모두 멈춥니다. 두 번 호출해도 문제없습니다.                                                                                         |
 
 ## 이벤트 {#events}
 
@@ -134,10 +134,10 @@ off();
 
 ## EntryMenuOptions {#entrymenuoptions}
 
-| 옵션    | 타입                                                      | 기본값 | 설명                                                                                      |
-| ------- | --------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------- |
-| `copy`  | `boolean`                                                 | `true` | 메뉴를 **텍스트로 복사**와 **타임스탬프와 함께 복사**로 시작할지 정합니다.                |
-| `items` | `(entry: LogEntry, viewer: LogViewer) => EntryMenuItem[]` | 없음   | 메뉴가 열릴 때마다 호출합니다. 반환한 메뉴 항목은 구분선 아래, 내장 항목 다음에 나옵니다. |
+| 옵션    | 타입                                                      | 기본값 | 설명                                                                                                                                                                                   |
+| ------- | --------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `copy`  | `boolean`                                                 | `true` | 메뉴를 복사 항목으로 시작할지 정합니다. 복사 항목은 **텍스트로 복사**, **타임스탬프와 함께 복사**, **서식 있는 텍스트로 복사**이고, 값이 있는 항목에는 **데이터로 복사**가 더해집니다. |
+| `items` | `(entry: LogEntry, viewer: LogViewer) => EntryMenuItem[]` | 없음   | 메뉴가 열릴 때마다 호출합니다. 반환한 메뉴 항목은 구분선 아래, 내장 항목 다음에 나옵니다.                                                                                              |
 
 `copy: false`이면서 `items`가 없으면 메뉴가 꺼집니다. 메뉴 항목이 하나도 없는 메뉴는 열리지 않습니다.
 
@@ -150,41 +150,50 @@ off();
 
 ### EntryTextOptions {#entrytextoptions}
 
-| 옵션        | 타입      | 기본값  | 설명                                                                                                           |
-| ----------- | --------- | ------- | -------------------------------------------------------------------------------------------------------------- |
-| `timestamp` | `boolean` | `false` | 텍스트 앞에 항목의 시각을 붙일지 정합니다. 시각은 `timestamps`의 형식을 따르고, 꺼져 있으면 `'time'`을 씁니다. |
+| 옵션        | 타입              | 기본값   | 설명                                                                                                                                      |
+| ----------- | ----------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`    | `EntryTextFormat` | `'text'` | 항목을 적는 형식입니다.                                                                                                                   |
+| `timestamp` | `boolean`         | `false`  | 텍스트 앞에 항목의 시각을 붙일지 정합니다. 시각은 `timestamps`의 형식을 따르고, 꺼져 있으면 `'time'`을 씁니다. `'data'`에서는 무시합니다. |
+
+| `EntryTextFormat` | 결과                                                                                                                                                                                                                                                                                  |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `'text'`          | 서식 없는 텍스트입니다. 값은 모두 한 줄에 적습니다.                                                                                                                                                                                                                                   |
+| `'formatted'`     | 한 줄에 다 들어가지 않는 값을 들여쓴 여러 줄로 나눕니다. `copyEntry`는 테마 색을 입힌 HTML도 함께 복사합니다.                                                                                                                                                                         |
+| `'data'`          | 값을 JSON으로 적습니다. 값이 하나면 그 값, 여러 개면 값의 배열, 값이 없으면 항목의 텍스트입니다. `undefined`는 `null`, Set은 배열, 텍스트 키를 쓰는 Map은 객체, 오류는 `name`, `message`, `stack`이 든 객체가 되고, `10n`이나 `Symbol(token)`처럼 JSON에 없는 타입은 텍스트가 됩니다. |
 
 ## ViewerLabels {#viewerlabels}
 
 레이블은 모두 화면에 보이는 텍스트나 접근성 이름으로 쓰입니다.
 
-| 레이블              | 영어(`EN_LABELS`)                 | 한국어(`KO_LABELS`)           |
-| ------------------- | --------------------------------- | ----------------------------- |
-| `viewer`            | Log viewer                        | 로그 뷰어                     |
-| `toolbar`           | Log viewer tools                  | 로그 뷰어 도구                |
-| `follow`            | Follow new logs                   | 새 로그 따라가기              |
-| `clear`             | Clear logs                        | 로그 지우기                   |
-| `scrollToTop`       | Scroll to top                     | 맨 위로 이동                  |
-| `scrollToBottom`    | Scroll to bottom                  | 맨 아래로 이동                |
-| `wrap`              | Wrap long lines                   | 긴 줄 바꾸기                  |
-| `filter`            | Filter                            | 필터                          |
-| `invalidFilter`     | The filter is not a valid pattern | 필터 패턴이 올바르지 않습니다 |
-| `levels`            | Log levels                        | 로그 수준                     |
-| `levelAll`          | All levels                        | 모든 수준                     |
-| `levelLog`          | Log and above                     | 로그 이상                     |
-| `levelInfo`         | Info and above                    | 정보 이상                     |
-| `levelWarn`         | Warnings and errors               | 경고와 오류                   |
-| `levelError`        | Errors only                       | 오류만                        |
-| `input`             | Command                           | 명령                          |
-| `inputPlaceholder`  | Type a command                    | 명령을 입력하세요             |
-| `newLogs`           | New logs                          | 새 로그                       |
-| `entryList`         | Visible log entries               | 화면에 보이는 로그            |
-| `entryActions`      | Entry actions                     | 항목 작업                     |
-| `copyEntry`         | Copy as text                      | 텍스트로 복사                 |
-| `copyEntryWithTime` | Copy with timestamp               | 타임스탬프와 함께 복사        |
-| `following`         | Following                         | 따라가는 중                   |
-| `paused`            | Paused                            | 멈춤                          |
-| `entries`           | `3 entries`, `1 of 3 entries`     | `로그 3개`, `로그 3개 중 1개` |
+| 레이블               | 영어(`EN_LABELS`)                 | 한국어(`KO_LABELS`)           |
+| -------------------- | --------------------------------- | ----------------------------- |
+| `viewer`             | Log viewer                        | 로그 뷰어                     |
+| `toolbar`            | Log viewer tools                  | 로그 뷰어 도구                |
+| `follow`             | Follow new logs                   | 새 로그 따라가기              |
+| `clear`              | Clear logs                        | 로그 지우기                   |
+| `scrollToTop`        | Scroll to top                     | 맨 위로 이동                  |
+| `scrollToBottom`     | Scroll to bottom                  | 맨 아래로 이동                |
+| `wrap`               | Wrap long lines                   | 긴 줄 바꾸기                  |
+| `filter`             | Filter                            | 필터                          |
+| `invalidFilter`      | The filter is not a valid pattern | 필터 패턴이 올바르지 않습니다 |
+| `levels`             | Log levels                        | 로그 수준                     |
+| `levelAll`           | All levels                        | 모든 수준                     |
+| `levelLog`           | Log and above                     | 로그 이상                     |
+| `levelInfo`          | Info and above                    | 정보 이상                     |
+| `levelWarn`          | Warnings and errors               | 경고와 오류                   |
+| `levelError`         | Errors only                       | 오류만                        |
+| `input`              | Command                           | 명령                          |
+| `inputPlaceholder`   | Type a command                    | 명령을 입력하세요             |
+| `newLogs`            | New logs                          | 새 로그                       |
+| `entryList`          | Visible log entries               | 화면에 보이는 로그            |
+| `entryActions`       | Entry actions                     | 항목 작업                     |
+| `copyEntry`          | Copy as text                      | 텍스트로 복사                 |
+| `copyEntryWithTime`  | Copy with timestamp               | 타임스탬프와 함께 복사        |
+| `copyEntryFormatted` | Copy as formatted text            | 서식 있는 텍스트로 복사       |
+| `copyEntryData`      | Copy as data                      | 데이터로 복사                 |
+| `following`          | Following                         | 따라가는 중                   |
+| `paused`             | Paused                            | 멈춤                          |
+| `entries`            | `3 entries`, `1 of 3 entries`     | `로그 3개`, `로그 3개 중 1개` |
 
 `entries`는 `(shown: number, total: number, format: (value: number) => string) => string` 형태의 함수입니다. `format`은 숫자를 로케일에 맞게 서식화합니다.
 

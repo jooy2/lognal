@@ -30,6 +30,10 @@ export interface ViewerLabels {
 	copyEntry: string;
 	/** The menu item that copies the text of an entry after its timestamp. */
 	copyEntryWithTime: string;
+	/** The menu item that copies an entry over several lines, with colors for rich text. */
+	copyEntryFormatted: string;
+	/** The menu item that copies the values of an entry as JSON. */
+	copyEntryData: string;
 	following: string;
 	paused: string;
 	/** The entry count in the status bar. `format` formats a number for the locale. */
@@ -59,6 +63,8 @@ export const EN_LABELS: ViewerLabels = {
 	entryActions: 'Entry actions',
 	copyEntry: 'Copy as text',
 	copyEntryWithTime: 'Copy with timestamp',
+	copyEntryFormatted: 'Copy as formatted text',
+	copyEntryData: 'Copy as data',
 	following: 'Following',
 	paused: 'Paused',
 	entries: (shown, total, format) => {
@@ -93,6 +99,8 @@ export const KO_LABELS: ViewerLabels = {
 	entryActions: '항목 작업',
 	copyEntry: '텍스트로 복사',
 	copyEntryWithTime: '타임스탬프와 함께 복사',
+	copyEntryFormatted: '서식 있는 텍스트로 복사',
+	copyEntryData: '데이터로 복사',
 	following: '따라가는 중',
 	paused: '멈춤',
 	entries: (shown, total, format) => {

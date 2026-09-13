@@ -265,7 +265,8 @@ describe('LogViewer', () => {
 		expect(button.getAttribute('aria-expanded')).toBe('true');
 		expect(items.map((element) => element.textContent)).toEqual([
 			'Copy as text',
-			'Copy with timestamp'
+			'Copy with timestamp',
+			'Copy as formatted text'
 		]);
 
 		item.click();
@@ -353,7 +354,13 @@ describe('LogViewer', () => {
 			child.getAttribute('role') === 'separator' ? '---' : child.textContent
 		);
 
-		expect(labels).toEqual(['Copy as text', 'Copy with timestamp', '---', `Pin ${entry.id}`]);
+		expect(labels).toEqual([
+			'Copy as text',
+			'Copy with timestamp',
+			'Copy as formatted text',
+			'---',
+			`Pin ${entry.id}`
+		]);
 
 		(popup.querySelector('[role="menuitem"]:last-child') as HTMLElement).click();
 		expect(onSelect).toHaveBeenCalledWith(entry, viewer);
@@ -363,6 +370,79 @@ describe('LogViewer', () => {
 		hover(viewer, 200, 30);
 		hover(viewer, 200, 8);
 		expect(button.hidden).toBe(true);
+		viewer.dispose();
+	});
+
+	it('copies an entry as formatted text with colors and as data', async () => {
+		const viewer = new LogViewer(container, { theme: 'light', timestamps: false });
+		const button = viewer.element.querySelector('.lognal-entry-actions') as HTMLButtonElement;
+		const popup = viewer.element.querySelector('.lognal-popup') as HTMLDivElement;
+		const write = vi.spyOn(navigator.clipboard, 'write').mockResolvedValue(undefined);
+		const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);
+		const user = {
+			id: 1,
+			name: 'lognal',
+			roles: ['admin', 'editor'],
+			profile: { city: 'Seoul', zip: '04524', verified: true }
+		};
+		const choose = (label: string): void => {
+			hover(viewer, 200, 8);
+			button.click();
+			(
+				Array.from(popup.querySelectorAll('[role="menuitem"]')).find(
+					(item) => item.textContent === label
+				) as HTMLElement
+			).click();
+		};
+
+		viewer.console.log('user', user);
+		await nextFrame();
+
+		const [entry] = viewer.store.toArray();
+		const formatted = [
+			'user {',
+			'  id: 1,',
+			"  name: 'lognal',",
+			"  roles: ['admin', 'editor'],",
+			"  profile: { city: 'Seoul', zip: '04524', verified: true }",
+			'}'
+		].join('\n');
+
+		expect(viewer.getEntryText(entry.id, { format: 'formatted' })).toBe(formatted);
+		expect(JSON.parse(viewer.getEntryText(entry.id, { format: 'data' }))).toEqual(user);
+
+		choose('Copy as formatted text');
+		await waitFor(() => write.mock.calls.length === 1);
+
+		const [item] = write.mock.calls[0][0];
+		const html = await (await item.getType('text/html')).text();
+
+		expect(await (await item.getType('text/plain')).text()).toBe(formatted);
+		expect(html).toContain('<pre style="');
+		// Strings take the string token color of the light theme.
+		expect(html).toContain(`<span style="color: #1f7a47">'lognal'</span>`);
+
+		choose('Copy as data');
+		await waitFor(() => writeText.mock.calls.length === 1);
+		expect(JSON.parse(writeText.mock.calls[0][0])).toEqual(user);
+
+		write.mockRestore();
+		writeText.mockRestore();
+		viewer.dispose();
+	});
+
+	it('escapes log text in the HTML of a formatted copy', async () => {
+		const viewer = new LogViewer(container);
+		const write = vi.spyOn(navigator.clipboard, 'write').mockResolvedValue(undefined);
+
+		viewer.write('<img src=x onerror="alert(1)"> & more');
+		await viewer.copyEntry(viewer.store.at(0)!.id, { format: 'formatted' });
+
+		const html = await (await write.mock.calls[0][0][0].getType('text/html')).text();
+
+		expect(html).toContain('&lt;img src=x onerror=&quot;alert(1)&quot;&gt; &amp; more');
+		expect(html).not.toContain('<img');
+		write.mockRestore();
 		viewer.dispose();
 	});
 
