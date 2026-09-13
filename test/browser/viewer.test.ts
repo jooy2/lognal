@@ -335,6 +335,17 @@ describe('LogViewer', () => {
 			'1970-01-01T00:00:00.000Z hello'
 		);
 
+		// A closed value is copied in full, not as its one-line preview.
+		viewer.console.log('user', { id: 1, roles: ['admin', 'editor'], profile: { city: 'Seoul' } });
+		await nextFrame();
+
+		const user = viewer.store.at(1)!;
+
+		expect(viewer.layout.rowsOf(user.id)).toBe(1);
+		expect(viewer.getEntryText(user.id)).toBe(
+			"user { id: 1, roles: ['admin', 'editor'], profile: { city: 'Seoul' } }"
+		);
+
 		hover(viewer, 200, 8);
 		button.click();
 

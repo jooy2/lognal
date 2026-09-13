@@ -13,7 +13,7 @@ Changes to `lognal` that affect its users, newest first.
 ### Changes
 
 - The level menu follows the theme of the viewer. The arrow keys, Home and End move through the levels, Enter or Space chooses one, and Escape closes it.
-- The entry under the pointer gets a light background, set with `--lognal-hover`, and a button that opens a menu of actions for it. **Copy as text** copies every line of the entry, and **Copy with timestamp** puts the time of the entry in front. A long press opens the menu on a touch screen, and Shift+F10 or the context menu key opens it from the keyboard.
+- The entry under the pointer gets a light background, set with `--lognal-hover`, and a button that opens a menu of actions for it. **Copy as text** copies the whole entry, with every captured value written out in full the way code writes it, even when the value is closed, and **Copy with timestamp** puts the time of the entry in front. A long press opens the menu on a touch screen, and Shift+F10 or the context menu key opens it from the keyboard.
 - `entryMenu` takes `false` to turn the menu off, or an object whose `items` function adds items of your own after the built-in ones. `getEntryText` and `copyEntry` copy an entry from code, with `{ timestamp: true }` for the time.
 - The log area and the input line no longer draw a focus outline.
 - `--lognal-popup-shadow` sets the shadow of the level menu and the entry menu.

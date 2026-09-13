@@ -197,10 +197,10 @@ The same actions are available as methods: `getSelectionText()`, `selectAll()`, 
 
 When the pointer is over an entry, the rows of that entry get a light background, and a button with three vertical dots appears at the right end of its first row on screen. The button opens a menu of actions for the entry. On a touch screen, press and hold an entry to open the same menu.
 
-| Menu item           | What it does                                                                                                                           |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Copy as text        | Copies every line of the entry, with the rows of open values and without the timestamp, as selecting the whole entry would.            |
-| Copy with timestamp | Copies the same text after the time of the entry, in the format of the `timestamps` option, or in `'time'` when timestamps are hidden. |
+| Menu item           | What it does                                                                                                                                                                |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Copy as text        | Copies the whole entry without the timestamp, whether its values are open or closed. Every value is written out in full, the way code writes it, as far as it was captured. |
+| Copy with timestamp | Copies the same text after the time of the entry, in the format of the `timestamps` option, or in `'time'` when timestamps are hidden.                                      |
 
 While the log area has focus, Shift+F10 or the context menu key opens the menu for the entry where the selection ends, or for the first entry on screen. The arrow keys move through the menu, Enter chooses an item, and Escape closes the menu.
 

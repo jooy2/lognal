@@ -48,7 +48,7 @@ A value that has children starts with a small triangle. Click the triangle or th
 
 A value that reached the `maxDepth` limit has no captured children, so it has no triangle. What the other limits leave out is shown as a last row such as `… 25 more`. See [Capture limits](/guide/console#capture-limits).
 
-The viewer remembers which values are open for each entry, until the entry leaves the store or the store is cleared. Selecting and copying text includes the rows of open values.
+The viewer remembers which values are open for each entry, until the entry leaves the store or the store is cleared. Selecting and copying text includes the rows of open values. **Copy as text** in the [entry menu](/guide/viewer#entry-menu) copies every value in full, open or closed.
 
 ## Errors
 

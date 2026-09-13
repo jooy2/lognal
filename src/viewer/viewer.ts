@@ -11,6 +11,7 @@ import {
 import { measureCells } from '../core/text/measure.js';
 import { formatTimestamp, type TimestampFormat } from '../core/time.js';
 import type { LogEntry, LogLevel, LogPart } from '../core/types.js';
+import { formatEntryText } from '../core/value/text.js';
 import { CanvasRenderer } from '../renderer/canvas/canvas-renderer.js';
 import type { CellMetrics, FontSettings, Renderer, RowDecoration } from '../renderer/types.js';
 import {
@@ -613,23 +614,19 @@ export class LogViewer {
 	}
 
 	/**
-	 * Returns the text of an entry the way copying a selection of it would: every line, with the
-	 * rows of open values, and without the timestamp. Returns an empty string for an entry that
-	 * is not visible.
+	 * Returns the whole text of an entry, whether its values are open or closed: the text as it
+	 * was written, and every value written out in full the way code writes it, as far as it was
+	 * captured. The timestamp comes first with `timestamp: true`. Returns an empty string for an
+	 * entry that is no longer in the store.
 	 */
 	getEntryText(entryId: number, options: EntryTextOptions = {}): string {
-		this.layout.sync();
-
 		const entry = this.store.get(entryId);
 
-		if (!entry || this.layout.indexOf(entryId) < 0) {
+		if (!entry) {
 			return '';
 		}
 
-		const text = this.layout.getText(
-			{ entryId, line: 0, cell: 0 },
-			{ entryId, line: Number.MAX_SAFE_INTEGER, cell: Number.MAX_SAFE_INTEGER }
-		);
+		const text = formatEntryText(entry);
 
 		if (!options.timestamp) {
 			return text;
