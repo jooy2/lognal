@@ -1,0 +1,589 @@
+/*
+ * lognal viewer styles.
+ *
+ * Every color and size is a `--lognal-*` custom property on `.lognal`. The canvas reads the
+ * colors from these properties, so a theme is written once, in CSS. Override them on `.lognal`
+ * or on a class of your own to restyle the viewer.
+ */
+
+.lognal {
+	/* Text grid */
+	--lognal-font-family:
+		ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'D2Coding', 'Noto Sans Mono CJK KR',
+		'Liberation Mono', monospace;
+	--lognal-font-size: 13px;
+	--lognal-font-weight: 400;
+	--lognal-line-height: 1.6;
+
+	/* Chrome */
+	--lognal-ui-font-family:
+		system-ui, -apple-system, 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+	--lognal-ui-font-size: 12px;
+	--lognal-radius: 10px;
+	--lognal-control-radius: 6px;
+	--lognal-toolbar-height: 40px;
+	--lognal-statusbar-height: 26px;
+
+	/* Light palette */
+	--lognal-background: #ffffff;
+	--lognal-foreground: #1d2129;
+	--lognal-muted: #646a78;
+	--lognal-accent: #1f6fd6;
+	--lognal-border: #e3e6eb;
+	--lognal-surface: #f6f7f9;
+	--lognal-control-hover: rgba(29, 33, 41, 0.07);
+	--lognal-control-active: rgba(31, 111, 214, 0.12);
+	--lognal-focus-ring: #1f6fd6;
+	--lognal-selection: rgba(31, 111, 214, 0.22);
+	--lognal-match: rgba(240, 173, 0, 0.3);
+	--lognal-separator: rgba(29, 33, 41, 0.06);
+	--lognal-error: #c4262c;
+	--lognal-error-background: rgba(222, 53, 58, 0.07);
+	--lognal-warn: #8a5a00;
+	--lognal-warn-background: rgba(240, 173, 0, 0.1);
+	--lognal-info: #1f6fd6;
+	--lognal-debug: #646a78;
+	--lognal-scrollbar-thumb: rgba(29, 33, 41, 0.28);
+	--lognal-scrollbar-thumb-hover: rgba(29, 33, 41, 0.45);
+	--lognal-token-muted: #646a78;
+	--lognal-token-string: #1f7a47;
+	--lognal-token-number: #6f42c1;
+	--lognal-token-boolean: #6f42c1;
+	--lognal-token-null: #646a78;
+	--lognal-token-key: #1a5fb4;
+	--lognal-token-symbol: #a3316f;
+	--lognal-token-function: #1a5fb4;
+	--lognal-token-regexp: #b1361e;
+	--lognal-token-date: #1f7a47;
+	--lognal-token-tag: #1a5fb4;
+	--lognal-token-attribute: #8a5a00;
+	--lognal-token-error: #c4262c;
+	--lognal-token-warn: #8a5a00;
+	--lognal-token-info: #1f6fd6;
+	--lognal-token-accent: #1f6fd6;
+	--lognal-ansi-0: #1d2129;
+	--lognal-ansi-1: #c4262c;
+	--lognal-ansi-2: #1f7a47;
+	--lognal-ansi-3: #8a5a00;
+	--lognal-ansi-4: #1f6fd6;
+	--lognal-ansi-5: #8f3aa8;
+	--lognal-ansi-6: #0e7c86;
+	--lognal-ansi-7: #646a78;
+	--lognal-ansi-8: #4b515e;
+	--lognal-ansi-9: #de353a;
+	--lognal-ansi-10: #238b50;
+	--lognal-ansi-11: #9c6a00;
+	--lognal-ansi-12: #2f7fe6;
+	--lognal-ansi-13: #a34bbd;
+	--lognal-ansi-14: #10909b;
+	--lognal-ansi-15: #1d2129;
+
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 160px;
+	height: 100%;
+	overflow: hidden;
+	color: var(--lognal-foreground);
+	background: var(--lognal-background);
+	border: 1px solid var(--lognal-border);
+	border-radius: var(--lognal-radius);
+	font-family: var(--lognal-ui-font-family);
+	font-size: var(--lognal-ui-font-size);
+	line-height: 1.4;
+	box-sizing: border-box;
+	isolation: isolate;
+}
+
+/* Dark palette */
+.lognal[data-theme='dark'] {
+	--lognal-background: #16181d;
+	--lognal-foreground: #e3e5ea;
+	--lognal-muted: #8f94a1;
+	--lognal-accent: #5aa2ff;
+	--lognal-border: #2a2e37;
+	--lognal-surface: #1c1f25;
+	--lognal-control-hover: rgba(227, 229, 234, 0.08);
+	--lognal-control-active: rgba(90, 162, 255, 0.18);
+	--lognal-focus-ring: #5aa2ff;
+	--lognal-selection: rgba(90, 162, 255, 0.3);
+	--lognal-match: rgba(252, 191, 50, 0.3);
+	--lognal-separator: rgba(227, 229, 234, 0.05);
+	--lognal-error: #ff8a8d;
+	--lognal-error-background: rgba(252, 79, 83, 0.1);
+	--lognal-warn: #fcc549;
+	--lognal-warn-background: rgba(252, 191, 50, 0.08);
+	--lognal-info: #5aa2ff;
+	--lognal-debug: #8f94a1;
+	--lognal-scrollbar-thumb: rgba(227, 229, 234, 0.25);
+	--lognal-scrollbar-thumb-hover: rgba(227, 229, 234, 0.42);
+	--lognal-token-muted: #8f94a1;
+	--lognal-token-string: #7fd6a4;
+	--lognal-token-number: #b9a8ff;
+	--lognal-token-boolean: #b9a8ff;
+	--lognal-token-null: #8f94a1;
+	--lognal-token-key: #82bdff;
+	--lognal-token-symbol: #f5a3d7;
+	--lognal-token-function: #82bdff;
+	--lognal-token-regexp: #ffa585;
+	--lognal-token-date: #7fd6a4;
+	--lognal-token-tag: #82bdff;
+	--lognal-token-attribute: #fcc549;
+	--lognal-token-error: #ff8a8d;
+	--lognal-token-warn: #fcc549;
+	--lognal-token-info: #5aa2ff;
+	--lognal-token-accent: #5aa2ff;
+	--lognal-ansi-0: #3b3f4a;
+	--lognal-ansi-1: #fc5c60;
+	--lognal-ansi-2: #43d786;
+	--lognal-ansi-3: #fcbf32;
+	--lognal-ansi-4: #5aa2ff;
+	--lognal-ansi-5: #c792ea;
+	--lognal-ansi-6: #56d4dd;
+	--lognal-ansi-7: #d0d3db;
+	--lognal-ansi-8: #6b7080;
+	--lognal-ansi-9: #ff8a8d;
+	--lognal-ansi-10: #7ee3a8;
+	--lognal-ansi-11: #ffd466;
+	--lognal-ansi-12: #82bdff;
+	--lognal-ansi-13: #ddb6f2;
+	--lognal-ansi-14: #8ae6ec;
+	--lognal-ansi-15: #ffffff;
+
+	color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+	.lognal[data-theme='auto'] {
+		--lognal-background: #16181d;
+		--lognal-foreground: #e3e5ea;
+		--lognal-muted: #8f94a1;
+		--lognal-accent: #5aa2ff;
+		--lognal-border: #2a2e37;
+		--lognal-surface: #1c1f25;
+		--lognal-control-hover: rgba(227, 229, 234, 0.08);
+		--lognal-control-active: rgba(90, 162, 255, 0.18);
+		--lognal-focus-ring: #5aa2ff;
+		--lognal-selection: rgba(90, 162, 255, 0.3);
+		--lognal-match: rgba(252, 191, 50, 0.3);
+		--lognal-separator: rgba(227, 229, 234, 0.05);
+		--lognal-error: #ff8a8d;
+		--lognal-error-background: rgba(252, 79, 83, 0.1);
+		--lognal-warn: #fcc549;
+		--lognal-warn-background: rgba(252, 191, 50, 0.08);
+		--lognal-info: #5aa2ff;
+		--lognal-debug: #8f94a1;
+		--lognal-scrollbar-thumb: rgba(227, 229, 234, 0.25);
+		--lognal-scrollbar-thumb-hover: rgba(227, 229, 234, 0.42);
+		--lognal-token-muted: #8f94a1;
+		--lognal-token-string: #7fd6a4;
+		--lognal-token-number: #b9a8ff;
+		--lognal-token-boolean: #b9a8ff;
+		--lognal-token-null: #8f94a1;
+		--lognal-token-key: #82bdff;
+		--lognal-token-symbol: #f5a3d7;
+		--lognal-token-function: #82bdff;
+		--lognal-token-regexp: #ffa585;
+		--lognal-token-date: #7fd6a4;
+		--lognal-token-tag: #82bdff;
+		--lognal-token-attribute: #fcc549;
+		--lognal-token-error: #ff8a8d;
+		--lognal-token-warn: #fcc549;
+		--lognal-token-info: #5aa2ff;
+		--lognal-token-accent: #5aa2ff;
+		--lognal-ansi-0: #3b3f4a;
+		--lognal-ansi-1: #fc5c60;
+		--lognal-ansi-2: #43d786;
+		--lognal-ansi-3: #fcbf32;
+		--lognal-ansi-4: #5aa2ff;
+		--lognal-ansi-5: #c792ea;
+		--lognal-ansi-6: #56d4dd;
+		--lognal-ansi-7: #d0d3db;
+		--lognal-ansi-8: #6b7080;
+		--lognal-ansi-9: #ff8a8d;
+		--lognal-ansi-10: #7ee3a8;
+		--lognal-ansi-11: #ffd466;
+		--lognal-ansi-12: #82bdff;
+		--lognal-ansi-13: #ddb6f2;
+		--lognal-ansi-14: #8ae6ec;
+		--lognal-ansi-15: #ffffff;
+
+		color-scheme: dark;
+	}
+}
+
+.lognal *,
+.lognal *::before,
+.lognal *::after {
+	box-sizing: border-box;
+}
+
+.lognal [hidden] {
+	display: none !important;
+}
+
+/* Toolbar */
+
+.lognal-toolbar {
+	display: flex;
+	flex: none;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 6px 8px;
+	min-height: var(--lognal-toolbar-height);
+	padding: 6px 8px;
+	background: var(--lognal-surface);
+	border-bottom: 1px solid var(--lognal-border);
+}
+
+.lognal-toolbar-group {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	min-width: 0;
+}
+
+.lognal-toolbar-end {
+	flex: 1 1 auto;
+	justify-content: flex-end;
+	gap: 6px;
+}
+
+.lognal-separator {
+	width: 1px;
+	height: 16px;
+	margin: 0 6px;
+	background: var(--lognal-border);
+}
+
+.lognal-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	color: var(--lognal-muted);
+	background: transparent;
+	border: 0;
+	border-radius: var(--lognal-control-radius);
+	cursor: pointer;
+	transition:
+		background-color 120ms ease,
+		color 120ms ease;
+}
+
+.lognal-button:hover {
+	color: var(--lognal-foreground);
+	background: var(--lognal-control-hover);
+}
+
+.lognal-button[aria-pressed='true'] {
+	color: var(--lognal-accent);
+	background: var(--lognal-control-active);
+}
+
+.lognal-button:focus-visible,
+.lognal-filter:focus-within,
+.lognal-levels:focus-visible,
+.lognal-new-logs:focus-visible {
+	outline: 2px solid var(--lognal-focus-ring);
+	outline-offset: 1px;
+}
+
+.lognal-icon {
+	flex: none;
+	display: block;
+}
+
+.lognal-filter {
+	display: flex;
+	flex: 0 1 200px;
+	align-items: center;
+	gap: 6px;
+	min-width: 96px;
+	height: 28px;
+	padding: 0 8px;
+	color: var(--lognal-muted);
+	background: var(--lognal-background);
+	border: 1px solid var(--lognal-border);
+	border-radius: var(--lognal-control-radius);
+}
+
+.lognal-filter-input {
+	flex: 1;
+	min-width: 0;
+	height: 100%;
+	padding: 0;
+	color: var(--lognal-foreground);
+	background: transparent;
+	border: 0;
+	outline: 0;
+	font: inherit;
+}
+
+.lognal-filter-input::placeholder {
+	color: var(--lognal-muted);
+}
+
+.lognal-filter:has([aria-invalid]) {
+	border-color: var(--lognal-error);
+}
+
+.lognal-levels {
+	/* Keep the native arrow on pages whose reset sets appearance to none. */
+	-webkit-appearance: auto;
+	appearance: auto;
+	height: 28px;
+	padding: 0 24px 0 8px;
+	color: var(--lognal-foreground);
+	background-color: var(--lognal-background);
+	border: 1px solid var(--lognal-border);
+	border-radius: var(--lognal-control-radius);
+	font: inherit;
+	cursor: pointer;
+}
+
+/* Log area */
+
+.lognal-body {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.lognal-canvas {
+	position: absolute;
+	inset: 0;
+	display: block;
+	pointer-events: none;
+}
+
+.lognal-viewport {
+	position: absolute;
+	inset: 0;
+	overflow: auto;
+	overscroll-behavior: contain;
+	scrollbar-width: none;
+	outline: 0;
+	cursor: text;
+	-webkit-user-select: none;
+	user-select: none;
+	touch-action: pan-x pan-y;
+}
+
+.lognal-viewport::-webkit-scrollbar {
+	display: none;
+}
+
+.lognal-viewport.has-action {
+	cursor: pointer;
+}
+
+.lognal-viewport:focus-visible {
+	box-shadow: inset 0 0 0 2px var(--lognal-focus-ring);
+}
+
+.lognal-spacer {
+	width: 1px;
+	pointer-events: none;
+}
+
+/* Visually hidden, still read by screen readers. */
+.lognal-mirror,
+.lognal-clipboard {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* Scrollbars */
+
+.lognal-scrollbar {
+	position: absolute;
+	z-index: 1;
+	opacity: 0;
+	transition: opacity 200ms ease;
+}
+
+.lognal-body:hover .lognal-scrollbar,
+.lognal-scrollbar.is-active,
+.lognal-scrollbar.is-dragging {
+	opacity: 1;
+}
+
+.lognal-scrollbar-vertical {
+	top: 2px;
+	right: 2px;
+	bottom: 2px;
+	width: 10px;
+}
+
+.lognal-scrollbar-horizontal {
+	right: 14px;
+	bottom: 2px;
+	left: 2px;
+	height: 10px;
+}
+
+.lognal-scrollbar-thumb {
+	position: absolute;
+	top: 0;
+	left: 0;
+	background: var(--lognal-scrollbar-thumb);
+	border: 2px solid transparent;
+	border-radius: 999px;
+	background-clip: padding-box;
+	transition: background-color 120ms ease;
+}
+
+.lognal-scrollbar-vertical .lognal-scrollbar-thumb {
+	width: 100%;
+}
+
+.lognal-scrollbar-horizontal .lognal-scrollbar-thumb {
+	height: 100%;
+}
+
+.lognal-scrollbar:hover .lognal-scrollbar-thumb,
+.lognal-scrollbar.is-dragging .lognal-scrollbar-thumb {
+	background-color: var(--lognal-scrollbar-thumb-hover);
+}
+
+.lognal-new-logs {
+	position: absolute;
+	right: 20px;
+	bottom: 12px;
+	z-index: 2;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	height: 28px;
+	padding: 0 12px 0 10px;
+	color: #ffffff;
+	background: var(--lognal-accent);
+	border: 0;
+	border-radius: 999px;
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+	font: inherit;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.lognal[data-theme='dark'] .lognal-new-logs {
+	color: #0b1220;
+}
+
+@media (prefers-color-scheme: dark) {
+	.lognal[data-theme='auto'] .lognal-new-logs {
+		color: #0b1220;
+	}
+}
+
+/* Input line */
+
+.lognal-input {
+	display: flex;
+	flex: none;
+	align-items: flex-start;
+	gap: 8px;
+	margin: 0;
+	padding: 8px 12px;
+	background: var(--lognal-background);
+	border-top: 1px solid var(--lognal-border);
+	font-family: var(--lognal-font-family);
+	font-size: var(--lognal-font-size);
+	line-height: var(--lognal-line-height);
+}
+
+.lognal-input-prompt {
+	flex: none;
+	color: var(--lognal-accent);
+	font-weight: 700;
+}
+
+.lognal-input-field {
+	flex: 1;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	color: var(--lognal-foreground);
+	background: transparent;
+	border: 0;
+	outline: 0;
+	resize: none;
+	font: inherit;
+	line-height: inherit;
+}
+
+.lognal-input-field::placeholder {
+	color: var(--lognal-muted);
+}
+
+.lognal-input:focus-within {
+	box-shadow: inset 0 2px 0 -1px var(--lognal-focus-ring);
+}
+
+/* Status bar */
+
+.lognal-statusbar {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	min-height: var(--lognal-statusbar-height);
+	padding: 0 12px;
+	color: var(--lognal-muted);
+	background: var(--lognal-surface);
+	border-top: 1px solid var(--lognal-border);
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.lognal-status-follow {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.lognal-status-follow::before {
+	width: 6px;
+	height: 6px;
+	background: var(--lognal-muted);
+	border-radius: 50%;
+	content: '';
+}
+
+.lognal-status-follow.is-following::before {
+	background: var(--lognal-accent);
+}
+
+.lognal-levels {
+	flex: 0 1 auto;
+	min-width: 0;
+	max-width: 160px;
+}
+
+@media (max-width: 480px) {
+	.lognal-separator {
+		display: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.lognal-button,
+	.lognal-scrollbar,
+	.lognal-scrollbar-thumb {
+		transition: none;
+	}
+}
