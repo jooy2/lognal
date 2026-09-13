@@ -1,41 +1,86 @@
+<img src="https://raw.githubusercontent.com/jooy2/lognal/refs/heads/main/.github/resources/lognal-logo.webp" width="96" height="96" alt="lognal logo" />
+
 # lognal
 
-[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/jooy2/lognal/blob/main/LICENSE) ![Commit Count](https://img.shields.io/github/commit-activity/y/jooy2/lognal) [![Followers](https://img.shields.io/github/followers/jooy2?style=social)](https://github.com/jooy2) ![Stars](https://img.shields.io/github/stars/jooy2/lognal?style=social)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/jooy2/lognal/blob/main/LICENSE) [![run-test](https://github.com/jooy2/lognal/actions/workflows/run-test.yml/badge.svg)](https://github.com/jooy2/lognal/actions/workflows/run-test.yml) ![Commit Count](https://img.shields.io/github/commit-activity/y/jooy2/lognal) [![Followers](https://img.shields.io/github/followers/jooy2?style=social)](https://github.com/jooy2) ![Stars](https://img.shields.io/github/stars/jooy2/lognal?style=social)
 
-**lognal** is a log viewer for web pages that looks and behaves like a terminal. It draws log output on a canvas instead of creating a DOM element for every line, so it keeps up with a fast stream of messages and a long history without slowing the page down.
+**lognal** is a log viewer for web pages that looks and behaves like a terminal. It draws log output on a canvas instead of creating a DOM element for every line, so a fast stream of messages and a long history do not slow the page down.
 
-> **lognal is in the design stage.** No package is published and there is no API to try yet. The sections below describe what the library is being built to do.
+> **lognal is not published to npm yet.** The API described here works in this repository and may still change before the first release.
 
-## What it is for
+## What it does
 
-- **Show the browser console inside your page.** Hook `console.log`, `console.warn`, `console.error` and the other console methods, and display what they print the way the browser's developer tools do. The original console keeps working.
-- **Read text files.** Open a log file and scroll through it in the viewer. A browser cannot follow a growing file the way `tail -f` does, so reading the file is the starting point.
-- **Inspect values by type.** Arrays, objects, JSON, numbers, strings, `Map`, `Set`, errors and other types are formatted by type, and nested values can be expanded and collapsed.
-- **Send input.** When you connect something that answers, such as a command handler, a WebSocket or a worker, the viewer shows an input line and prints the replies.
+- **Shows the browser console inside your page.** Hook `console.log`, `console.warn`, `console.table`, `console.group` and the rest. Arguments are captured at the moment of the call, and the original console keeps working.
+- **Reads log files.** Open a text file and read it line by line. The encoding is detected, including legacy encodings such as EUC-KR. In Chromium-based browsers, a file picked with the File System Access API can be followed as it grows.
+- **Displays values by type.** Objects, arrays, maps, sets, errors and DOM elements expand and collapse, and `console.table` draws a table.
+- **Accepts commands.** Connect a handler, and the viewer shows an input line and prints the replies.
+- **Handles Korean and other CJK text.** Wide characters stay on the grid, Korean text wraps at spaces, and Enter waits for IME composition to finish.
 
-## Planned features
+The viewer has a toolbar (follow new logs, clear, scroll to top and bottom, line wrapping, text filter and level filter), a status bar, timestamps, light and dark themes, and a custom scrollbar. Every part can be turned off or restyled with CSS custom properties.
 
-- A timestamp on every line
-- Filtering by log level and by text
-- Search with highlighted matches
-- Light and dark themes, and custom color themes
-- Custom font family, font size and line height
-- Text selection and copy to the clipboard
-- A limit on retained lines, so memory use stays bounded
+## Quick start
 
-## Design goals
+```bash
+npm install lognal
+```
 
-- **Rendering cost follows the screen, not the history.** Drawing a frame costs about the same whether the viewer holds a hundred lines or a million.
-- **A core that does not depend on a framework.** React is the first adapter. Other frameworks can follow without changing the core.
-- **Usable without a mouse.** Keyboard navigation, focus handling and screen reader output are part of the design, even though the text is drawn on a canvas.
-- **Few dependencies.** The published package should pull in as little as possible.
+```javascript
+import { LogViewer } from 'lognal';
+import 'lognal/style.css';
 
-## Roadmap
+// The container needs a height.
+const viewer = new LogViewer(document.getElementById('logs'), {
+	timestamps: true,
+	core: { maxEntries: 20000 }
+});
 
-1. Technology research: the renderer, the data model, console hooking and value serialization
-1. The core engine and the React adapter
-1. Documentation and the first npm release
-1. Adapters for other frameworks
+viewer.hookConsole();
+console.log('Hello %s', 'lognal', { id: 1, tags: ['canvas', 'logs'] });
+```
+
+With React:
+
+```jsx
+import { LogViewer } from 'lognal/react';
+import 'lognal/style.css';
+
+export const Logs = () => <LogViewer hookConsole style={{ height: 400 }} />;
+```
+
+Reading a file:
+
+```javascript
+import { readTextFile } from 'lognal';
+
+input.addEventListener('change', async () => {
+	await readTextFile(input.files[0], viewer.store);
+});
+```
+
+## Documentation
+
+The documentation is at **[lognal.cdget.com](https://lognal.cdget.com)**, in English and Korean.
+
+## Browser support
+
+lognal targets current versions of Chrome, Edge, Firefox and Safari. A few features depend on newer platform APIs:
+
+| Feature                                | Requirement                                                                    |
+| -------------------------------------- | ------------------------------------------------------------------------------ |
+| Grapheme clusters for emoji and Hangul | `Intl.Segmenter`: Chrome 87, Firefox 125, Safari 14.1. A fallback is built in. |
+| Following a growing file               | File System Access API, Chromium-based browsers only                           |
+
+## Development
+
+```bash
+npm install
+npm run dev          # playground at http://localhost:5173
+npm test             # unit tests in Node.js and browser tests in Playwright
+npm run lint
+npm run build
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the project layout and the workflow.
 
 ## Contributing
 
@@ -51,4 +96,4 @@ lognal is free to use and maintained in the open. If it saves you time, you can 
 
 ## License
 
-Please see the [LICENSE](LICENSE) file for more information about project owners, usage rights, and more.
+Please see the [LICENSE](LICENSE) file for more information about project owners, usage rights, and more. The character width tables are generated from the Unicode Character Database, whose license is included in `src/core/text/unicode-width-data.ts`.

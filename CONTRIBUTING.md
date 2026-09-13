@@ -6,9 +6,52 @@ This project adheres to the [Contributor Covenant](CODE_OF_CONDUCT.md) code of c
 
 ## Project status
 
-`lognal` is in the design stage. The repository does not have source code, a package manifest, or a test suite yet, so there is nothing to install or build. This section will describe the development setup once the toolchain is in place.
+`lognal` is in early development and is not published to npm yet. Until the first release, public APIs may still change.
 
-Until then, the most useful contributions are issues: a use case the viewer should cover, a problem you have run into with other log viewers, or a browser constraint the design should account for.
+## Repository layout
+
+`lognal` is one npm package. Its source is split by what each part may depend on:
+
+```text
+src/
+  core/       # entries, the store, filters, text measurement and layout; no DOM and no framework
+  sources/    # console capture and text file reading, which use browser or JavaScript APIs
+  renderer/   # the renderer interface and the Canvas 2D renderer
+  viewer/     # the DOM viewer: toolbar, scrolling, selection, input line and accessibility
+  react/      # the React component, published as `lognal/react`
+  styles/     # `lognal.css`, published as `lognal/style.css`
+test/
+  unit/       # Vitest tests that run in Node.js
+  browser/    # Vitest Browser Mode tests that run in Chromium, Firefox and WebKit
+playground/   # a Vite page for trying changes by hand
+docs/         # the VitePress documentation site (English and Korean)
+scripts/      # the build script and the Unicode width table generator
+```
+
+Code under `src/core` must stay free of the DOM, of framework code and of JavaScript-only platform APIs, because the core may be ported to other languages. Pass a platform feature in, the way `setGraphemeSplitter` does, instead of importing it there.
+
+## Development
+
+You need Node.js 22.12 or later.
+
+| Task                      | Command                                 |
+| ------------------------- | --------------------------------------- |
+| Install                   | `npm install`                           |
+| Playground                | `npm run dev`                           |
+| All tests                 | `npm test`                              |
+| Unit tests only           | `npm run test:unit`                     |
+| Browser tests only        | `npm run test:browser`                  |
+| Lint / format             | `npm run lint` / `npm run format`       |
+| Type check                | `npm run typecheck`                     |
+| Build `dist/`             | `npm run build`                         |
+| Regenerate Unicode widths | `npm run generate:unicode`              |
+| Documentation site        | `cd docs && npm install && npm run dev` |
+
+Browser tests use Playwright. Install the browsers once with `npx playwright install`, or run a single browser with `LOGNAL_TEST_BROWSERS=chromium npm run test:browser`.
+
+Import other source files with a `.js` extension, such as `import { LogStore } from './store.js'`. TypeScript resolves it to the `.ts` file, and the published declaration files keep working.
+
+A change that users can see needs an entry in `CHANGELOG.md`, in the unreleased section at the top.
 
 ## Issues
 
