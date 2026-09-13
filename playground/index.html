@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>lognal playground</title>
+		<link rel="stylesheet" href="./playground.css" />
+	</head>
+	<body>
+		<main class="playground">
+			<header class="playground-header">
+				<h1>lognal playground</h1>
+				<div class="playground-actions">
+					<button type="button" data-action="basic">Basic messages</button>
+					<button type="button" data-action="values">Values</button>
+					<button type="button" data-action="korean">Korean and CJK</button>
+					<button type="button" data-action="group">Group and table</button>
+					<button type="button" data-action="ansi">ANSI text</button>
+					<button type="button" data-action="burst">10,000 lines</button>
+					<button type="button" data-action="stream">Start stream</button>
+					<label class="playground-file">
+						Open file
+						<input type="file" data-action="file" />
+					</label>
+					<select data-action="theme" aria-label="Theme">
+						<option value="auto">Auto theme</option>
+						<option value="light">Light</option>
+						<option value="dark">Dark</option>
+					</select>
+				</div>
+			</header>
+			<div id="viewer" class="playground-viewer"></div>
+		</main>
+		<script type="module" src="./main.ts"></script>
+	</body>
+</html>

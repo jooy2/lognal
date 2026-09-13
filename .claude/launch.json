@@ -1,0 +1,17 @@
+{
+	"version": "0.0.1",
+	"configurations": [
+		{
+			"name": "playground",
+			"runtimeExecutable": "npx",
+			"runtimeArgs": ["vite", "playground", "--port", "5178", "--strictPort"],
+			"port": 5178
+		},
+		{
+			"name": "docs",
+			"runtimeExecutable": "npm",
+			"runtimeArgs": ["--prefix", "docs", "run", "dev", "--", "--port", "5191", "--strictPort"],
+			"port": 5191
+		}
+	]
+}

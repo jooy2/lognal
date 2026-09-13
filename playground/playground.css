@@ -1,0 +1,46 @@
+body {
+	margin: 0;
+	font-family: system-ui, sans-serif;
+	background: #eef0f3;
+}
+
+.playground {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	height: 100vh;
+	padding: 16px;
+	box-sizing: border-box;
+}
+
+.playground-header h1 {
+	margin: 0 0 8px;
+	font-size: 16px;
+}
+
+.playground-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.playground-actions button,
+.playground-actions select,
+.playground-file {
+	padding: 4px 10px;
+	font: inherit;
+	font-size: 13px;
+	background: #fff;
+	border: 1px solid #ccd1d9;
+	border-radius: 6px;
+	cursor: pointer;
+}
+
+.playground-file input {
+	display: none;
+}
+
+.playground-viewer {
+	flex: 1;
+	min-height: 0;
+}
