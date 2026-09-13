@@ -38,7 +38,7 @@ A string passed directly to a console method is plain text, not a value, so it h
 
 ## Expand and collapse
 
-A value that has children starts with a small triangle. Click the triangle or the preview to open the value, and click again to close it. Each child takes its own row, indented by two cells:
+A value that has children starts with a small triangle. Click or tap the triangle or the preview to open the value, and do it again to close it. Each child takes its own row, indented by two cells:
 
 - Object properties as `name: value`, with symbol keys shown as `Symbol(key)`.
 - Array items as `0: value`.
@@ -106,7 +106,7 @@ console.groupEnd();
 console.groupEnd();
 ```
 
-Click a header to hide or show the entries inside the group. While entries are hidden, the status bar shows both numbers, such as `12 of 20 entries`. To open or close a group from code, call `store.setCollapsed(id, collapsed)` with the id of the header entry.
+Click or tap a header to hide or show the entries inside the group. While entries are hidden, the status bar shows both numbers, such as `12 of 20 entries`. To open or close a group from code, call `store.setCollapsed(id, collapsed)` with the id of the header entry.
 
 The level filter keeps group headers visible, so the entries that pass the filter stay under their header. A text filter tests group headers the same way as other entries.
 

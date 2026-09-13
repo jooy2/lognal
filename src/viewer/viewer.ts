@@ -349,6 +349,8 @@ export class LogViewer {
 	} | null = null;
 	/** Whether the last touch opened the entry menu, so the menu of the browser stays closed. */
 	private longPressOpened = false;
+	/** A touch that runs the action under it, such as opening a value, if it ends in place. */
+	private tap: { pointerId: number; clientX: number; clientY: number } | null = null;
 	private frame = 0;
 	private accessoryTimer: ReturnType<typeof setTimeout> | undefined;
 	private filterTimer: ReturnType<typeof setTimeout> | undefined;
@@ -2096,6 +2098,9 @@ export class LogViewer {
 		this.longPressOpened = false;
 
 		if (event.pointerType === 'touch') {
+			this.tap = event.isPrimary
+				? { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY }
+				: null;
 			this.startLongPress(event);
 
 			return;
@@ -2137,17 +2142,19 @@ export class LogViewer {
 	};
 
 	private readonly onPointerMove = (event: PointerEvent): void => {
-		const press = this.longPress;
+		const touch = this.tap ?? this.longPress;
 
-		if (press && event.pointerId === press.pointerId) {
+		if (touch && event.pointerId === touch.pointerId) {
 			if (
-				Math.hypot(event.clientX - press.clientX, event.clientY - press.clientY) > LONG_PRESS_SLOP
+				Math.hypot(event.clientX - touch.clientX, event.clientY - touch.clientY) > LONG_PRESS_SLOP
 			) {
+				this.tap = null;
 				this.cancelLongPress();
 			}
 
 			return;
 		}
+
 		if (!this.drag || event.pointerId !== this.drag.pointerId) {
 			const hit = this.hitTest(event);
 
@@ -2224,6 +2231,16 @@ export class LogViewer {
 		}
 	}
 
+	/** Runs the action of the span at a point, such as the expander of a value. */
+	private runActionAt(point: { clientX: number; clientY: number }): void {
+		const hit = this.hitTest(point);
+
+		if (hit.action && hit.visualRow) {
+			this.layout.runAction(hit.visualRow.entry.id, hit.action);
+			this.requestRender();
+		}
+	}
+
 	/**
 	 * Some browsers open their own menu on a long press, sometimes before the long press of the
 	 * viewer fires. Open the entry menu then instead, and keep the menu of the browser closed.
@@ -2252,6 +2269,20 @@ export class LogViewer {
 	private readonly onPointerUp = (event: PointerEvent): void => {
 		if (this.longPress?.pointerId === event.pointerId) {
 			this.cancelLongPress();
+		}
+
+		const tap = this.tap;
+
+		if (tap?.pointerId === event.pointerId) {
+			this.tap = null;
+
+			// A touch that scrolled the log ends with `pointercancel`, and one that opened the entry
+			// menu has done its work.
+			if (event.type === 'pointerup' && !this.longPressOpened) {
+				this.runActionAt(tap);
+			}
+
+			return;
 		}
 
 		if (!this.drag || event.pointerId !== this.drag.pointerId) {

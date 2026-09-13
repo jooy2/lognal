@@ -820,6 +820,45 @@ describe('LogViewer', () => {
 		viewer.dispose();
 	});
 
+	it('expands a value when its row is tapped, and not when the touch moves', async () => {
+		const viewer = new LogViewer(container, { toolbar: false, timestamps: false });
+		const viewport = viewer.element.querySelector('.lognal-viewport') as HTMLDivElement;
+
+		viewer.console.log({ id: 1, name: 'lognal' });
+		await nextFrame();
+
+		const rect = viewport.getBoundingClientRect();
+		const touch = (type: string, x: number): void => {
+			viewport.dispatchEvent(
+				new PointerEvent(type, {
+					clientX: rect.left + x,
+					clientY: rect.top + 12,
+					bubbles: true,
+					isPrimary: true,
+					pointerId: 7,
+					pointerType: 'touch'
+				})
+			);
+		};
+
+		touch('pointerdown', 60);
+		touch('pointermove', 120);
+		touch('pointerup', 120);
+		await nextFrame();
+		expect(viewer.layout.rowCount).toBe(1);
+
+		touch('pointerdown', 60);
+		touch('pointerup', 62);
+		await nextFrame();
+		expect(viewer.layout.rowCount).toBe(3);
+
+		touch('pointerdown', 60);
+		touch('pointercancel', 60);
+		await nextFrame();
+		expect(viewer.layout.rowCount).toBe(3);
+		viewer.dispose();
+	});
+
 	it('selects and returns text', async () => {
 		const viewer = new LogViewer(container, { core: { mergeRepeats: false } });
 

@@ -20,6 +20,7 @@ Changes to `lognal` that affect its users, newest first.
 - The log area, the input line and the filter field no longer draw a focus outline.
 - `--lognal-popup-shadow` sets the shadow of the level menu and the entry menu.
 - Enter at the end of Korean text in the input line submits the command with one press. Before, the first press added a line and the second one submitted. Enter that confirms a Japanese or Chinese candidate still does not submit.
+- A tap on a value or a group header on a touch screen opens or closes it, as a click does. Before, a tap did nothing.
 
 ## 0.1.0 (2026-09-13)
 

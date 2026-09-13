@@ -212,7 +212,7 @@ While the log area has focus, the mouse and the keyboard work like this:
 | Ctrl+C or Cmd+C     | Copies the selection.                        |
 | Escape              | Clears the selection.                        |
 
-Touch input scrolls the log and does not select. A line that wraps over several rows is copied as one line, and the rows of open values are included.
+Touch input scrolls the log and does not select. A tap opens or closes a value or a group. A line that wraps over several rows is copied as one line, and the rows of open values are included.
 
 The same actions are available as methods: `getSelectionText()`, `selectAll()`, `clearSelection()` and `copySelection()`, which resolves to whether anything was copied. The `selection` event reports the selected text whenever it changes.
 
