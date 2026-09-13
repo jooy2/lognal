@@ -1,0 +1,24 @@
+{
+	"name": "lognal-docs",
+	"version": "1.0.0",
+	"private": true,
+	"scripts": {
+		"predev": "node scripts/copy-changelog.mjs",
+		"dev": "vitepress dev src",
+		"prebuild": "node scripts/copy-changelog.mjs",
+		"build": "vitepress build src",
+		"serve": "vitepress serve src",
+		"format": "prettier . --write"
+	},
+	"author": "CDGet (https://cdget.com)",
+	"license": "MIT",
+	"dependencies": {
+		"vitepress": "^1.6.4",
+		"vitepress-i18n": "^1.4.0",
+		"vitepress-sidebar": "^1.40.0",
+		"vue": "^3.5.42"
+	},
+	"devDependencies": {
+		"prettier": "^3.9.6"
+	}
+}

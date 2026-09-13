@@ -1,0 +1,11 @@
+# Node artifact files
+node_modules
+
+# VitePress files
+dist
+src/.vitepress/cache
+src/.vitepress/.temp
+
+# Copied from the repository root by scripts/copy-changelog.mjs
+src/changelog.md
+src/ko/changelog.md

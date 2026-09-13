@@ -1,0 +1,43 @@
+/**
+ * The site's colors.
+ *
+ * The default theme is indigo. These values replace the brand scale it draws from, so links,
+ * buttons, the active sidebar entry, inline code, custom blocks and the search highlight all
+ * use the blue bar of the logo, `#4697fd`.
+ *
+ * `#4697fd` itself reads at 2.96:1 on white, which is too low for text. The scale keeps its hue
+ * (213 degrees) and its saturation, and changes only the lightness: darker for the light theme,
+ * lighter for the dark one. Each value notes the WCAG contrast ratio it holds against the
+ * surface it is used on. Every ratio is at least 4.5:1.
+ */
+
+:root {
+	/* Text and accents. 5.85 on the page (#ffffff), 5.42 on the sidebar (#f6f6f7), 5.14 on inline code. */
+	--vp-c-brand-1: #025fd4;
+	/* Hover for links and for the filled button. 7.36 on the page, 7.36 under white text. */
+	--vp-c-brand-2: #0251b6;
+	/* The filled button, under white text. 5.23, where the default theme's own is 4.48. */
+	--vp-c-brand-3: #0266e3;
+	--vp-c-brand-soft: rgba(70, 151, 253, 0.14);
+}
+
+/*
+ * A blue dark enough to carry white text disappears on a dark page, so the dark theme inverts
+ * the filled button: the logo blue becomes the background and the text is a dark ink on top.
+ */
+.dark {
+	/* Text and accents. 7.16 on the page (#1b1b1f), 6.69 on #202127, 6.04 on inline code. */
+	--vp-c-brand-1: #68aafd;
+	/* Hover, the logo blue itself. 5.81 on the page. */
+	--vp-c-brand-2: #4697fd;
+	/* The filled button. 5.89 under the ink below. */
+	--vp-c-brand-3: #4697fd;
+	--vp-c-brand-soft: rgba(70, 151, 253, 0.16);
+
+	/* 5.89 on #4697fd and 7.26 on #68aafd. */
+	--vp-button-brand-text: #081a33;
+	--vp-button-brand-hover-text: #081a33;
+	--vp-button-brand-hover-bg: #68aafd;
+	--vp-button-brand-active-text: #081a33;
+	--vp-button-brand-active-bg: #4697fd;
+}

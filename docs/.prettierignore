@@ -1,0 +1,9 @@
+# Lock files
+*-lock.json
+
+# Project files
+dist/
+src/.vitepress/cache/
+src/.vitepress/.temp/
+src/changelog.md
+src/ko/changelog.md

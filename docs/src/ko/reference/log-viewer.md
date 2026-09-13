@@ -1,0 +1,244 @@
+---
+order: 1
+description: LogViewer 클래스와 옵션, 메서드, 이벤트, 레이블, 테마와 글꼴을 읽는 함수, formatTimestamp, React LogViewer 컴포넌트의 레퍼런스입니다.
+---
+
+# LogViewer
+
+```ts
+import { LogViewer } from 'lognal';
+
+const viewer = new LogViewer(container, options);
+```
+
+도구 모음, 렌더러가 그리는 로그, 선택적인 입력 줄, 상태 표시줄로 이루어진 로그 뷰어입니다. 뷰어는 스크롤, 선택, 키보드, 접근성을 처리하고 프레임마다 렌더러에 그리기를 맡깁니다. 레이아웃과 테마를 위해 `lognal/style.css`를 한 번 가져오세요.
+
+## 생성자 {#constructor}
+
+```ts
+new LogViewer(container: HTMLElement, options?: LogViewerOptions)
+```
+
+뷰어를 만들고 루트 요소를 `container`에 추가합니다.
+
+## 속성 {#properties}
+
+| 속성          | 타입             | 설명                                                                                         |
+| ------------- | ---------------- | -------------------------------------------------------------------------------------------- |
+| `store`       | `LogStore`       | 뷰어가 보여 주는 스토어입니다. 읽기 전용입니다.                                              |
+| `layout`      | `LogLayout`      | 뷰어의 레이아웃입니다. 읽기 전용입니다.                                                      |
+| `element`     | `HTMLDivElement` | `lognal` 클래스가 붙은 루트 요소입니다. 읽기 전용입니다.                                     |
+| `console`     | `LognalConsole`  | 스토어에 쓰는, 콘솔 메서드를 갖춘 객체입니다. 처음 쓸 때 만들고 이후에는 같은 객체를 씁니다. |
+| `isFollowing` | `boolean`        | 새 항목을 따라가는 중인지 나타냅니다.                                                        |
+
+## 메서드 {#methods}
+
+| 메서드                                                               | 반환값              | 설명                                                                                                                         |
+| -------------------------------------------------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `setOptions(options: Omit<LogViewerOptions, 'store' \| 'renderer'>)` | `void`              | 넘긴 옵션만 바꾸고 나머지는 그대로 둡니다. `locale`을 바꾸면 내장 레이블이 바뀌고, `labels`로 넘긴 레이블은 그대로 남습니다. |
+| `write(text: string, options?: WriteOptions)`                        | `void`              | 텍스트를 항목 하나로 추가합니다. 줄 바꿈은 항목 안에 그대로 둡니다.                                                          |
+| `writeLines(text: string, options?: WriteOptions)`                   | `void`              | 텍스트를 줄마다 항목 하나씩 추가합니다.                                                                                      |
+| `hookConsole(target?: Console, options?: HookConsoleOptions)`        | `() => void`        | 콘솔을 스토어에 기록합니다. 기본 대상은 `console`입니다. 기록을 멈추는 함수를 반환하며, 뷰어를 정리해도 기록이 멈춥니다.     |
+| `clear()`                                                            | `void`              | 스토어의 항목을 모두 지우고 선택을 해제합니다.                                                                               |
+| `setFilter(filter: LogFilter \| null)`                               | `void`              | 필터를 정합니다. `null`이면 모든 항목을 보여 줍니다. `filter` 이벤트가 발생합니다.                                           |
+| `getFilter()`                                                        | `LogFilter \| null` | 필터를 반환합니다.                                                                                                           |
+| `setFollowing(following: boolean)`                                   | `void`              | 따라가기를 켜거나 끕니다. 켜면 가장 새 항목으로 스크롤합니다. 값이 바뀌면 `follow` 이벤트가 발생합니다.                      |
+| `scrollToTop()`                                                      | `void`              | 따라가기를 멈추고 첫 행으로 스크롤합니다.                                                                                    |
+| `scrollToBottom()`                                                   | `void`              | 따라가기를 켜서 가장 새 항목으로 스크롤합니다.                                                                               |
+| `scrollToEntry(entryId: number)`                                     | `void`              | 따라가기를 멈추고 항목이 맨 위에 오도록 스크롤합니다. 보이지 않는 항목이면 아무것도 하지 않습니다.                           |
+| `getSelectionText()`                                                 | `string`            | 선택한 텍스트를 반환합니다. 선택이 없으면 빈 문자열입니다.                                                                   |
+| `selectAll()`                                                        | `void`              | 보이는 항목의 텍스트를 모두 선택합니다. `selection` 이벤트가 발생합니다.                                                     |
+| `clearSelection()`                                                   | `void`              | 선택을 해제합니다. 선택이 있었다면 `selection` 이벤트가 발생합니다.                                                          |
+| `copySelection()`                                                    | `Promise<boolean>`  | 선택한 텍스트를 클립보드에 복사합니다. 복사한 내용이 있는지를 이행 값으로 돌려줍니다.                                        |
+| `focus()`                                                            | `void`              | 입력 줄에, 입력 줄이 없으면 로그 영역에 포커스를 줍니다.                                                                     |
+| `refresh()`                                                          | `void`              | 페이지가 CSS를 바꾼 뒤처럼 필요할 때 CSS에서 테마와 글꼴을 다시 읽습니다.                                                    |
+| `on(name, listener)`                                                 | `() => void`        | 이벤트가 일어나면 `listener`를 호출합니다. 리스너를 떼는 함수를 반환합니다.                                                  |
+| `dispose()`                                                          | `void`              | 페이지에서 뷰어를 없애고 뷰어가 시작한 작업을 모두 멈춥니다. 두 번 호출해도 문제없습니다.                                    |
+
+## 이벤트 {#events}
+
+```ts
+const copyButton = document.querySelector<HTMLButtonElement>('#copy')!;
+const off = viewer.on('selection', (text) => {
+	copyButton.disabled = text === '';
+});
+
+// 나중에:
+off();
+```
+
+| 이벤트      | 값                  | 발생 시점                                             |
+| ----------- | ------------------- | ----------------------------------------------------- |
+| `follow`    | `boolean`           | 따라가기가 켜지거나 꺼졌을 때입니다.                  |
+| `filter`    | `LogFilter \| null` | 도구 모음이나 `setFilter`로 필터가 바뀌었을 때입니다. |
+| `selection` | `string`            | 선택한 텍스트가 바뀌었을 때입니다.                    |
+
+이벤트 이름과 값의 타입은 `LogViewerEvents` 타입에 정의되어 있습니다.
+
+## LogViewerOptions {#logvieweroptions}
+
+| 옵션         | 타입                                    | 기본값           | 설명                                                                                  |
+| ------------ | --------------------------------------- | ---------------- | ------------------------------------------------------------------------------------- |
+| `store`      | `LogStore`                              | 새 스토어        | 보여 줄 스토어입니다. 여러 뷰어가 스토어 하나를 함께 쓸 수 있습니다.                  |
+| `core`       | `Partial<CoreOptions>`                  | `{}`             | 코어 옵션입니다. 스토어 옵션은 `store`로 넘긴 스토어에도 적용합니다.                  |
+| `theme`      | `ThemeMode`                             | `'auto'`         | 색 구성입니다. `'auto'`는 운영체제 설정을 따릅니다.                                   |
+| `font`       | `Partial<FontSettings>`                 | `{}`             | 글꼴입니다. 빠진 값은 `--lognal-font-*` CSS 속성에서 가져옵니다.                      |
+| `timestamps` | `boolean \| TimestampFormat`            | `true`           | 항목마다 시각을 보여 줄지, 어떤 형식으로 보여 줄지 정합니다. `true`는 `'time'`입니다. |
+| `follow`     | `boolean`                               | `true`           | 처음에 새 항목을 따라갈지 정합니다.                                                   |
+| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`           | 도구 모음입니다. `false`이면 숨기고, 객체를 넘기면 컨트롤을 하나씩 끌 수 있습니다.    |
+| `statusBar`  | `boolean`                               | `true`           | 상태 표시줄을 보여 줄지 정합니다.                                                     |
+| `input`      | `InputOptions \| null`                  | `null`           | 입력 줄입니다. 읽기 전용 뷰어라면 생략합니다.                                         |
+| `locale`     | `string`                                | `undefined`      | 내장 레이블과 숫자 서식의 언어입니다. 예를 들면 `'en'`, `'ko'`입니다.                 |
+| `labels`     | `Partial<ViewerLabels>`                 | `{}`             | 내장 레이블 대신 쓸 레이블입니다.                                                     |
+| `renderer`   | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | 렌더러를 만듭니다.                                                                    |
+
+## CoreOptions {#coreoptions}
+
+`CoreOptions`는 `LogStoreOptions`, `LayoutOptions`, 필터를 합친 타입입니다.
+
+| 옵션             | 타입                | 기본값   | 설명                                                                       |
+| ---------------- | ------------------- | -------- | -------------------------------------------------------------------------- |
+| `maxEntries`     | `number`            | `10000`  | 스토어가 보관하는 최대 항목 수입니다. 모두 보관하려면 `Infinity`를 씁니다. |
+| `mergeRepeats`   | `boolean`           | `true`   | 바로 앞과 똑같은 메시지가 들어오면 앞 항목의 반복 횟수를 올릴지 정합니다.  |
+| `wrap`           | `WrapMode`          | `'word'` | `'word'`, `'char'`, `'none'` 가운데 하나입니다.                            |
+| `tabSize`        | `number`            | `8`      | 탭 위치 사이의 칸 수입니다.                                                |
+| `ambiguousWidth` | `AmbiguousWidth`    | `1`      | 동아시아 모호 폭 문자가 차지하는 칸 수로, `1`이나 `2`입니다.               |
+| `maxClusters`    | `number`            | `10000`  | 한 줄에 남기는 최대 그래핌 클러스터 수입니다. 나머지는 `…`로 대신합니다.   |
+| `filter`         | `LogFilter \| null` | `null`   | 필터입니다. [`LogFilter`](/ko/reference/layout#logfilter)를 참고하세요.    |
+
+## ToolbarOptions {#toolbaroptions}
+
+모든 컨트롤의 기본값은 `true`입니다.
+
+| 옵션     | 타입      | 컨트롤                       |
+| -------- | --------- | ---------------------------- |
+| `follow` | `boolean` | 새 로그 따라가기             |
+| `clear`  | `boolean` | 로그 지우기                  |
+| `scroll` | `boolean` | 맨 위로 이동, 맨 아래로 이동 |
+| `wrap`   | `boolean` | 긴 줄 바꾸기                 |
+| `filter` | `boolean` | 필터 입력란                  |
+| `levels` | `boolean` | 로그 수준 메뉴               |
+
+## InputOptions {#inputoptions}
+
+| 옵션          | 타입                                              | 기본값                    | 설명                                                                                                                                       |
+| ------------- | ------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `onSubmit`    | `(command: string, viewer: LogViewer) => unknown` | 필수                      | 명령마다 호출합니다. 반환한 값이나 반환한 프로미스가 이행한 값을 응답으로 출력합니다. 아무것도 출력하지 않으려면 `undefined`를 반환합니다. |
+| `prompt`      | `string`                                          | `'>'`                     | 입력 앞에 보이는 프롬프트입니다.                                                                                                           |
+| `placeholder` | `string`                                          | `labels.inputPlaceholder` | 입력란의 자리 표시 텍스트입니다.                                                                                                           |
+| `echo`        | `boolean`                                         | `true`                    | 명령을 실행하기 전에 로그에 추가할지 정합니다.                                                                                             |
+| `historySize` | `number`                                          | `100`                     | 화살표 키로 오갈 수 있는 이전 명령 수입니다.                                                                                               |
+
+## ViewerLabels {#viewerlabels}
+
+레이블은 모두 화면에 보이는 텍스트나 접근성 이름으로 쓰입니다.
+
+| 레이블             | 영어(`EN_LABELS`)                 | 한국어(`KO_LABELS`)           |
+| ------------------ | --------------------------------- | ----------------------------- |
+| `viewer`           | Log viewer                        | 로그 뷰어                     |
+| `toolbar`          | Log viewer tools                  | 로그 뷰어 도구                |
+| `follow`           | Follow new logs                   | 새 로그 따라가기              |
+| `clear`            | Clear logs                        | 로그 지우기                   |
+| `scrollToTop`      | Scroll to top                     | 맨 위로 이동                  |
+| `scrollToBottom`   | Scroll to bottom                  | 맨 아래로 이동                |
+| `wrap`             | Wrap long lines                   | 긴 줄 바꾸기                  |
+| `filter`           | Filter                            | 필터                          |
+| `invalidFilter`    | The filter is not a valid pattern | 필터 패턴이 올바르지 않습니다 |
+| `levels`           | Log levels                        | 로그 수준                     |
+| `levelAll`         | All levels                        | 모든 수준                     |
+| `levelLog`         | Log and above                     | 로그 이상                     |
+| `levelInfo`        | Info and above                    | 정보 이상                     |
+| `levelWarn`        | Warnings and errors               | 경고와 오류                   |
+| `levelError`       | Errors only                       | 오류만                        |
+| `input`            | Command                           | 명령                          |
+| `inputPlaceholder` | Type a command                    | 명령을 입력하세요             |
+| `newLogs`          | New logs                          | 새 로그                       |
+| `entryList`        | Visible log entries               | 화면에 보이는 로그            |
+| `following`        | Following                         | 따라가는 중                   |
+| `paused`           | Paused                            | 멈춤                          |
+| `entries`          | `3 entries`, `1 of 3 entries`     | `로그 3개`, `로그 3개 중 1개` |
+
+`entries`는 `(shown: number, total: number, format: (value: number) => string) => string` 형태의 함수입니다. `format`은 숫자를 로케일에 맞게 서식화합니다.
+
+### labelsFor {#labelsfor}
+
+```ts
+labelsFor(locale: string | undefined): ViewerLabels
+```
+
+`ko`와 `ko-KR` 같은 태그에는 `KO_LABELS`를, 그 밖의 언어에는 `EN_LABELS`를 반환합니다.
+
+## 테마와 글꼴 {#themes-and-fonts}
+
+### ThemeMode {#thememode}
+
+```ts
+type ThemeMode = 'auto' | 'light' | 'dark';
+```
+
+### readTheme {#readtheme}
+
+```ts
+readTheme(element: Element): RenderTheme
+```
+
+요소의 `--lognal-*` 사용자 지정 속성에서 렌더링 색을 읽습니다. 설정되지 않은 속성은 `lognal.css`의 어두운 팔레트와 같은 `DEFAULT_RENDER_THEME`의 값을 씁니다.
+
+### readFont {#readfont}
+
+```ts
+readFont(element: Element, overrides: Partial<FontSettings>): FontSettings
+```
+
+`--lognal-font-family`, `--lognal-font-size`, `--lognal-font-weight`, `--lognal-line-height` 속성에서 글꼴을 읽고, 그 위에 `overrides`를 적용합니다. 크기는 `px`, `rem`, `em` 단위로 쓸 수 있습니다. 줄 높이는 크기의 배수인 숫자나 `em` 값, 백분율, 크기로 나눌 `px`·`rem` 단위의 길이 가운데 하나로 쓸 수 있습니다. 값이 없거나 올바르지 않으면 `DEFAULT_FONT`의 값을 씁니다.
+
+### DEFAULT_FONT {#default-font}
+
+| 필드         | 값                                                                                                                            |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `family`     | `ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "D2Coding", "Noto Sans Mono CJK KR", "Liberation Mono", monospace` |
+| `size`       | `13`                                                                                                                          |
+| `weight`     | `400`                                                                                                                         |
+| `lineHeight` | `1.6`                                                                                                                         |
+
+## 타임스탬프 {#timestamps}
+
+### TimestampFormat {#timestampformat}
+
+```ts
+type TimestampFormat = 'time' | 'datetime' | 'iso' | ((time: number) => string);
+```
+
+### formatTimestamp {#formattimestamp}
+
+```ts
+formatTimestamp(time: number, format?: TimestampFormat): string
+```
+
+밀리초 단위의 에포크 시각을 서식화합니다. `format`의 기본값은 `'time'`입니다.
+
+| 형식         | 예                         |
+| ------------ | -------------------------- |
+| `'time'`     | `14:03:09.120`             |
+| `'datetime'` | `2026-09-13 14:03:09.120`  |
+| `'iso'`      | `2026-09-13T05:03:09.120Z` |
+
+`'time'`과 `'datetime'`은 현지 시각을, `'iso'`는 UTC를 씁니다.
+
+## React 컴포넌트 {#react-component}
+
+```tsx
+import { LogViewer, type LogViewerProps } from 'lognal/react';
+```
+
+`LogViewerProps`는 `LogViewerOptions`에 아래 prop을 더한 타입입니다. 컴포넌트는 ref를 `LogViewer` 인스턴스로 전달합니다. prop 변경이 적용되는 방식은 [React](/ko/guide/react)를 참고하세요.
+
+| Prop                | 타입                                  | 설명                                                                 |
+| ------------------- | ------------------------------------- | -------------------------------------------------------------------- |
+| `className`         | `string`                              | 컨테이너의 클래스입니다.                                             |
+| `style`             | `CSSProperties`                       | 컨테이너의 스타일입니다. `height: 100%` 위에 적용합니다.             |
+| `hookConsole`       | `boolean \| HookConsoleOptions`       | 컴포넌트가 마운트되어 있는 동안 전역 `console`을 뷰어에 기록합니다.  |
+| `onReady`           | `(viewer: LogViewer \| null) => void` | 뷰어가 생기면 뷰어를, 뷰어를 정리한 뒤에는 `null`을 넘겨 호출합니다. |
+| `onFollowChange`    | `(following: boolean) => void`        | `follow` 이벤트입니다.                                               |
+| `onFilterChange`    | `(filter: LogFilter \| null) => void` | `filter` 이벤트입니다.                                               |
+| `onSelectionChange` | `(text: string) => void`              | `selection` 이벤트입니다.                                            |
