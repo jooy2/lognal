@@ -27,3 +27,25 @@
 		padding: 32px 32px 96px;
 	}
 }
+
+/*
+ * On wide screens the page is exactly as tall as the screen below the navigation bar, so the page
+ * itself does not scroll. The demo keeps the viewer in place and scrolls only its controls.
+ */
+@media (min-width: 960px) {
+	.demo-page {
+		display: flex;
+		flex-direction: column;
+		height: calc(100vh - var(--vp-nav-height));
+		min-height: 560px;
+		padding: 24px 32px;
+	}
+
+	.demo-page .demo-intro > :last-child {
+		margin-bottom: 0;
+	}
+
+	.demo-layout .VPFooter {
+		display: none;
+	}
+}

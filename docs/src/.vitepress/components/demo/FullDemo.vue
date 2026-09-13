@@ -1118,15 +1118,33 @@ onBeforeUnmount(() => {
 	font-size: 13px;
 }
 
+/*
+ * On wide screens the demo fills the rest of the page, which `demo.css` sizes to the screen. The
+ * viewer stays in place, and only the controls scroll.
+ */
 @media (min-width: 960px) {
 	.demo {
+		flex: 1;
+		min-height: 0;
 		grid-template-columns: minmax(0, 1fr) 360px;
+		grid-template-rows: minmax(0, 1fr);
+		align-items: stretch;
 	}
 
 	.demo-stage {
-		top: calc(var(--vp-nav-height) + 16px);
-		height: calc(100vh - var(--vp-nav-height) - 32px);
+		position: static;
+		height: auto;
+		min-height: 0;
 		padding: 0;
+	}
+
+	.demo-controls {
+		min-height: 0;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		scrollbar-gutter: stable;
+		/* Leaves room for the focus outlines of the controls next to the edges. */
+		padding: 4px 8px 24px 4px;
 	}
 }
 
@@ -1281,6 +1299,11 @@ onBeforeUnmount(() => {
 .demo-file.is-disabled {
 	cursor: default;
 	opacity: 0.6;
+}
+
+.demo-file {
+	/* Keeps the hidden input inside the label, so it does not stretch the page or the controls. */
+	position: relative;
 }
 
 .demo-file input {
