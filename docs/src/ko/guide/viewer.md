@@ -26,23 +26,24 @@ viewer.dispose();
 
 ## 옵션 {#options}
 
-| 옵션         | 타입                                    | 기본값       | 설명                                                                                               |
-| ------------ | --------------------------------------- | ------------ | -------------------------------------------------------------------------------------------------- |
-| `store`      | `LogStore`                              | 새 스토어    | 보여 줄 스토어입니다. 여러 뷰어가 스토어 하나를 함께 쓸 수 있습니다.                               |
-| `core`       | `Partial<CoreOptions>`                  | 아래 표 참고 | 보관할 양, 줄 배치 방식, 보여 줄 항목을 정합니다.                                                  |
-| `theme`      | `'auto' \| 'light' \| 'dark'`           | `'auto'`     | 색 구성입니다. `'auto'`는 운영체제 설정을 따릅니다.                                                |
-| `font`       | `Partial<FontSettings>`                 | CSS 값       | 로그의 글꼴입니다. 빠진 값은 `--lognal-font-*` 속성에서 가져옵니다.                                |
-| `timestamps` | `boolean \| TimestampFormat`            | `true`       | 항목마다 시각을 보여 줄지, 어떤 형식으로 보여 줄지 정합니다. `true`는 `'time'`입니다.              |
-| `follow`     | `boolean`                               | `true`       | 처음에 새 항목을 따라갈지 정합니다.                                                                |
-| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`       | 도구 모음의 컨트롤입니다. `false`이면 도구 모음을 숨깁니다.                                        |
-| `statusBar`  | `boolean`                               | `true`       | 상태 표시줄을 보여 줄지 정합니다.                                                                  |
-| `input`      | `InputOptions \| null`                  | `null`       | 입력 줄입니다. 읽기 전용 뷰어라면 생략합니다.                                                      |
-| `locale`     | `string`                                | 없음         | 내장 레이블과 숫자 서식의 언어입니다. 예를 들면 `'ko'`입니다.                                      |
-| `labels`     | `Partial<ViewerLabels>`                 | 내장 레이블  | 내장 레이블 대신 쓸 레이블입니다.                                                                  |
-| `entryMenu`  | `boolean \| EntryMenuOptions`           | `true`       | 포인터가 올라간 항목의 작업 메뉴입니다. `false`이면 끕니다. [항목 메뉴](#entry-menu)를 참고하세요. |
-| `search`     | `boolean`                               | `true`       | Ctrl+F나 Cmd+F로 로그 위에 검색 창을 열지 정합니다. [검색](#search)을 참고하세요.                  |
-| `linkClick`  | `'confirm' \| 'open' \| 'ignore'`       | `'confirm'`  | 링크를 클릭하거나 탭했을 때의 동작입니다. [링크](#links)를 참고하세요.                             |
-| `renderer`   | `(ownerDocument: Document) => Renderer` | Canvas 2D    | 렌더러를 만듭니다. [레이아웃과 렌더러](/ko/reference/layout#renderer)를 참고하세요.                |
+| 옵션            | 타입                                    | 기본값       | 설명                                                                                                                   |
+| --------------- | --------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `store`         | `LogStore`                              | 새 스토어    | 보여 줄 스토어입니다. 여러 뷰어가 스토어 하나를 함께 쓸 수 있습니다.                                                   |
+| `core`          | `Partial<CoreOptions>`                  | 아래 표 참고 | 보관할 양, 줄 배치 방식, 보여 줄 항목을 정합니다.                                                                      |
+| `theme`         | `'auto' \| 'light' \| 'dark'`           | `'auto'`     | 색 구성입니다. `'auto'`는 운영체제 설정을 따릅니다.                                                                    |
+| `font`          | `Partial<FontSettings>`                 | CSS 값       | 로그의 글꼴입니다. 빠진 값은 `--lognal-font-*` 속성에서 가져옵니다.                                                    |
+| `timestamps`    | `boolean \| TimestampFormat`            | `true`       | 항목마다 시각을 보여 줄지, 어떤 형식으로 보여 줄지 정합니다. `true`는 `'time'`입니다.                                  |
+| `follow`        | `boolean`                               | `true`       | 처음에 새 항목을 따라갈지 정합니다.                                                                                    |
+| `toolbar`       | `boolean \| Partial<ToolbarOptions>`    | `true`       | 도구 모음의 컨트롤입니다. `false`이면 도구 모음을 숨깁니다.                                                            |
+| `statusBar`     | `boolean`                               | `true`       | 상태 표시줄을 보여 줄지 정합니다.                                                                                      |
+| `input`         | `InputOptions \| null`                  | `null`       | 입력 줄입니다. 읽기 전용 뷰어라면 생략합니다.                                                                          |
+| `locale`        | `string`                                | 없음         | 내장 레이블과 숫자 서식의 언어입니다. 예를 들면 `'ko'`입니다.                                                          |
+| `labels`        | `Partial<ViewerLabels>`                 | 내장 레이블  | 내장 레이블 대신 쓸 레이블입니다.                                                                                      |
+| `entryMenu`     | `boolean \| EntryMenuOptions`           | `true`       | 포인터가 올라간 항목의 작업 메뉴입니다. `false`이면 끕니다. [항목 메뉴](#entry-menu)를 참고하세요.                     |
+| `search`        | `boolean`                               | `true`       | Ctrl+F나 Cmd+F로 로그 위에 검색 창을 열지 정합니다. [검색](#search)을 참고하세요.                                      |
+| `linkClick`     | `'confirm' \| 'open' \| 'ignore'`       | `'confirm'`  | 링크를 클릭하거나 탭했을 때의 동작입니다. [링크](#links)를 참고하세요.                                                 |
+| `selectionMode` | `'text' \| 'entry'`                     | `'text'`     | 포인터와 키보드로 텍스트를 선택할지, 항목을 통째로 선택할지 정합니다. [선택과 복사](#selection-and-copy)를 참고하세요. |
+| `renderer`      | `(ownerDocument: Document) => Renderer` | Canvas 2D    | 렌더러를 만듭니다. [레이아웃과 렌더러](/ko/reference/layout#renderer)를 참고하세요.                                    |
 
 ### 코어 옵션 {#core-options}
 
@@ -79,6 +80,7 @@ viewer.setOptions({ locale: 'ko' });
 | 로그 지우기                  | `clear`             | 스토어의 항목을 모두 지웁니다.                                                                                     |
 | 맨 위로 이동, 맨 아래로 이동 | `scroll`            | 가장 오래된 항목이나 가장 새 항목으로 이동합니다. 맨 아래로 이동하면 따라가기가 켜집니다.                          |
 | 긴 줄 바꾸기                 | `wrap`              | 줄 바꿈을 끕니다. 한 번 더 누르면 버튼이 끄기 전의 모드인 `'word'`나 `'char'`로 돌아갑니다.                        |
+| 항목 단위로 선택             | `selectionMode`     | 텍스트 선택과 항목 선택을 오갑니다. [선택과 복사](#selection-and-copy)를 참고하세요.                               |
 | 필터                         | `filter`            | 입력한 텍스트가 들어 있는 항목만 보여 줍니다. 입력을 멈추고 120ms 뒤에 적용합니다.                                 |
 | 로그 수준                    | `levels`            | 모든 수준, 로그 이상, 정보 이상, 경고와 오류, 오류만 가운데 하나를 보여 줍니다. 고른 값은 `minLevel`로 적용합니다. |
 
@@ -230,6 +232,10 @@ new LogViewer(container, { core: { links: false } });
 
 ## 선택과 복사 {#selection-and-copy}
 
+뷰어에는 선택 방식이 두 가지 있습니다. 기본값인 `selectionMode: 'text'`는 터미널처럼 텍스트를 선택하고, `selectionMode: 'entry'`는 파일 관리자에서 파일을 고르듯 항목을 통째로 선택합니다. 도구 모음의 **항목 단위로 선택** 버튼으로 두 모드를 오갈 수 있고, 모드를 바꾸면 선택이 해제됩니다.
+
+### 텍스트 모드 {#text-mode}
+
 로그 영역에 포커스가 있을 때 마우스와 키보드는 이렇게 동작합니다.
 
 | 동작                | 결과                                                    |
@@ -243,7 +249,42 @@ new LogViewer(container, { core: { links: false } });
 
 터치 입력은 로그를 스크롤하고 텍스트를 선택하지 않습니다. 값이나 그룹을 탭하면 펼치거나 접습니다. 여러 행에 걸쳐 줄 바꿈된 줄은 한 줄로 복사하고, 펼친 값의 행도 함께 복사합니다.
 
-같은 동작을 메서드로도 쓸 수 있습니다. `getSelectionText()`, `selectAll()`, `clearSelection()`, `copySelection()`이 있고, `copySelection()`은 복사한 내용이 있는지를 불리언으로 이행합니다. 선택한 텍스트가 바뀔 때마다 `selection` 이벤트가 그 텍스트를 알려 줍니다.
+### 항목 모드 {#entry-mode}
+
+선택한 항목에는 `--lognal-entry-selection`으로 정하는 옅은 배경이 깔립니다.
+
+| 동작                                              | 결과                                                                                                       |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| 클릭                                              | 그 항목만 선택합니다. 마지막 항목 아래를 클릭하면 선택을 해제합니다.                                       |
+| Ctrl을 누르고 클릭, macOS에서는 Cmd를 누르고 클릭 | 항목을 선택에 더하거나 선택에서 뺍니다.                                                                    |
+| Shift를 누르고 클릭                               | 마지막으로 고른 항목부터 클릭한 항목까지 선택합니다. Ctrl이나 Cmd도 함께 누르면 그 범위를 선택에 더합니다. |
+| 마우스로 드래그                                   | 포인터가 지나간 항목을 모두 선택합니다. 가장자리 밖으로 끌면 스크롤됩니다.                                 |
+| 오른쪽 클릭                                       | 선택한 항목의 메뉴를 엽니다. 선택하지 않은 항목에서 누르면 먼저 그 항목만 선택합니다.                      |
+| 위쪽 화살표, 아래쪽 화살표                        | 이전 항목이나 다음 항목으로 옮겨 가서 그 항목만 선택합니다.                                                |
+| Home, End, Page Up, Page Down                     | 첫 항목이나 마지막 항목, 또는 한 화면 위나 아래로 옮겨 가서 그 항목만 선택합니다.                          |
+| 위 키와 함께 Shift                                | 마지막으로 고른 항목부터 옮겨 간 항목까지 선택합니다.                                                      |
+| 위 키와 함께 Ctrl이나 Cmd                         | 선택은 그대로 두고 옮겨 가기만 합니다.                                                                     |
+| Space                                             | 키보드가 가리키는 항목을 선택하거나 선택에서 뺍니다.                                                       |
+| Ctrl+A나 Cmd+A                                    | 보이는 항목을 모두 선택합니다.                                                                             |
+| Ctrl+C나 Cmd+C                                    | 선택한 항목을 텍스트로 복사합니다.                                                                         |
+| Shift+F10이나 컨텍스트 메뉴 키                    | 선택한 항목의 메뉴를 엽니다.                                                                               |
+| Escape                                            | 선택을 해제합니다.                                                                                         |
+
+키보드로 옮겨 가면 키보드가 가리키는 항목에 `--lognal-focus-ring` 색의 윤곽선이 그려지고, 그 항목이 화면 안에 들어오도록 스크롤됩니다.
+
+항목을 하나만 선택했을 때의 메뉴는 그 항목의 [항목 메뉴](#entry-menu)입니다. 여러 항목을 선택했을 때의 메뉴에는 복사 항목과 **모두 펼치기**, **모두 접기**가 나오고, 메뉴에서 고른 동작은 선택한 항목 모두에 오래된 항목부터 적용됩니다. 여러 항목을 복사하면 항목 사이를 줄 바꿈으로 나누고, **데이터로 복사**는 항목마다 원소가 하나씩 든 JSON 배열 하나를 복사합니다. 이 메뉴도 `entryMenu` 옵션을 따르므로 `entryMenu: false`이면 함께 꺼집니다.
+
+값, 그룹 머리글, 링크를 클릭하면 이전처럼 펼치거나 열고, 그 항목도 함께 선택합니다.
+
+### 선택 메서드 {#selection-methods}
+
+`getSelectionText(options?)`는 선택을 텍스트로 반환하고, `selectAll()`과 `clearSelection()`은 선택을 바꿉니다. `copySelection(options?)`은 선택을 복사하고 복사한 내용이 있는지를 불리언으로 이행합니다. 항목 모드에서 `options`는 [`getEntryText`](#entry-menu)와 같은 `format`, `timestamp`를 받고, `copySelection`은 `'formatted'`이면 HTML도 함께 넣습니다. `getSelectedEntryIds()`는 선택한 항목의 id를 반환하며, 텍스트 모드에서는 선택한 텍스트가 걸친 항목의 id를 반환합니다. 선택이 바뀔 때마다 `selection` 이벤트가 선택의 텍스트를 알려 줍니다.
+
+```ts
+viewer.setOptions({ selectionMode: 'entry' });
+viewer.selectAll();
+await viewer.copySelection({ format: 'data' });
+```
 
 ## 항목 메뉴 {#entry-menu}
 
@@ -259,7 +300,7 @@ new LogViewer(container, { core: { links: false } });
 | 모두 접기               | 따로 로그를 남긴 오류까지 포함해 항목의 값을 모두 접습니다.                                                                                                       |
 | 링크 열기: https://…    | `linkClick`에 따라 항목의 링크를 엽니다. 링크는 다섯 개까지 나오고, `linkClick: 'ignore'`이면 나오지 않습니다.                                                    |
 
-로그 영역에 포커스가 있을 때 Shift+F10이나 컨텍스트 메뉴 키를 누르면, 선택이 끝나는 항목이나 화면 맨 위 항목의 메뉴가 열립니다. 메뉴에서는 화살표 키로 이동하고, Enter로 고르고, Escape로 닫습니다.
+로그 영역에 포커스가 있을 때 Shift+F10이나 컨텍스트 메뉴 키를 누르면, 선택이 끝나는 항목이나 화면 맨 위 항목의 메뉴가 열립니다. 메뉴에서는 화살표 키로 이동하고, Enter로 고르고, Escape로 닫습니다. 항목 모드에서는 오른쪽 클릭, Shift+F10, 컨텍스트 메뉴 키가 선택한 항목의 메뉴를 엽니다. [항목 모드](#entry-mode)를 참고하세요.
 
 ### 메뉴 항목 추가 {#add-your-own-items}
 
@@ -370,32 +411,32 @@ new LogViewer(container, {
 
 ## 메서드와 이벤트 {#methods-and-events}
 
-| 멤버                                                                            | 설명                                                                                       |
-| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `console`                                                                       | 이 뷰어의 스토어에 쓰는, 콘솔 메서드를 갖춘 객체입니다.                                    |
-| `write(text, options?)`                                                         | 텍스트를 항목 하나로 추가합니다.                                                           |
-| `writeLines(text, options?)`                                                    | 텍스트를 줄마다 항목 하나씩 추가합니다.                                                    |
-| `hookConsole(target?, options?)`                                                | 콘솔을 스토어에 기록합니다. 기록을 멈추는 함수를 반환합니다.                               |
-| `clear()`                                                                       | 항목을 모두 지웁니다.                                                                      |
-| `setFilter(filter)`, `getFilter()`                                              | 필터를 정하거나 반환합니다.                                                                |
-| `setFollowing(following)`                                                       | 따라가기를 켜거나 끕니다.                                                                  |
-| `scrollToTop()`, `scrollToBottom()`, `scrollToEntry(id)`                        | 화면을 스크롤합니다.                                                                       |
-| `getSelectionText()`, `selectAll()`, `clearSelection()`, `copySelection()`      | 선택을 다룹니다.                                                                           |
-| `getEntryText(id, options?)`, `copyEntry(id, options?)`                         | 항목의 텍스트를 반환하거나 복사합니다.                                                     |
-| `expandEntry(id)`, `collapseEntry(id)`                                          | 항목의 값을 모두 펼치거나 접습니다.                                                        |
-| `openSearch(query?, options?)`, `closeSearch()`, `findNext()`, `findPrevious()` | 검색 창을 열거나 닫고, 결과 사이를 이동합니다.                                             |
-| `focus()`                                                                       | 입력 줄에, 입력 줄이 없으면 로그 영역에 포커스를 줍니다.                                   |
-| `refresh()`                                                                     | CSS에서 테마와 글꼴을 다시 읽습니다.                                                       |
-| `on(name, listener)`                                                            | `follow`, `filter`, `selection` 이벤트에 리스너를 답니다. 리스너를 떼는 함수를 반환합니다. |
-| `setOptions(options)`                                                           | 넘긴 옵션만 바꾸고 나머지는 그대로 둡니다.                                                 |
-| `dispose()`                                                                     | 뷰어를 없애고 뷰어가 시작한 작업을 모두 멈춥니다.                                          |
+| 멤버                                                                                                                | 설명                                                                                       |
+| ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `console`                                                                                                           | 이 뷰어의 스토어에 쓰는, 콘솔 메서드를 갖춘 객체입니다.                                    |
+| `write(text, options?)`                                                                                             | 텍스트를 항목 하나로 추가합니다.                                                           |
+| `writeLines(text, options?)`                                                                                        | 텍스트를 줄마다 항목 하나씩 추가합니다.                                                    |
+| `hookConsole(target?, options?)`                                                                                    | 콘솔을 스토어에 기록합니다. 기록을 멈추는 함수를 반환합니다.                               |
+| `clear()`                                                                                                           | 항목을 모두 지웁니다.                                                                      |
+| `setFilter(filter)`, `getFilter()`                                                                                  | 필터를 정하거나 반환합니다.                                                                |
+| `setFollowing(following)`                                                                                           | 따라가기를 켜거나 끕니다.                                                                  |
+| `scrollToTop()`, `scrollToBottom()`, `scrollToEntry(id)`                                                            | 화면을 스크롤합니다.                                                                       |
+| `getSelectionText(options?)`, `getSelectedEntryIds()`, `selectAll()`, `clearSelection()`, `copySelection(options?)` | 선택을 다룹니다.                                                                           |
+| `getEntryText(id, options?)`, `copyEntry(id, options?)`                                                             | 항목의 텍스트를 반환하거나 복사합니다.                                                     |
+| `expandEntry(id)`, `collapseEntry(id)`                                                                              | 항목의 값을 모두 펼치거나 접습니다.                                                        |
+| `openSearch(query?, options?)`, `closeSearch()`, `findNext()`, `findPrevious()`                                     | 검색 창을 열거나 닫고, 결과 사이를 이동합니다.                                             |
+| `focus()`                                                                                                           | 입력 줄에, 입력 줄이 없으면 로그 영역에 포커스를 줍니다.                                   |
+| `refresh()`                                                                                                         | CSS에서 테마와 글꼴을 다시 읽습니다.                                                       |
+| `on(name, listener)`                                                                                                | `follow`, `filter`, `selection` 이벤트에 리스너를 답니다. 리스너를 떼는 함수를 반환합니다. |
+| `setOptions(options)`                                                                                               | 넘긴 옵션만 바꾸고 나머지는 그대로 둡니다.                                                 |
+| `dispose()`                                                                                                         | 뷰어를 없애고 뷰어가 시작한 작업을 모두 멈춥니다.                                          |
 
 정확한 시그니처는 [LogViewer 레퍼런스](/ko/reference/log-viewer)에 있습니다.
 
 ## 접근성 {#accessibility}
 
-- 뷰어 전체는 `viewer` 레이블을 이름으로 쓰는 region 역할의 요소이고, 도구 모음은 이름이 붙은 버튼을 담은 toolbar 역할의 요소입니다. 따라가기 버튼과 줄 바꿈 버튼은 눌린 상태를 알립니다.
-- 로그 영역은 키보드 포커스를 받을 수 있고, 다른 스크롤 영역처럼 화살표 키와 Page Up, Page Down으로 스크롤합니다.
+- 뷰어 전체는 `viewer` 레이블을 이름으로 쓰는 region 역할의 요소이고, 도구 모음은 이름이 붙은 버튼을 담은 toolbar 역할의 요소입니다. 따라가기, 줄 바꿈, 선택 모드 버튼은 눌린 상태를 알립니다.
+- 로그 영역은 키보드 포커스를 받을 수 있고, 다른 스크롤 영역처럼 화살표 키와 Page Up, Page Down으로 스크롤합니다. 항목 모드에서는 같은 키로 항목 사이를 옮겨 다니며, 라이브 영역이 키보드가 가리키는 항목과 선택한 항목 수를 스크린 리더에 알려 줍니다.
 - 수준 메뉴는 목록 상자를 여는 버튼입니다. 화살표 키, Home, End로 수준을 오가고, Enter나 Space로 고르고, Escape로 목록을 닫으면 포커스가 버튼으로 돌아갑니다.
 - 항목 메뉴 버튼의 이름은 `entryActions` 레이블입니다. 포인터가 없어도 Shift+F10이나 컨텍스트 메뉴 키로 메뉴를 열 수 있고, 터치 화면에서는 길게 눌러 엽니다.
 - 링크는 따로 키보드 포커스를 받지 않습니다. Shift+F10으로 항목 메뉴를 열면 그 항목의 링크가 나옵니다. 링크 대화 상자는 제목을 이름으로 쓰는 모달 대화 상자입니다. 포커스는 **링크 열기** 버튼에서 시작하고, 대화 상자가 닫히면 로그 영역으로 돌아갑니다.

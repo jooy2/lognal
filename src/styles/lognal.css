@@ -41,6 +41,7 @@
 	--lognal-search-match: rgba(255, 200, 0, 0.4);
 	--lognal-search-current: rgba(255, 140, 0, 0.7);
 	--lognal-link: #1f6fd6;
+	--lognal-entry-selection: rgba(31, 111, 214, 0.1);
 	--lognal-error: #c4262c;
 	--lognal-error-background: rgba(222, 53, 58, 0.07);
 	--lognal-warn: #8a5a00;
@@ -119,6 +120,7 @@
 	--lognal-search-match: rgba(255, 200, 0, 0.28);
 	--lognal-search-current: rgba(255, 140, 0, 0.6);
 	--lognal-link: #5aa2ff;
+	--lognal-entry-selection: rgba(90, 162, 255, 0.14);
 	--lognal-error: #ff8a8d;
 	--lognal-error-background: rgba(252, 79, 83, 0.1);
 	--lognal-warn: #fcc549;
@@ -182,6 +184,7 @@
 		--lognal-search-match: rgba(255, 200, 0, 0.28);
 		--lognal-search-current: rgba(255, 140, 0, 0.6);
 		--lognal-link: #5aa2ff;
+		--lognal-entry-selection: rgba(90, 162, 255, 0.14);
 		--lognal-error: #ff8a8d;
 		--lognal-error-background: rgba(252, 79, 83, 0.1);
 		--lognal-warn: #fcc549;
@@ -586,6 +589,10 @@
 	display: none;
 }
 
+.lognal-viewport[data-selection='entry'] {
+	cursor: default;
+}
+
 .lognal-viewport.has-action {
 	cursor: pointer;
 }
@@ -597,6 +604,7 @@
 
 /* Visually hidden, still read by screen readers. */
 .lognal-mirror,
+.lognal-announcer,
 .lognal-clipboard {
 	position: absolute;
 	width: 1px;

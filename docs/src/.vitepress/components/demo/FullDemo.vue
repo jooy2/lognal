@@ -16,6 +16,7 @@ import type {
 	LogLevel,
 	LogViewer,
 	LogViewerOptions,
+	SelectionMode,
 	ThemeMode,
 	TimestampFormat,
 	ToolbarOptions,
@@ -113,6 +114,7 @@ const settings = reactive({
 	entryMenu: true,
 	search: true,
 	linkClick: 'confirm' as LinkClick,
+	selectionMode: 'text' as SelectionMode,
 	secondViewer: false,
 	toolbar: true,
 	toolbarControls: {
@@ -120,6 +122,7 @@ const settings = reactive({
 		clear: true,
 		scroll: true,
 		wrap: true,
+		selectionMode: true,
 		filter: true,
 		levels: true
 	} as ToolbarOptions,
@@ -262,6 +265,7 @@ const initialOptions = (): LogViewerOptions => ({
 	entryMenu: viewerEntryMenu(),
 	search: settings.search,
 	linkClick: settings.linkClick,
+	selectionMode: settings.selectionMode,
 	toolbar: viewerToolbar(),
 	input: viewerInput(),
 	core: {
@@ -596,6 +600,10 @@ watch(
 	(linkClick) => applyOptions({ linkClick })
 );
 watch(
+	() => settings.selectionMode,
+	(selectionMode) => applyOptions({ selectionMode })
+);
+watch(
 	() => settings.entryMenu,
 	() => applyOptions({ entryMenu: viewerEntryMenu() })
 );
@@ -858,9 +866,17 @@ onBeforeUnmount(() => {
 								<option value="ignore">{{ t('control', 'link-click-ignore') }}</option>
 							</select>
 						</label>
+						<label class="demo-field">
+							<span>{{ t('control', 'selection-mode') }}</span>
+							<select v-model="settings.selectionMode">
+								<option value="text">{{ t('control', 'selection-mode-text') }}</option>
+								<option value="entry">{{ t('control', 'selection-mode-entry') }}</option>
+							</select>
+						</label>
 					</div>
 					<p class="demo-hint">{{ t('hint', 'locale') }}</p>
 					<p class="demo-hint">{{ t('hint', 'links') }}</p>
+					<p class="demo-hint">{{ t('hint', 'selection-mode') }}</p>
 					<label class="demo-check">
 						<input v-model="settings.customLabels" type="checkbox" />
 						{{ t('control', 'custom-labels') }}
@@ -908,6 +924,10 @@ onBeforeUnmount(() => {
 						<label class="demo-check">
 							<input v-model="settings.toolbarControls.wrap" type="checkbox" />
 							{{ t('control', 'toolbar-wrap') }}
+						</label>
+						<label class="demo-check">
+							<input v-model="settings.toolbarControls.selectionMode" type="checkbox" />
+							{{ t('control', 'toolbar-selection-mode') }}
 						</label>
 						<label class="demo-check">
 							<input v-model="settings.toolbarControls.filter" type="checkbox" />

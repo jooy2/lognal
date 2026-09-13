@@ -48,6 +48,13 @@ export interface ViewerLabels {
 	linkDialogOpen: string;
 	/** The button of the link dialog that closes it without opening the link. */
 	linkDialogCancel: string;
+	/** The toolbar button that switches between selecting text and selecting whole entries. */
+	selectEntries: string;
+	/**
+	 * What a screen reader hears about the selected entries after the keyboard changes them.
+	 * `format` formats a number for the locale.
+	 */
+	selectedEntries: (count: number, format: (value: number) => string) => string;
 	/** Accessible name of the search bar, and the placeholder of its field. */
 	search: string;
 	searchPrevious: string;
@@ -102,6 +109,10 @@ export const EN_LABELS: ViewerLabels = {
 	linkDialogMessage: 'The link opens in a new tab. Check the address before you open it.',
 	linkDialogOpen: 'Open link',
 	linkDialogCancel: 'Cancel',
+	selectEntries: 'Select whole entries',
+	selectedEntries: (count, format) => {
+		return count === 1 ? '1 entry selected' : `${format(count)} entries selected`;
+	},
 	search: 'Find in log',
 	searchPrevious: 'Previous match',
 	searchNext: 'Next match',
@@ -155,6 +166,10 @@ export const KO_LABELS: ViewerLabels = {
 	linkDialogMessage: '링크는 새 탭에서 열립니다. 열기 전에 주소를 확인하세요.',
 	linkDialogOpen: '링크 열기',
 	linkDialogCancel: '취소',
+	selectEntries: '항목 단위로 선택',
+	selectedEntries: (count, format) => {
+		return `항목 ${format(count)}개 선택됨`;
+	},
 	search: '로그에서 찾기',
 	searchPrevious: '이전 결과',
 	searchNext: '다음 결과',

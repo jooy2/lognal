@@ -1003,6 +1003,258 @@ describe('LogViewer', () => {
 		viewer.dispose();
 	});
 
+	it('selects whole entries with a click, Ctrl or Cmd, Shift and a drag in entry mode', async () => {
+		const render = vi.spyOn(CanvasRenderer.prototype, 'render');
+		const viewer = new LogViewer(container, {
+			timestamps: false,
+			toolbar: false,
+			selectionMode: 'entry',
+			core: { mergeRepeats: false }
+		});
+		const viewport = viewer.element.querySelector('.lognal-viewport') as HTMLDivElement;
+		const additive = /Mac|iPhone|iPad/.test(navigator.platform)
+			? { metaKey: true }
+			: { ctrlKey: true };
+		const onSelection = vi.fn();
+		const selectedRows = (): boolean[] => {
+			const frame = render.mock.calls[render.mock.calls.length - 1][0];
+
+			return frame.decorations.map((decoration) => Boolean(decoration.entrySelected));
+		};
+
+		viewer.on('selection', onSelection);
+
+		for (const text of ['first', 'second', 'third', 'fourth']) {
+			viewer.write(text);
+		}
+
+		await nextFrame();
+
+		const rowHeight = parseFloat(viewer.element.style.getPropertyValue('--lognal-cell-height'));
+		const rowY = (index: number): number => 4 + rowHeight * (index + 0.5);
+		const ids = viewer.store.toArray().map((entry) => entry.id);
+
+		expect(viewport.dataset.selection).toBe('entry');
+
+		click(viewer, 60, rowY(1));
+		expect(viewer.getSelectedEntryIds()).toEqual([ids[1]]);
+
+		click(viewer, 60, rowY(3), additive);
+		expect(viewer.getSelectedEntryIds()).toEqual([ids[1], ids[3]]);
+
+		click(viewer, 60, rowY(1), additive);
+		expect(viewer.getSelectedEntryIds()).toEqual([ids[3]]);
+
+		// The range starts from the entry chosen last, which Ctrl or Cmd chose.
+		click(viewer, 60, rowY(0), { shiftKey: true });
+		expect(viewer.getSelectedEntryIds()).toEqual([ids[0], ids[1]]);
+
+		click(viewer, 60, rowY(3), { shiftKey: true });
+		expect(viewer.getSelectedEntryIds()).toEqual(ids.slice(1));
+		expect(viewer.getSelectionText()).toBe('second\nthird\nfourth');
+		expect(onSelection).toHaveBeenLastCalledWith('second\nthird\nfourth');
+
+		await nextFrame();
+		expect(selectedRows()).toEqual([false, true, true, true]);
+
+		const pointer = (type: string, y: number): void => {
+			const rect = viewport.getBoundingClientRect();
+
+			viewport.dispatchEvent(
+				new PointerEvent(type, {
+					clientX: rect.left + 60,
+					clientY: rect.top + y,
+					bubbles: true,
+					button: 0,
+					pointerId: 1,
+					pointerType: 'mouse'
+				})
+			);
+		};
+
+		pointer('pointerdown', rowY(0));
+		pointer('pointermove', rowY(2));
+		pointer('pointerup', rowY(2));
+		expect(viewer.getSelectedEntryIds()).toEqual(ids.slice(0, 3));
+
+		// A double-click selects no word, and a press below the entries clears the selection.
+		viewport.dispatchEvent(
+			new MouseEvent('dblclick', {
+				clientX: viewport.getBoundingClientRect().left + 60,
+				clientY: viewport.getBoundingClientRect().top + rowY(1),
+				bubbles: true
+			})
+		);
+		expect(viewer.getSelectedEntryIds()).toEqual(ids.slice(0, 3));
+
+		click(viewer, 60, rowY(8));
+		expect(viewer.getSelectedEntryIds()).toEqual([]);
+		expect(onSelection).toHaveBeenLastCalledWith('');
+
+		render.mockRestore();
+		viewer.dispose();
+	});
+
+	it('moves through, selects and copies entries with the keyboard in entry mode', async () => {
+		const render = vi.spyOn(CanvasRenderer.prototype, 'render');
+		const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);
+		const viewer = new LogViewer(container, {
+			timestamps: false,
+			toolbar: false,
+			selectionMode: 'entry',
+			core: { mergeRepeats: false }
+		});
+		const viewport = viewer.element.querySelector('.lognal-viewport') as HTMLDivElement;
+		const announcer = viewer.element.querySelector('.lognal-announcer') as HTMLDivElement;
+		const press = (key: string, init: KeyboardEventInit = {}): void => {
+			viewport.dispatchEvent(
+				new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init })
+			);
+		};
+		const focusedRows = (): boolean[] => {
+			const frame = render.mock.calls[render.mock.calls.length - 1][0];
+
+			return frame.decorations.map((decoration) => Boolean(decoration.entryFocused));
+		};
+
+		viewer.console.log('first');
+		viewer.console.warn('second');
+		viewer.console.log({ id: 3 });
+		await nextFrame();
+		viewport.focus();
+
+		const ids = viewer.store.toArray().map((entry) => entry.id);
+
+		press('ArrowDown');
+		expect(viewer.getSelectedEntryIds()).toEqual([ids[0]]);
+
+		press('ArrowDown', { shiftKey: true });
+		expect(viewer.getSelectedEntryIds()).toEqual([ids[0], ids[1]]);
+		expect(announcer.getAttribute('aria-live')).toBe('polite');
+		expect(announcer.textContent).toBe('warn: second. 2 entries selected');
+
+		await nextFrame();
+		expect(focusedRows()).toEqual([false, true, false]);
+
+		// Ctrl moves the focused entry without changing the selection, and Space adds it.
+		press('ArrowDown', { ctrlKey: true });
+		expect(viewer.getSelectedEntryIds()).toEqual([ids[0], ids[1]]);
+		press(' ');
+		expect(viewer.getSelectedEntryIds()).toEqual(ids);
+
+		press('c', { ctrlKey: true });
+		await waitFor(() => writeText.mock.calls.length === 1);
+		expect(writeText).toHaveBeenCalledWith('first\nsecond\n{ id: 3 }');
+		expect(JSON.parse(viewer.getSelectionText({ format: 'data' }))).toEqual([
+			'first',
+			'second',
+			{ id: 3 }
+		]);
+
+		press('Home');
+		expect(viewer.getSelectedEntryIds()).toEqual([ids[0]]);
+		press('End', { shiftKey: true });
+		expect(viewer.getSelectedEntryIds()).toEqual(ids);
+
+		press('Escape');
+		expect(viewer.getSelectedEntryIds()).toEqual([]);
+
+		press('a', { ctrlKey: true });
+		expect(viewer.getSelectedEntryIds()).toEqual(ids);
+		expect(announcer.textContent).toBe('3 entries selected');
+
+		// The outline shows only while the log has focus.
+		viewport.blur();
+		await nextFrame();
+		expect(focusedRows()).toEqual([false, false, false]);
+
+		writeText.mockRestore();
+		render.mockRestore();
+		viewer.dispose();
+	});
+
+	it('opens a menu for the selected entries on a right click and switches modes from the toolbar', async () => {
+		const write = vi.spyOn(navigator.clipboard, 'write').mockResolvedValue(undefined);
+		const viewer = new LogViewer(container, {
+			theme: 'light',
+			timestamps: false,
+			core: { mergeRepeats: false },
+			entryMenu: { items: () => [{ label: 'Pin', onSelect: () => undefined }] }
+		});
+		const viewport = viewer.element.querySelector('.lognal-viewport') as HTMLDivElement;
+		const popup = viewer.element.querySelector('.lognal-popup') as HTMLDivElement;
+		const toggle = viewer.element.querySelector(
+			'[aria-label="Select whole entries"]'
+		) as HTMLButtonElement;
+		const menuLabels = (): string[] => {
+			return Array.from(popup.querySelectorAll('[role="menuitem"]')).map(
+				(item) => item.textContent ?? ''
+			);
+		};
+		const rightClick = (y: number): void => {
+			const rect = viewport.getBoundingClientRect();
+
+			viewport.dispatchEvent(
+				new MouseEvent('contextmenu', {
+					clientX: rect.left + 60,
+					clientY: rect.top + y,
+					bubbles: true,
+					cancelable: true
+				})
+			);
+		};
+
+		viewer.write('alpha');
+		viewer.write('beta', { level: 'error' });
+		viewer.write('gamma');
+		await nextFrame();
+
+		const rowHeight = parseFloat(viewer.element.style.getPropertyValue('--lognal-cell-height'));
+		const rowY = (index: number): number => 4 + rowHeight * (index + 0.5);
+		const ids = viewer.store.toArray().map((entry) => entry.id);
+
+		viewer.selectAll();
+		expect(viewer.getSelectionText()).toBe('alpha\nbeta\ngamma');
+		expect(viewer.getSelectedEntryIds()).toEqual(ids);
+
+		expect(toggle.getAttribute('aria-pressed')).toBe('false');
+		toggle.click();
+		expect(toggle.getAttribute('aria-pressed')).toBe('true');
+		expect(viewer.getSelectionText()).toBe('');
+
+		click(viewer, 60, rowY(0));
+		click(viewer, 60, rowY(1), { shiftKey: true });
+		rightClick(rowY(1));
+		expect(menuLabels()).toEqual(['Copy as text', 'Copy with timestamp', 'Copy as formatted text']);
+
+		(
+			Array.from(popup.querySelectorAll<HTMLElement>('[role="menuitem"]')).find(
+				(item) => item.textContent === 'Copy as formatted text'
+			) as HTMLElement
+		).click();
+		await waitFor(() => write.mock.calls.length === 1);
+
+		const [item] = write.mock.calls[0][0];
+		const html = await (await item.getType('text/html')).text();
+
+		expect(await (await item.getType('text/plain')).text()).toBe('alpha\nbeta');
+		expect(html).toContain('>alpha</span>\n<span');
+		expect(html).toContain('<span style="color: #c4262c">beta</span>');
+
+		// A right click on an entry outside the selection selects it alone and opens its own menu.
+		rightClick(rowY(2));
+		expect(viewer.getSelectedEntryIds()).toEqual([ids[2]]);
+		expect(menuLabels()).toContain('Pin');
+		popup.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+		toggle.click();
+		expect(viewer.getSelectedEntryIds()).toEqual([]);
+		expect(viewport.dataset.selection).toBe('text');
+
+		write.mockRestore();
+		viewer.dispose();
+	});
+
 	it('mirrors the visible entries for screen readers', async () => {
 		const viewer = new LogViewer(container);
 

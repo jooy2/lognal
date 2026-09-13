@@ -115,6 +115,7 @@ export {
 	type LinkClick,
 	type LogViewerEvents,
 	type LogViewerOptions,
+	type SelectionMode,
 	type ToolbarOptions
 } from './viewer/viewer.js';
 export { EN_LABELS, KO_LABELS, labelsFor, type ViewerLabels } from './viewer/labels.js';

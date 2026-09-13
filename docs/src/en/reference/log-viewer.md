@@ -46,10 +46,11 @@ Creates the viewer and appends its root element to `container`.
 | `scrollToTop()`                                                      | `void`              | Stops following and scrolls to the first row.                                                                                                                                                                                            |
 | `scrollToBottom()`                                                   | `void`              | Turns following on, which scrolls to the newest entry.                                                                                                                                                                                   |
 | `scrollToEntry(entryId: number)`                                     | `void`              | Stops following and scrolls so the entry is at the top. Does nothing when the entry is not visible.                                                                                                                                      |
-| `getSelectionText()`                                                 | `string`            | Returns the selected text, or an empty string.                                                                                                                                                                                           |
-| `selectAll()`                                                        | `void`              | Selects the text of every visible entry. Emits `selection`.                                                                                                                                                                              |
+| `getSelectionText(options?: EntryTextOptions)`                       | `string`            | Returns the selection as text, or an empty string: the selected text, or in entry mode the selected entries, each written with `options` the way `getEntryText` writes it.                                                               |
+| `getSelectedEntryIds()`                                              | `number[]`          | Returns the ids of the visible selected entries, oldest first. In text mode, returns the ids of the entries the selected text runs through.                                                                                              |
+| `selectAll()`                                                        | `void`              | Selects every visible entry: all of their text in text mode, or the entries in entry mode. Emits `selection`.                                                                                                                            |
 | `clearSelection()`                                                   | `void`              | Clears the selection. Emits `selection` when there was one.                                                                                                                                                                              |
-| `copySelection()`                                                    | `Promise<boolean>`  | Copies the selected text to the clipboard. Resolves to whether anything was copied.                                                                                                                                                      |
+| `copySelection(options?: EntryTextOptions)`                          | `Promise<boolean>`  | Copies the selection to the clipboard: the selected text, or in entry mode the selected entries written with `options`, with HTML for `'formatted'`. Resolves to whether anything was copied.                                            |
 | `getEntryText(entryId: number, options?: EntryTextOptions)`          | `string`            | Returns the whole of an entry, whether its values are open or closed, in the format of `options.format`. With `timestamp: true`, the time of the entry comes first. Returns an empty string for an entry that is no longer in the store. |
 | `copyEntry(entryId: number, options?: EntryTextOptions)`             | `Promise<boolean>`  | Copies the text `getEntryText` returns to the clipboard, together with HTML in the colors of the theme for `'formatted'`. Resolves to whether anything was copied.                                                                       |
 | `expandEntry(entryId: number)`                                       | `void`              | Expands every value of an entry, and every value inside them, as far as they were captured.                                                                                                                                              |
@@ -75,33 +76,34 @@ const off = viewer.on('selection', (text) => {
 off();
 ```
 
-| Event       | Value               | Emitted when                                              |
-| ----------- | ------------------- | --------------------------------------------------------- |
-| `follow`    | `boolean`           | Following was turned on or off.                           |
-| `filter`    | `LogFilter \| null` | The filter changed, from the toolbar or from `setFilter`. |
-| `selection` | `string`            | The selected text changed.                                |
+| Event       | Value               | Emitted when                                                             |
+| ----------- | ------------------- | ------------------------------------------------------------------------ |
+| `follow`    | `boolean`           | Following was turned on or off.                                          |
+| `filter`    | `LogFilter \| null` | The filter changed, from the toolbar or from `setFilter`.                |
+| `selection` | `string`            | The selection changed. The value is the text `getSelectionText` returns. |
 
 The events and their values are described by the `LogViewerEvents` type.
 
 ## LogViewerOptions
 
-| Option       | Type                                    | Default          | Description                                                                                                                   |
-| ------------ | --------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `store`      | `LogStore`                              | A new store      | A store to show. Several viewers can share one store.                                                                         |
-| `core`       | `Partial<CoreOptions>`                  | `{}`             | Core options. The store options also apply to a store passed in `store`.                                                      |
-| `theme`      | `ThemeMode`                             | `'auto'`         | The color scheme. `'auto'` follows the operating system.                                                                      |
-| `font`       | `Partial<FontSettings>`                 | `{}`             | The font. Values left out come from the `--lognal-font-*` CSS properties.                                                     |
-| `timestamps` | `boolean \| TimestampFormat`            | `true`           | Whether each entry shows its time, and in which format. `true` is `'time'`.                                                   |
-| `follow`     | `boolean`                               | `true`           | Whether the view follows new entries at the start.                                                                            |
-| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`           | The toolbar, or `false` to hide it. An object turns single controls off.                                                      |
-| `statusBar`  | `boolean`                               | `true`           | Whether the status bar is shown.                                                                                              |
-| `input`      | `InputOptions \| null`                  | `null`           | The input line. Leave it out for a read-only viewer.                                                                          |
-| `locale`     | `string`                                | `undefined`      | The language of the built-in labels and number formatting, such as `'en'` or `'ko'`.                                          |
-| `labels`     | `Partial<ViewerLabels>`                 | `{}`             | Labels that replace the built-in ones.                                                                                        |
-| `entryMenu`  | `boolean \| EntryMenuOptions`           | `true`           | The menu of actions of the entry under the pointer, or `false` to turn it off.                                                |
-| `search`     | `boolean`                               | `true`           | Whether Ctrl+F or Cmd+F, while focus is in the viewer, opens a search bar that highlights every match without hiding entries. |
-| `linkClick`  | `LinkClick`                             | `'confirm'`      | What a click or a tap on a link does. See [`LinkClick`](#linkclick).                                                          |
-| `renderer`   | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | Creates the renderer.                                                                                                         |
+| Option          | Type                                    | Default          | Description                                                                                                                   |
+| --------------- | --------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `store`         | `LogStore`                              | A new store      | A store to show. Several viewers can share one store.                                                                         |
+| `core`          | `Partial<CoreOptions>`                  | `{}`             | Core options. The store options also apply to a store passed in `store`.                                                      |
+| `theme`         | `ThemeMode`                             | `'auto'`         | The color scheme. `'auto'` follows the operating system.                                                                      |
+| `font`          | `Partial<FontSettings>`                 | `{}`             | The font. Values left out come from the `--lognal-font-*` CSS properties.                                                     |
+| `timestamps`    | `boolean \| TimestampFormat`            | `true`           | Whether each entry shows its time, and in which format. `true` is `'time'`.                                                   |
+| `follow`        | `boolean`                               | `true`           | Whether the view follows new entries at the start.                                                                            |
+| `toolbar`       | `boolean \| Partial<ToolbarOptions>`    | `true`           | The toolbar, or `false` to hide it. An object turns single controls off.                                                      |
+| `statusBar`     | `boolean`                               | `true`           | Whether the status bar is shown.                                                                                              |
+| `input`         | `InputOptions \| null`                  | `null`           | The input line. Leave it out for a read-only viewer.                                                                          |
+| `locale`        | `string`                                | `undefined`      | The language of the built-in labels and number formatting, such as `'en'` or `'ko'`.                                          |
+| `labels`        | `Partial<ViewerLabels>`                 | `{}`             | Labels that replace the built-in ones.                                                                                        |
+| `entryMenu`     | `boolean \| EntryMenuOptions`           | `true`           | The menu of actions of the entry under the pointer, or `false` to turn it off.                                                |
+| `search`        | `boolean`                               | `true`           | Whether Ctrl+F or Cmd+F, while focus is in the viewer, opens a search bar that highlights every match without hiding entries. |
+| `linkClick`     | `LinkClick`                             | `'confirm'`      | What a click or a tap on a link does. See [`LinkClick`](#linkclick).                                                          |
+| `selectionMode` | `SelectionMode`                         | `'text'`         | Whether the pointer and the keyboard select text or whole entries. See [`SelectionMode`](#selectionmode).                     |
+| `renderer`      | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | Creates the renderer.                                                                                                         |
 
 ## CoreOptions
 
@@ -122,14 +124,15 @@ The events and their values are described by the `LogViewerEvents` type.
 
 Every control is `true` by default.
 
-| Option   | Type      | Control                            |
-| -------- | --------- | ---------------------------------- |
-| `follow` | `boolean` | Follow new logs                    |
-| `clear`  | `boolean` | Clear logs                         |
-| `scroll` | `boolean` | Scroll to top and Scroll to bottom |
-| `wrap`   | `boolean` | Wrap long lines                    |
-| `filter` | `boolean` | The filter field                   |
-| `levels` | `boolean` | The log level menu                 |
+| Option          | Type      | Control                            |
+| --------------- | --------- | ---------------------------------- |
+| `follow`        | `boolean` | Follow new logs                    |
+| `clear`         | `boolean` | Clear logs                         |
+| `scroll`        | `boolean` | Scroll to top and Scroll to bottom |
+| `wrap`          | `boolean` | Wrap long lines                    |
+| `selectionMode` | `boolean` | Select whole entries               |
+| `filter`        | `boolean` | The filter field                   |
+| `levels`        | `boolean` | The log level menu                 |
 
 ## InputOptions
 
@@ -176,6 +179,19 @@ With `copy: false` and no `items`, the menu is off. A menu that would have no it
 | --------------- | --------- | ------- | ------------------------------------------------------------------- |
 | `caseSensitive` | `boolean` | `false` | Whether letter case must match.                                     |
 | `regex`         | `boolean` | `false` | Whether the text is a regular expression rather than text as typed. |
+
+### SelectionMode
+
+```ts
+type SelectionMode = 'text' | 'entry';
+```
+
+| Value     | How the pointer and the keyboard select                                                                                                  |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `'text'`  | A drag selects text across entries, and a double-click selects a word.                                                                   |
+| `'entry'` | A click selects a whole entry. Ctrl or Cmd adds or removes an entry, Shift selects a range, and the arrow keys move from entry to entry. |
+
+Every key is listed in [Selection and copy](/guide/viewer#selection-and-copy).
 
 ### LinkClick
 
@@ -228,6 +244,8 @@ Every label is used as visible text or as an accessible name.
 | `linkDialogMessage`  | The link opens in a new tab. Check the address before you open it. | 링크는 새 탭에서 열립니다. 열기 전에 주소를 확인하세요. |
 | `linkDialogOpen`     | Open link                                                          | 링크 열기                                               |
 | `linkDialogCancel`   | Cancel                                                             | 취소                                                    |
+| `selectEntries`      | Select whole entries                                               | 항목 단위로 선택                                        |
+| `selectedEntries`    | `2 entries selected`                                               | `항목 2개 선택됨`                                       |
 | `search`             | Find in log                                                        | 로그에서 찾기                                           |
 | `searchPrevious`     | Previous match                                                     | 이전 결과                                               |
 | `searchNext`         | Next match                                                         | 다음 결과                                               |
@@ -241,6 +259,8 @@ Every label is used as visible text or as an accessible name.
 | `entries`            | `3 entries`, `1 of 3 entries`                                      | `로그 3개`, `로그 3개 중 1개`                           |
 
 `openLink` is a function, `(url: string) => string`, that receives the address of the link.
+
+`selectedEntries` is a function, `(count: number, format: (value: number) => string) => string`. It returns what a screen reader hears after the keyboard changes the selected entries.
 
 `searchResults` is a function: `(current: number, total: number, format: (value: number) => string) => string`, where `current` is 0 while no match is current.
 

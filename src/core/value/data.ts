@@ -174,18 +174,28 @@ export const formatJson = (value: JsonValue, indent = ''): string => {
 	return `${open}\n${items.map((item) => childIndent + item).join(',\n')}\n${indent}${close}`;
 };
 
-/**
- * Returns the values of an entry as JSON text: the value itself when the entry has one, an
- * array of the values when it has several, and the text of the entry when it has none.
- */
-export const formatEntryData = (entry: LogEntry): string => {
+/** The data of an entry: its value, an array of its values, or its text when it has none. */
+const entryData = (entry: LogEntry): JsonValue => {
 	const values = entry.parts.flatMap((part) =>
 		part.type === 'value' ? [valueToJson(part.value)] : []
 	);
 
 	if (values.length === 0) {
-		return formatJson(formatEntryText(entry));
+		return formatEntryText(entry);
 	}
 
-	return formatJson(values.length === 1 ? values[0] : values);
+	return values.length === 1 ? values[0] : values;
+};
+
+/**
+ * Returns the values of an entry as JSON text: the value itself when the entry has one, an
+ * array of the values when it has several, and the text of the entry when it has none.
+ */
+export const formatEntryData = (entry: LogEntry): string => {
+	return formatJson(entryData(entry));
+};
+
+/** Returns the data of several entries as one JSON array, with an item for every entry. */
+export const formatEntriesData = (entries: readonly LogEntry[]): string => {
+	return formatJson(entries.map(entryData));
 };

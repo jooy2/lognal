@@ -38,6 +38,10 @@ export interface RenderTheme {
 	searchCurrent: string;
 	/** The text of a link, unless the text has a color of its own. */
 	link: string;
+	/** The background of the rows of an entry selected in entry mode. */
+	entrySelection: string;
+	/** The outline of the entry the keyboard moves from in entry mode. */
+	focusRing: string;
 	error: string;
 	errorBackground: string;
 	warn: string;
@@ -59,6 +63,10 @@ export interface RowDecoration {
 	searchMatches?: [number, number][];
 	/** The columns of the current match of a search, on the rows that show it. */
 	searchCurrent?: [number, number];
+	/** Whether the row belongs to an entry selected in entry mode. */
+	entrySelected?: boolean;
+	/** Whether the row belongs to the entry the keyboard moves from in entry mode. */
+	entryFocused?: boolean;
 }
 
 /** Everything needed to draw one frame. */

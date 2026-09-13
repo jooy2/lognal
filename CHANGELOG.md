@@ -6,8 +6,9 @@ Changes to `lognal` that affect its users, newest first.
 
 ### Breaking changes
 
-- `ViewerLabels` has twenty new labels: `entryActions`, `copyEntry`, `copyEntryWithTime`, `copyEntryFormatted`, `copyEntryData`, `expandAll`, `collapseAll`, `search`, `searchPrevious`, `searchNext`, `searchClose`, `searchCase`, `searchRegex`, `searchInvalid`, `searchResults`, `openLink`, `linkDialogTitle`, `linkDialogMessage`, `linkDialogOpen` and `linkDialogCancel`. A complete `ViewerLabels` object of your own needs all of them. Overrides passed in `labels` are not affected.
-- `RenderTheme` has the new colors `hover`, `searchMatch`, `searchCurrent` and `link`, and `RowDecoration` the new fields `hovered`, `searchMatches` and `searchCurrent`. A `RenderTheme` object built by hand needs the four colors; spreading `DEFAULT_RENDER_THEME` covers them.
+- `ViewerLabels` has twenty-two new labels: `entryActions`, `copyEntry`, `copyEntryWithTime`, `copyEntryFormatted`, `copyEntryData`, `expandAll`, `collapseAll`, `search`, `searchPrevious`, `searchNext`, `searchClose`, `searchCase`, `searchRegex`, `searchInvalid`, `searchResults`, `openLink`, `linkDialogTitle`, `linkDialogMessage`, `linkDialogOpen`, `linkDialogCancel`, `selectEntries` and `selectedEntries`. A complete `ViewerLabels` object of your own needs all of them. Overrides passed in `labels` are not affected.
+- `RenderTheme` has the new colors `hover`, `searchMatch`, `searchCurrent`, `link`, `entrySelection` and `focusRing`, and `RowDecoration` the new fields `hovered`, `searchMatches`, `searchCurrent`, `entrySelected` and `entryFocused`. A `RenderTheme` object built by hand needs the six colors; spreading `DEFAULT_RENDER_THEME` covers them.
+- `ToolbarOptions` has the new key `selectionMode`, and the toolbar shows its button by default. A complete `ToolbarOptions` object of your own needs the key.
 - `LineAction` has a new type, `{ type: 'open-link'; url: string }`, on the spans of links. Code that handles every type of action, such as a custom renderer, needs to handle it too.
 - The level menu in the toolbar is a `<button class="lognal-levels">` that opens a list box, instead of a `<select>`. Styles or tests written for the `<select>` need to target the button and its menu.
 
@@ -24,6 +25,8 @@ Changes to `lognal` that affect its users, newest first.
 - A tap on a value or a group header on a touch screen opens or closes it, as a click does. Before, a tap did nothing.
 - `http` and `https` addresses in the log are drawn as links in `--lognal-link` and open in a new tab. `linkClick` decides what a click or a tap does: `'confirm'`, the default, shows the address in a dialog and asks first, `'open'` opens the link right away, and `'ignore'` only draws it. `core: { links: false }` draws addresses as plain text. The entry menu lists the links of an entry, so they also open from the keyboard, and `findLinks` finds the addresses in a string.
 - A click with Shift, Ctrl, Alt or Cmd held on a value, a group header or a link selects text instead of opening it.
+- `selectionMode: 'entry'` selects whole entries the way a file manager selects files. A click selects an entry, Ctrl or Cmd adds or removes one, Shift selects a range, and a drag selects the entries it passes over. The arrow keys, Home, End, Page Up and Page Down move from entry to entry and outline the entry in `--lognal-focus-ring`, Space selects the entry the keyboard is on, and Ctrl+A, Ctrl+C and Escape select every entry, copy the selection and clear it. A right click, Shift+F10 or the context menu key opens a menu that copies the selected entries in the formats of the entry menu, or opens and closes their values. The **Select whole entries** button in the toolbar switches modes, and `--lognal-entry-selection` colors the selected entries.
+- `getSelectionText` and `copySelection` take the options of `getEntryText` in entry mode, and `getSelectedEntryIds` returns the ids of the selected entries.
 
 ## 0.1.0 (2026-09-13)
 

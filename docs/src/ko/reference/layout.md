@@ -305,13 +305,15 @@ interface Renderer {
 
 ### RowDecoration {#rowdecoration}
 
-| 필드            | 타입                 | 설명                                                                  |
-| --------------- | -------------------- | --------------------------------------------------------------------- |
-| `selection`     | `[number, number]`   | 콘텐츠 영역에서 선택된 열 범위가 있으면 그 값입니다.                  |
-| `matches`       | `[number, number][]` | 필터와 일치한 열 범위가 있으면 그 값입니다.                           |
-| `hovered`       | `boolean`            | 행이 포인터가 올라간 항목이나 메뉴가 열린 항목에 속하는지 나타냅니다. |
-| `searchMatches` | `[number, number][]` | 현재 결과를 뺀 검색 결과의 열 범위가 있으면 그 값입니다.              |
-| `searchCurrent` | `[number, number]`   | 행이 현재 검색 결과를 보여 주면 그 열 범위입니다.                     |
+| 필드            | 타입                 | 설명                                                                                           |
+| --------------- | -------------------- | ---------------------------------------------------------------------------------------------- |
+| `selection`     | `[number, number]`   | 콘텐츠 영역에서 선택된 열 범위가 있으면 그 값입니다.                                           |
+| `matches`       | `[number, number][]` | 필터와 일치한 열 범위가 있으면 그 값입니다.                                                    |
+| `hovered`       | `boolean`            | 행이 포인터가 올라간 항목이나 메뉴가 열린 항목에 속하는지 나타냅니다.                          |
+| `searchMatches` | `[number, number][]` | 현재 결과를 뺀 검색 결과의 열 범위가 있으면 그 값입니다.                                       |
+| `searchCurrent` | `[number, number]`   | 행이 현재 검색 결과를 보여 주면 그 열 범위입니다.                                              |
+| `entrySelected` | `boolean`            | 행이 항목 모드에서 선택한 항목에 속하는지 나타냅니다.                                          |
+| `entryFocused`  | `boolean`            | 로그 영역에 포커스가 있을 때, 행이 항목 모드에서 키보드가 가리키는 항목에 속하는지 나타냅니다. |
 
 ### CellMetrics와 FontSettings {#cellmetrics-and-fontsettings}
 
@@ -332,13 +334,13 @@ interface Renderer {
 
 렌더러가 그릴 때 쓰는 색입니다. `readTheme`이 `--lognal-*` 사용자 지정 속성으로 만들며, CSS 색이면 무엇이든 쓸 수 있습니다.
 
-| 필드                                                                               | 타입                                             | CSS 속성                                         |
-| ---------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------ |
-| `background`, `foreground`, `muted`, `accent`                                      | `string`                                         | `--lognal-background` 등                         |
-| `selection`, `match`, `separator`, `hover`, `searchMatch`, `searchCurrent`, `link` | `string`                                         | `--lognal-selection` 등                          |
-| `error`, `errorBackground`, `warn`, `warnBackground`, `info`, `debug`              | `string`                                         | `--lognal-error`, `--lognal-error-background` 등 |
-| `tokens`                                                                           | `Record<Exclude<StyleToken, 'default'>, string>` | `--lognal-token-*`                               |
-| `ansi`                                                                             | `string[]`                                       | `--lognal-ansi-0`부터 `--lognal-ansi-15`까지     |
+| 필드                                                                                                              | 타입                                             | CSS 속성                                         |
+| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------ |
+| `background`, `foreground`, `muted`, `accent`                                                                     | `string`                                         | `--lognal-background` 등                         |
+| `selection`, `match`, `separator`, `hover`, `searchMatch`, `searchCurrent`, `link`, `entrySelection`, `focusRing` | `string`                                         | `--lognal-selection` 등                          |
+| `error`, `errorBackground`, `warn`, `warnBackground`, `info`, `debug`                                             | `string`                                         | `--lognal-error`, `--lognal-error-background` 등 |
+| `tokens`                                                                                                          | `Record<Exclude<StyleToken, 'default'>, string>` | `--lognal-token-*`                               |
+| `ansi`                                                                                                            | `string[]`                                       | `--lognal-ansi-0`부터 `--lognal-ansi-15`까지     |
 
 `DEFAULT_RENDER_THEME`에는 CSS에서 테마를 읽기 전까지 쓰는 색이 들어 있습니다. 이 색은 `lognal.css`의 어두운 팔레트와 같고, 단위 테스트가 두 값이 같은지 확인합니다.
 

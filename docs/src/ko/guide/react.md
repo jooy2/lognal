@@ -20,7 +20,7 @@ export function Logs() {
 
 ## Props {#props}
 
-[뷰어 옵션](/ko/guide/viewer#options)은 모두 prop으로도 넘길 수 있습니다. `store`, `core`, `theme`, `font`, `timestamps`, `follow`, `toolbar`, `statusBar`, `input`, `locale`, `labels`, `entryMenu`, `search`, `linkClick`, `renderer`가 여기에 해당합니다. 컴포넌트에만 있는 prop은 다음과 같습니다.
+[뷰어 옵션](/ko/guide/viewer#options)은 모두 prop으로도 넘길 수 있습니다. `store`, `core`, `theme`, `font`, `timestamps`, `follow`, `toolbar`, `statusBar`, `input`, `locale`, `labels`, `entryMenu`, `search`, `linkClick`, `selectionMode`, `renderer`가 여기에 해당합니다. 컴포넌트에만 있는 prop은 다음과 같습니다.
 
 | Prop                | 타입                                  | 설명                                                                 |
 | ------------------- | ------------------------------------- | -------------------------------------------------------------------- |
@@ -42,12 +42,12 @@ export function Logs() {
 
 prop을 빼면 그 옵션은 기본값으로 돌아갑니다.
 
-| 뺀 prop                                                                                   | 적용하는 값                                                                           |
-| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `theme`, `font`, `timestamps`, `toolbar`, `statusBar`, `entryMenu`, `search`, `linkClick` | `'auto'`, `{}`, `true`, `true`, `true`, `true`, `true`, `'confirm'`                   |
-| `input`, `labels`, `locale`                                                               | `null`, `{}`, `undefined`이며, `locale`이 없으면 영어 레이블을 보여 줍니다.           |
-| `core`의 키나 `core` 전체                                                                 | `DEFAULT_STORE_OPTIONS`나 `DEFAULT_LAYOUT_OPTIONS`의 값이고, `filter`는 `null`입니다. |
-| `follow`                                                                                  | 아무것도 적용하지 않습니다. 따라가는 중이든 멈춘 상태든 지금 상태가 그대로 남습니다.  |
+| 뺀 prop                                                                                                    | 적용하는 값                                                                           |
+| ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `theme`, `font`, `timestamps`, `toolbar`, `statusBar`, `entryMenu`, `search`, `linkClick`, `selectionMode` | `'auto'`, `{}`, `true`, `true`, `true`, `true`, `true`, `'confirm'`, `'text'`         |
+| `input`, `labels`, `locale`                                                                                | `null`, `{}`, `undefined`이며, `locale`이 없으면 영어 레이블을 보여 줍니다.           |
+| `core`의 키나 `core` 전체                                                                                  | `DEFAULT_STORE_OPTIONS`나 `DEFAULT_LAYOUT_OPTIONS`의 값이고, `filter`는 `null`입니다. |
+| `follow`                                                                                                   | 아무것도 적용하지 않습니다. 따라가는 중이든 멈춘 상태든 지금 상태가 그대로 남습니다.  |
 
 ## 로그 쓰기 {#write-logs}
 

@@ -33,35 +33,36 @@ new LogViewer(container: HTMLElement, options?: LogViewerOptions)
 
 ## 메서드 {#methods}
 
-| 메서드                                                               | 반환값              | 설명                                                                                                                                                                              |
-| -------------------------------------------------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `setOptions(options: Omit<LogViewerOptions, 'store' \| 'renderer'>)` | `void`              | 넘긴 옵션만 바꾸고 나머지는 그대로 둡니다. `locale`을 바꾸면 내장 레이블이 바뀌고, `labels`로 넘긴 레이블은 그대로 남습니다.                                                      |
-| `write(text: string, options?: WriteOptions)`                        | `void`              | 텍스트를 항목 하나로 추가합니다. 줄 바꿈은 항목 안에 그대로 둡니다.                                                                                                               |
-| `writeLines(text: string, options?: WriteOptions)`                   | `void`              | 텍스트를 줄마다 항목 하나씩 추가합니다.                                                                                                                                           |
-| `hookConsole(target?: Console, options?: HookConsoleOptions)`        | `() => void`        | 콘솔을 스토어에 기록합니다. 기본 대상은 `console`입니다. 기록을 멈추는 함수를 반환하며, 뷰어를 정리해도 기록이 멈춥니다.                                                          |
-| `clear()`                                                            | `void`              | 스토어의 항목을 모두 지우고 선택을 해제합니다.                                                                                                                                    |
-| `setFilter(filter: LogFilter \| null)`                               | `void`              | 필터를 정합니다. `null`이면 모든 항목을 보여 줍니다. `filter` 이벤트가 발생합니다.                                                                                                |
-| `getFilter()`                                                        | `LogFilter \| null` | 필터를 반환합니다.                                                                                                                                                                |
-| `setFollowing(following: boolean)`                                   | `void`              | 따라가기를 켜거나 끕니다. 켜면 가장 새 항목으로 스크롤합니다. 값이 바뀌면 `follow` 이벤트가 발생합니다.                                                                           |
-| `scrollToTop()`                                                      | `void`              | 따라가기를 멈추고 첫 행으로 스크롤합니다.                                                                                                                                         |
-| `scrollToBottom()`                                                   | `void`              | 따라가기를 켜서 가장 새 항목으로 스크롤합니다.                                                                                                                                    |
-| `scrollToEntry(entryId: number)`                                     | `void`              | 따라가기를 멈추고 항목이 맨 위에 오도록 스크롤합니다. 보이지 않는 항목이면 아무것도 하지 않습니다.                                                                                |
-| `getSelectionText()`                                                 | `string`            | 선택한 텍스트를 반환합니다. 선택이 없으면 빈 문자열입니다.                                                                                                                        |
-| `selectAll()`                                                        | `void`              | 보이는 항목의 텍스트를 모두 선택합니다. `selection` 이벤트가 발생합니다.                                                                                                          |
-| `clearSelection()`                                                   | `void`              | 선택을 해제합니다. 선택이 있었다면 `selection` 이벤트가 발생합니다.                                                                                                               |
-| `copySelection()`                                                    | `Promise<boolean>`  | 선택한 텍스트를 클립보드에 복사합니다. 복사한 내용이 있는지를 이행 값으로 돌려줍니다.                                                                                             |
-| `getEntryText(entryId: number, options?: EntryTextOptions)`          | `string`            | 값을 펼쳤는지와 상관없이 항목 전체를 `options.format` 형식으로 반환합니다. `timestamp: true`이면 앞에 항목의 시각을 붙입니다. 스토어에 더는 없는 항목이면 빈 문자열을 반환합니다. |
-| `copyEntry(entryId: number, options?: EntryTextOptions)`             | `Promise<boolean>`  | `getEntryText`가 반환하는 텍스트를 클립보드에 복사하고, `'formatted'`이면 테마 색을 입힌 HTML도 함께 넣습니다. 복사한 내용이 있는지를 이행 값으로 돌려줍니다.                     |
-| `expandEntry(entryId: number)`                                       | `void`              | 항목의 값과 그 안의 값을 캡처된 만큼 모두 펼칩니다.                                                                                                                               |
-| `collapseEntry(entryId: number)`                                     | `void`              | 따로 로그를 남긴 오류까지 포함해 항목의 값을 모두 접습니다.                                                                                                                       |
-| `openSearch(query?: string, options?: SearchOptions)`                | `void`              | 검색 창을 열고 `query`나 검색 창에 있던 텍스트, 또는 한 줄 안의 선택 영역으로 검색합니다. `options`로 검색 창의 토글을 바꿉니다. `search`가 꺼져 있으면 아무것도 하지 않습니다.   |
-| `closeSearch()`                                                      | `void`              | 검색 창을 닫고 강조를 없앱니다.                                                                                                                                                   |
-| `findNext()`                                                         | `void`              | 다음 결과를 현재 결과로 만들고 그 위치로 스크롤합니다. 마지막 결과 다음은 첫 결과입니다.                                                                                          |
-| `findPrevious()`                                                     | `void`              | 이전 결과를 현재 결과로 만들고 그 위치로 스크롤합니다.                                                                                                                            |
-| `focus()`                                                            | `void`              | 입력 줄에, 입력 줄이 없으면 로그 영역에 포커스를 줍니다.                                                                                                                          |
-| `refresh()`                                                          | `void`              | 페이지가 CSS를 바꾼 뒤처럼 필요할 때 CSS에서 테마와 글꼴을 다시 읽습니다.                                                                                                         |
-| `on(name, listener)`                                                 | `() => void`        | 이벤트가 일어나면 `listener`를 호출합니다. 리스너를 떼는 함수를 반환합니다.                                                                                                       |
-| `dispose()`                                                          | `void`              | 페이지에서 뷰어를 없애고 뷰어가 시작한 작업을 모두 멈춥니다. 두 번 호출해도 문제없습니다.                                                                                         |
+| 메서드                                                               | 반환값              | 설명                                                                                                                                                                                 |
+| -------------------------------------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `setOptions(options: Omit<LogViewerOptions, 'store' \| 'renderer'>)` | `void`              | 넘긴 옵션만 바꾸고 나머지는 그대로 둡니다. `locale`을 바꾸면 내장 레이블이 바뀌고, `labels`로 넘긴 레이블은 그대로 남습니다.                                                         |
+| `write(text: string, options?: WriteOptions)`                        | `void`              | 텍스트를 항목 하나로 추가합니다. 줄 바꿈은 항목 안에 그대로 둡니다.                                                                                                                  |
+| `writeLines(text: string, options?: WriteOptions)`                   | `void`              | 텍스트를 줄마다 항목 하나씩 추가합니다.                                                                                                                                              |
+| `hookConsole(target?: Console, options?: HookConsoleOptions)`        | `() => void`        | 콘솔을 스토어에 기록합니다. 기본 대상은 `console`입니다. 기록을 멈추는 함수를 반환하며, 뷰어를 정리해도 기록이 멈춥니다.                                                             |
+| `clear()`                                                            | `void`              | 스토어의 항목을 모두 지우고 선택을 해제합니다.                                                                                                                                       |
+| `setFilter(filter: LogFilter \| null)`                               | `void`              | 필터를 정합니다. `null`이면 모든 항목을 보여 줍니다. `filter` 이벤트가 발생합니다.                                                                                                   |
+| `getFilter()`                                                        | `LogFilter \| null` | 필터를 반환합니다.                                                                                                                                                                   |
+| `setFollowing(following: boolean)`                                   | `void`              | 따라가기를 켜거나 끕니다. 켜면 가장 새 항목으로 스크롤합니다. 값이 바뀌면 `follow` 이벤트가 발생합니다.                                                                              |
+| `scrollToTop()`                                                      | `void`              | 따라가기를 멈추고 첫 행으로 스크롤합니다.                                                                                                                                            |
+| `scrollToBottom()`                                                   | `void`              | 따라가기를 켜서 가장 새 항목으로 스크롤합니다.                                                                                                                                       |
+| `scrollToEntry(entryId: number)`                                     | `void`              | 따라가기를 멈추고 항목이 맨 위에 오도록 스크롤합니다. 보이지 않는 항목이면 아무것도 하지 않습니다.                                                                                   |
+| `getSelectionText(options?: EntryTextOptions)`                       | `string`            | 선택을 텍스트로 반환합니다. 텍스트 모드에서는 선택한 텍스트이고, 항목 모드에서는 선택한 항목을 `getEntryText`처럼 `options`에 따라 적은 텍스트입니다. 선택이 없으면 빈 문자열입니다. |
+| `getSelectedEntryIds()`                                              | `number[]`          | 보이는 항목 가운데 선택한 항목의 id를 오래된 순서로 반환합니다. 텍스트 모드에서는 선택한 텍스트가 걸친 항목의 id를 반환합니다.                                                       |
+| `selectAll()`                                                        | `void`              | 보이는 항목을 모두 선택합니다. 텍스트 모드에서는 그 텍스트를, 항목 모드에서는 항목을 선택합니다. `selection` 이벤트가 발생합니다.                                                    |
+| `clearSelection()`                                                   | `void`              | 선택을 해제합니다. 선택이 있었다면 `selection` 이벤트가 발생합니다.                                                                                                                  |
+| `copySelection(options?: EntryTextOptions)`                          | `Promise<boolean>`  | 선택을 클립보드에 복사합니다. 항목 모드에서는 선택한 항목을 `options`에 따라 적고, `'formatted'`이면 HTML도 함께 넣습니다. 복사한 내용이 있는지를 이행 값으로 돌려줍니다.            |
+| `getEntryText(entryId: number, options?: EntryTextOptions)`          | `string`            | 값을 펼쳤는지와 상관없이 항목 전체를 `options.format` 형식으로 반환합니다. `timestamp: true`이면 앞에 항목의 시각을 붙입니다. 스토어에 더는 없는 항목이면 빈 문자열을 반환합니다.    |
+| `copyEntry(entryId: number, options?: EntryTextOptions)`             | `Promise<boolean>`  | `getEntryText`가 반환하는 텍스트를 클립보드에 복사하고, `'formatted'`이면 테마 색을 입힌 HTML도 함께 넣습니다. 복사한 내용이 있는지를 이행 값으로 돌려줍니다.                        |
+| `expandEntry(entryId: number)`                                       | `void`              | 항목의 값과 그 안의 값을 캡처된 만큼 모두 펼칩니다.                                                                                                                                  |
+| `collapseEntry(entryId: number)`                                     | `void`              | 따로 로그를 남긴 오류까지 포함해 항목의 값을 모두 접습니다.                                                                                                                          |
+| `openSearch(query?: string, options?: SearchOptions)`                | `void`              | 검색 창을 열고 `query`나 검색 창에 있던 텍스트, 또는 한 줄 안의 선택 영역으로 검색합니다. `options`로 검색 창의 토글을 바꿉니다. `search`가 꺼져 있으면 아무것도 하지 않습니다.      |
+| `closeSearch()`                                                      | `void`              | 검색 창을 닫고 강조를 없앱니다.                                                                                                                                                      |
+| `findNext()`                                                         | `void`              | 다음 결과를 현재 결과로 만들고 그 위치로 스크롤합니다. 마지막 결과 다음은 첫 결과입니다.                                                                                             |
+| `findPrevious()`                                                     | `void`              | 이전 결과를 현재 결과로 만들고 그 위치로 스크롤합니다.                                                                                                                               |
+| `focus()`                                                            | `void`              | 입력 줄에, 입력 줄이 없으면 로그 영역에 포커스를 줍니다.                                                                                                                             |
+| `refresh()`                                                          | `void`              | 페이지가 CSS를 바꾼 뒤처럼 필요할 때 CSS에서 테마와 글꼴을 다시 읽습니다.                                                                                                            |
+| `on(name, listener)`                                                 | `() => void`        | 이벤트가 일어나면 `listener`를 호출합니다. 리스너를 떼는 함수를 반환합니다.                                                                                                          |
+| `dispose()`                                                          | `void`              | 페이지에서 뷰어를 없애고 뷰어가 시작한 작업을 모두 멈춥니다. 두 번 호출해도 문제없습니다.                                                                                            |
 
 ## 이벤트 {#events}
 
@@ -75,33 +76,34 @@ const off = viewer.on('selection', (text) => {
 off();
 ```
 
-| 이벤트      | 값                  | 발생 시점                                             |
-| ----------- | ------------------- | ----------------------------------------------------- |
-| `follow`    | `boolean`           | 따라가기가 켜지거나 꺼졌을 때입니다.                  |
-| `filter`    | `LogFilter \| null` | 도구 모음이나 `setFilter`로 필터가 바뀌었을 때입니다. |
-| `selection` | `string`            | 선택한 텍스트가 바뀌었을 때입니다.                    |
+| 이벤트      | 값                  | 발생 시점                                                                  |
+| ----------- | ------------------- | -------------------------------------------------------------------------- |
+| `follow`    | `boolean`           | 따라가기가 켜지거나 꺼졌을 때입니다.                                       |
+| `filter`    | `LogFilter \| null` | 도구 모음이나 `setFilter`로 필터가 바뀌었을 때입니다.                      |
+| `selection` | `string`            | 선택이 바뀌었을 때입니다. 값은 `getSelectionText`가 반환하는 텍스트입니다. |
 
 이벤트 이름과 값의 타입은 `LogViewerEvents` 타입에 정의되어 있습니다.
 
 ## LogViewerOptions {#logvieweroptions}
 
-| 옵션         | 타입                                    | 기본값           | 설명                                                                                                              |
-| ------------ | --------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `store`      | `LogStore`                              | 새 스토어        | 보여 줄 스토어입니다. 여러 뷰어가 스토어 하나를 함께 쓸 수 있습니다.                                              |
-| `core`       | `Partial<CoreOptions>`                  | `{}`             | 코어 옵션입니다. 스토어 옵션은 `store`로 넘긴 스토어에도 적용합니다.                                              |
-| `theme`      | `ThemeMode`                             | `'auto'`         | 색 구성입니다. `'auto'`는 운영체제 설정을 따릅니다.                                                               |
-| `font`       | `Partial<FontSettings>`                 | `{}`             | 글꼴입니다. 빠진 값은 `--lognal-font-*` CSS 속성에서 가져옵니다.                                                  |
-| `timestamps` | `boolean \| TimestampFormat`            | `true`           | 항목마다 시각을 보여 줄지, 어떤 형식으로 보여 줄지 정합니다. `true`는 `'time'`입니다.                             |
-| `follow`     | `boolean`                               | `true`           | 처음에 새 항목을 따라갈지 정합니다.                                                                               |
-| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`           | 도구 모음입니다. `false`이면 숨기고, 객체를 넘기면 컨트롤을 하나씩 끌 수 있습니다.                                |
-| `statusBar`  | `boolean`                               | `true`           | 상태 표시줄을 보여 줄지 정합니다.                                                                                 |
-| `input`      | `InputOptions \| null`                  | `null`           | 입력 줄입니다. 읽기 전용 뷰어라면 생략합니다.                                                                     |
-| `locale`     | `string`                                | `undefined`      | 내장 레이블과 숫자 서식의 언어입니다. 예를 들면 `'en'`, `'ko'`입니다.                                             |
-| `labels`     | `Partial<ViewerLabels>`                 | `{}`             | 내장 레이블 대신 쓸 레이블입니다.                                                                                 |
-| `entryMenu`  | `boolean \| EntryMenuOptions`           | `true`           | 포인터가 올라간 항목의 작업 메뉴입니다. `false`이면 끕니다.                                                       |
-| `search`     | `boolean`                               | `true`           | 뷰어에 포커스가 있을 때 Ctrl+F나 Cmd+F로, 항목을 숨기지 않고 일치하는 곳을 모두 강조하는 검색 창을 열지 정합니다. |
-| `linkClick`  | `LinkClick`                             | `'confirm'`      | 링크를 클릭하거나 탭했을 때의 동작입니다. [`LinkClick`](#linkclick)을 참고하세요.                                 |
-| `renderer`   | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | 렌더러를 만듭니다.                                                                                                |
+| 옵션            | 타입                                    | 기본값           | 설명                                                                                                                  |
+| --------------- | --------------------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `store`         | `LogStore`                              | 새 스토어        | 보여 줄 스토어입니다. 여러 뷰어가 스토어 하나를 함께 쓸 수 있습니다.                                                  |
+| `core`          | `Partial<CoreOptions>`                  | `{}`             | 코어 옵션입니다. 스토어 옵션은 `store`로 넘긴 스토어에도 적용합니다.                                                  |
+| `theme`         | `ThemeMode`                             | `'auto'`         | 색 구성입니다. `'auto'`는 운영체제 설정을 따릅니다.                                                                   |
+| `font`          | `Partial<FontSettings>`                 | `{}`             | 글꼴입니다. 빠진 값은 `--lognal-font-*` CSS 속성에서 가져옵니다.                                                      |
+| `timestamps`    | `boolean \| TimestampFormat`            | `true`           | 항목마다 시각을 보여 줄지, 어떤 형식으로 보여 줄지 정합니다. `true`는 `'time'`입니다.                                 |
+| `follow`        | `boolean`                               | `true`           | 처음에 새 항목을 따라갈지 정합니다.                                                                                   |
+| `toolbar`       | `boolean \| Partial<ToolbarOptions>`    | `true`           | 도구 모음입니다. `false`이면 숨기고, 객체를 넘기면 컨트롤을 하나씩 끌 수 있습니다.                                    |
+| `statusBar`     | `boolean`                               | `true`           | 상태 표시줄을 보여 줄지 정합니다.                                                                                     |
+| `input`         | `InputOptions \| null`                  | `null`           | 입력 줄입니다. 읽기 전용 뷰어라면 생략합니다.                                                                         |
+| `locale`        | `string`                                | `undefined`      | 내장 레이블과 숫자 서식의 언어입니다. 예를 들면 `'en'`, `'ko'`입니다.                                                 |
+| `labels`        | `Partial<ViewerLabels>`                 | `{}`             | 내장 레이블 대신 쓸 레이블입니다.                                                                                     |
+| `entryMenu`     | `boolean \| EntryMenuOptions`           | `true`           | 포인터가 올라간 항목의 작업 메뉴입니다. `false`이면 끕니다.                                                           |
+| `search`        | `boolean`                               | `true`           | 뷰어에 포커스가 있을 때 Ctrl+F나 Cmd+F로, 항목을 숨기지 않고 일치하는 곳을 모두 강조하는 검색 창을 열지 정합니다.     |
+| `linkClick`     | `LinkClick`                             | `'confirm'`      | 링크를 클릭하거나 탭했을 때의 동작입니다. [`LinkClick`](#linkclick)을 참고하세요.                                     |
+| `selectionMode` | `SelectionMode`                         | `'text'`         | 포인터와 키보드로 텍스트를 선택할지, 항목을 통째로 선택할지 정합니다. [`SelectionMode`](#selectionmode)를 참고하세요. |
+| `renderer`      | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | 렌더러를 만듭니다.                                                                                                    |
 
 ## CoreOptions {#coreoptions}
 
@@ -122,14 +124,15 @@ off();
 
 모든 컨트롤의 기본값은 `true`입니다.
 
-| 옵션     | 타입      | 컨트롤                       |
-| -------- | --------- | ---------------------------- |
-| `follow` | `boolean` | 새 로그 따라가기             |
-| `clear`  | `boolean` | 로그 지우기                  |
-| `scroll` | `boolean` | 맨 위로 이동, 맨 아래로 이동 |
-| `wrap`   | `boolean` | 긴 줄 바꾸기                 |
-| `filter` | `boolean` | 필터 입력란                  |
-| `levels` | `boolean` | 로그 수준 메뉴               |
+| 옵션            | 타입      | 컨트롤                       |
+| --------------- | --------- | ---------------------------- |
+| `follow`        | `boolean` | 새 로그 따라가기             |
+| `clear`         | `boolean` | 로그 지우기                  |
+| `scroll`        | `boolean` | 맨 위로 이동, 맨 아래로 이동 |
+| `wrap`          | `boolean` | 긴 줄 바꾸기                 |
+| `selectionMode` | `boolean` | 항목 단위로 선택             |
+| `filter`        | `boolean` | 필터 입력란                  |
+| `levels`        | `boolean` | 로그 수준 메뉴               |
 
 ## InputOptions {#inputoptions}
 
@@ -176,6 +179,19 @@ off();
 | --------------- | --------- | ------- | -------------------------------------------------------------- |
 | `caseSensitive` | `boolean` | `false` | 대소문자가 맞아야 하는지 정합니다.                             |
 | `regex`         | `boolean` | `false` | 텍스트를 글자 그대로가 아니라 정규 표현식으로 읽을지 정합니다. |
+
+### SelectionMode {#selectionmode}
+
+```ts
+type SelectionMode = 'text' | 'entry';
+```
+
+| 값        | 포인터와 키보드로 선택하는 방식                                                                                                                       |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `'text'`  | 드래그하면 여러 항목에 걸쳐 텍스트를 선택하고, 더블클릭하면 낱말 하나를 선택합니다.                                                                   |
+| `'entry'` | 클릭하면 항목을 통째로 선택합니다. Ctrl이나 Cmd를 누르면 항목을 더하거나 빼고, Shift를 누르면 범위를 선택하며, 화살표 키로 항목 사이를 옮겨 다닙니다. |
+
+모든 키의 동작은 [선택과 복사](/ko/guide/viewer#selection-and-copy)에 있습니다.
 
 ### LinkClick {#linkclick}
 
@@ -228,6 +244,8 @@ type LinkClick = 'confirm' | 'open' | 'ignore';
 | `linkDialogMessage`  | The link opens in a new tab. Check the address before you open it. | 링크는 새 탭에서 열립니다. 열기 전에 주소를 확인하세요. |
 | `linkDialogOpen`     | Open link                                                          | 링크 열기                                               |
 | `linkDialogCancel`   | Cancel                                                             | 취소                                                    |
+| `selectEntries`      | Select whole entries                                               | 항목 단위로 선택                                        |
+| `selectedEntries`    | `2 entries selected`                                               | `항목 2개 선택됨`                                       |
 | `search`             | Find in log                                                        | 로그에서 찾기                                           |
 | `searchPrevious`     | Previous match                                                     | 이전 결과                                               |
 | `searchNext`         | Next match                                                         | 다음 결과                                               |
@@ -241,6 +259,8 @@ type LinkClick = 'confirm' | 'open' | 'ignore';
 | `entries`            | `3 entries`, `1 of 3 entries`                                      | `로그 3개`, `로그 3개 중 1개`                           |
 
 `openLink`는 링크 주소를 받는 `(url: string) => string` 함수입니다.
+
+`selectedEntries`는 `(count: number, format: (value: number) => string) => string` 함수이고, 키보드로 선택한 항목이 바뀐 뒤 스크린 리더가 읽을 텍스트를 반환합니다.
 
 `searchResults`는 `(current: number, total: number, format: (value: number) => string) => string` 함수이고, 현재 결과가 없으면 `current`는 0입니다.
 

@@ -142,6 +142,7 @@ export const LogViewer = forwardRef<Viewer | null, LogViewerProps>(function LogV
 			entryMenu: true,
 			search: true,
 			linkClick: 'confirm',
+			selectionMode: 'text',
 			...current
 		};
 

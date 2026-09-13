@@ -26,23 +26,24 @@ viewer.dispose();
 
 ## Options
 
-| Option       | Type                                    | Default         | Description                                                                                                   |
-| ------------ | --------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------- |
-| `store`      | `LogStore`                              | A new store     | The store to show. Several viewers can share one store.                                                       |
-| `core`       | `Partial<CoreOptions>`                  | See below       | What is kept, how lines are laid out, and which entries are shown.                                            |
-| `theme`      | `'auto' \| 'light' \| 'dark'`           | `'auto'`        | The color scheme. `'auto'` follows the operating system.                                                      |
-| `font`       | `Partial<FontSettings>`                 | From CSS        | The font of the log. Values left out come from the `--lognal-font-*` properties.                              |
-| `timestamps` | `boolean \| TimestampFormat`            | `true`          | Whether each entry shows its time, and in which format. `true` means `'time'`.                                |
-| `follow`     | `boolean`                               | `true`          | Whether the view follows new entries at the start.                                                            |
-| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`          | The toolbar controls, or `false` to hide the toolbar.                                                         |
-| `statusBar`  | `boolean`                               | `true`          | Whether the status bar is shown.                                                                              |
-| `input`      | `InputOptions \| null`                  | `null`          | The input line. Leave it out for a read-only viewer.                                                          |
-| `locale`     | `string`                                | None            | The language of the built-in labels and of number formatting, such as `'ko'`.                                 |
-| `labels`     | `Partial<ViewerLabels>`                 | Built-in labels | Labels that replace the built-in ones.                                                                        |
-| `entryMenu`  | `boolean \| EntryMenuOptions`           | `true`          | The menu of actions of the entry under the pointer, or `false` to turn it off. See [Entry menu](#entry-menu). |
-| `search`     | `boolean`                               | `true`          | Whether Ctrl+F or Cmd+F opens a search bar over the log. See [Search](#search).                               |
-| `linkClick`  | `'confirm' \| 'open' \| 'ignore'`       | `'confirm'`     | What a click or a tap on a link does. See [Links](#links).                                                    |
-| `renderer`   | `(ownerDocument: Document) => Renderer` | Canvas 2D       | Creates the renderer. See [Layout and renderers](/reference/layout#renderer).                                 |
+| Option          | Type                                    | Default         | Description                                                                                                       |
+| --------------- | --------------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `store`         | `LogStore`                              | A new store     | The store to show. Several viewers can share one store.                                                           |
+| `core`          | `Partial<CoreOptions>`                  | See below       | What is kept, how lines are laid out, and which entries are shown.                                                |
+| `theme`         | `'auto' \| 'light' \| 'dark'`           | `'auto'`        | The color scheme. `'auto'` follows the operating system.                                                          |
+| `font`          | `Partial<FontSettings>`                 | From CSS        | The font of the log. Values left out come from the `--lognal-font-*` properties.                                  |
+| `timestamps`    | `boolean \| TimestampFormat`            | `true`          | Whether each entry shows its time, and in which format. `true` means `'time'`.                                    |
+| `follow`        | `boolean`                               | `true`          | Whether the view follows new entries at the start.                                                                |
+| `toolbar`       | `boolean \| Partial<ToolbarOptions>`    | `true`          | The toolbar controls, or `false` to hide the toolbar.                                                             |
+| `statusBar`     | `boolean`                               | `true`          | Whether the status bar is shown.                                                                                  |
+| `input`         | `InputOptions \| null`                  | `null`          | The input line. Leave it out for a read-only viewer.                                                              |
+| `locale`        | `string`                                | None            | The language of the built-in labels and of number formatting, such as `'ko'`.                                     |
+| `labels`        | `Partial<ViewerLabels>`                 | Built-in labels | Labels that replace the built-in ones.                                                                            |
+| `entryMenu`     | `boolean \| EntryMenuOptions`           | `true`          | The menu of actions of the entry under the pointer, or `false` to turn it off. See [Entry menu](#entry-menu).     |
+| `search`        | `boolean`                               | `true`          | Whether Ctrl+F or Cmd+F opens a search bar over the log. See [Search](#search).                                   |
+| `linkClick`     | `'confirm' \| 'open' \| 'ignore'`       | `'confirm'`     | What a click or a tap on a link does. See [Links](#links).                                                        |
+| `selectionMode` | `'text' \| 'entry'`                     | `'text'`        | Whether the pointer and the keyboard select text or whole entries. See [Selection and copy](#selection-and-copy). |
+| `renderer`      | `(ownerDocument: Document) => Renderer` | Canvas 2D       | Creates the renderer. See [Layout and renderers](/reference/layout#renderer).                                     |
 
 ### Core options
 
@@ -73,14 +74,15 @@ Passing `toolbar`, `statusBar`, `input`, `labels` or `locale` builds the toolbar
 
 ## Toolbar
 
-| Control                         | `ToolbarOptions` key | What it does                                                                                              |
-| ------------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------- |
-| Follow new logs                 | `follow`             | Turns following on or off.                                                                                |
-| Clear logs                      | `clear`              | Removes every entry from the store.                                                                       |
-| Scroll to top, Scroll to bottom | `scroll`             | Jumps to the oldest or the newest entry. Scrolling to the bottom turns following on.                      |
-| Wrap long lines                 | `wrap`               | Turns wrapping off. Pressing it again restores the mode it turned off, `'word'` or `'char'`.              |
-| Filter                          | `filter`             | Shows the entries that contain the text. The filter applies 120 ms after typing stops.                    |
-| Log levels                      | `levels`             | Shows all levels, log and above, info and above, warnings and errors, or errors only. It sets `minLevel`. |
+| Control                         | `ToolbarOptions` key | What it does                                                                                                |
+| ------------------------------- | -------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Follow new logs                 | `follow`             | Turns following on or off.                                                                                  |
+| Clear logs                      | `clear`              | Removes every entry from the store.                                                                         |
+| Scroll to top, Scroll to bottom | `scroll`             | Jumps to the oldest or the newest entry. Scrolling to the bottom turns following on.                        |
+| Wrap long lines                 | `wrap`               | Turns wrapping off. Pressing it again restores the mode it turned off, `'word'` or `'char'`.                |
+| Select whole entries            | `selectionMode`      | Switches between selecting text and selecting whole entries. See [Selection and copy](#selection-and-copy). |
+| Filter                          | `filter`             | Shows the entries that contain the text. The filter applies 120 ms after typing stops.                      |
+| Log levels                      | `levels`             | Shows all levels, log and above, info and above, warnings and errors, or errors only. It sets `minLevel`.   |
 
 Every control is shown by default. Pass an object to hide some of them, or `false` to hide the toolbar:
 
@@ -230,6 +232,10 @@ new LogViewer(container, { core: { links: false } });
 
 ## Selection and copy
 
+The viewer has two selection modes. `selectionMode: 'text'`, the default, selects text the way a terminal does. `selectionMode: 'entry'` selects whole entries the way a file manager selects files. The **Select whole entries** button in the toolbar switches between them, and switching clears the selection.
+
+### Text mode
+
 While the log area has focus, the mouse and the keyboard work like this:
 
 | Action              | Result                                       |
@@ -243,7 +249,42 @@ While the log area has focus, the mouse and the keyboard work like this:
 
 Touch input scrolls the log and does not select. A tap opens or closes a value or a group. A line that wraps over several rows is copied as one line, and the rows of open values are included.
 
-The same actions are available as methods: `getSelectionText()`, `selectAll()`, `clearSelection()` and `copySelection()`, which resolves to whether anything was copied. The `selection` event reports the selected text whenever it changes.
+### Entry mode
+
+A selected entry gets a light background, set with `--lognal-entry-selection`.
+
+| Action                                    | Result                                                                                                        |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Click                                     | Selects the entry alone. A click below the last entry clears the selection.                                   |
+| Ctrl and click, or Cmd and click on macOS | Adds the entry to the selection, or removes it.                                                               |
+| Shift and click                           | Selects the range from the entry chosen last. With Ctrl or Cmd held too, the range is added to the selection. |
+| Drag with the mouse                       | Selects the entries the pointer passes over. Dragging past an edge scrolls.                                   |
+| Right click                               | Opens the menu of the selected entries. On an entry outside the selection, it selects that entry alone first. |
+| ArrowUp, ArrowDown                        | Moves to the previous or the next entry and selects it alone.                                                 |
+| Home, End, Page Up, Page Down             | Moves to the first or the last entry, or a screen up or down, and selects that entry alone.                   |
+| Shift with one of the keys above          | Selects the range from the entry chosen last to the entry the key moves to.                                   |
+| Ctrl or Cmd with one of the keys above    | Moves without changing the selection.                                                                         |
+| Space                                     | Selects or deselects the entry the keyboard is on.                                                            |
+| Ctrl+A or Cmd+A                           | Selects every visible entry.                                                                                  |
+| Ctrl+C or Cmd+C                           | Copies the selected entries as text.                                                                          |
+| Shift+F10 or the context menu key         | Opens the menu of the selected entries.                                                                       |
+| Escape                                    | Clears the selection.                                                                                         |
+
+After the keyboard moves, the entry it is on has an outline in the `--lognal-focus-ring` color, and the view scrolls to keep that entry on screen.
+
+The menu of a single selected entry is its [entry menu](#entry-menu). The menu of several entries has the copy items, **Expand all** and **Collapse all**, and each item acts on every selected entry, oldest first. Copied entries are separated by line breaks, and **Copy as data** copies one JSON array with an item for each entry. The menu follows the `entryMenu` option, so `entryMenu: false` turns it off as well.
+
+A click on a value, a group header or a link still opens it, and selects its entry too.
+
+### Selection methods
+
+`getSelectionText(options?)` returns the selection as text, `selectAll()` and `clearSelection()` change it, and `copySelection(options?)` copies it and resolves to whether anything was copied. In entry mode, `options` takes the `format` and `timestamp` that [`getEntryText`](#entry-menu) takes, and `copySelection` adds HTML for `'formatted'`. `getSelectedEntryIds()` returns the ids of the selected entries, or in text mode the ids of the entries the selected text runs through. The `selection` event reports the text of the selection whenever it changes.
+
+```ts
+viewer.setOptions({ selectionMode: 'entry' });
+viewer.selectAll();
+await viewer.copySelection({ format: 'data' });
+```
 
 ## Entry menu
 
@@ -259,7 +300,7 @@ When the pointer is over an entry, the rows of that entry get a light background
 | Collapse all           | Closes every value of the entry, including an error logged on its own.                                                                                                                                             |
 | Open https://…         | Opens a link of the entry the way `linkClick` says. The menu lists up to five links, and none with `linkClick: 'ignore'`.                                                                                          |
 
-While the log area has focus, Shift+F10 or the context menu key opens the menu for the entry where the selection ends, or for the first entry on screen. The arrow keys move through the menu, Enter chooses an item, and Escape closes the menu.
+While the log area has focus, Shift+F10 or the context menu key opens the menu for the entry where the selection ends, or for the first entry on screen. The arrow keys move through the menu, Enter chooses an item, and Escape closes the menu. In entry mode, a right click, Shift+F10 and the context menu key open the menu of the selected entries instead. See [Entry mode](#entry-mode).
 
 ### Add your own items
 
@@ -371,32 +412,32 @@ Every label is listed in [`ViewerLabels`](/reference/log-viewer#viewerlabels).
 
 ## Methods and events
 
-| Member                                                                          | Description                                                                                |
-| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `console`                                                                       | An object with the console methods that writes to this viewer's store.                     |
-| `write(text, options?)`                                                         | Adds text as one entry.                                                                    |
-| `writeLines(text, options?)`                                                    | Adds text as one entry per line.                                                           |
-| `hookConsole(target?, options?)`                                                | Records a console into the store. Returns a function that stops recording.                 |
-| `clear()`                                                                       | Removes every entry.                                                                       |
-| `setFilter(filter)`, `getFilter()`                                              | Sets or returns the filter.                                                                |
-| `setFollowing(following)`                                                       | Turns following on or off.                                                                 |
-| `scrollToTop()`, `scrollToBottom()`, `scrollToEntry(id)`                        | Scroll the view.                                                                           |
-| `getSelectionText()`, `selectAll()`, `clearSelection()`, `copySelection()`      | Work with the selection.                                                                   |
-| `getEntryText(id, options?)`, `copyEntry(id, options?)`                         | Return or copy the text of an entry.                                                       |
-| `expandEntry(id)`, `collapseEntry(id)`                                          | Open or close every value of an entry.                                                     |
-| `openSearch(query?, options?)`, `closeSearch()`, `findNext()`, `findPrevious()` | Open or close the search bar and move between matches.                                     |
-| `focus()`                                                                       | Focuses the input line, or the log when there is no input line.                            |
-| `refresh()`                                                                     | Reads the theme and the font from CSS again.                                               |
-| `on(name, listener)`                                                            | Adds a listener for `follow`, `filter` or `selection`. Returns a function that removes it. |
-| `setOptions(options)`                                                           | Changes the options given and keeps the others.                                            |
-| `dispose()`                                                                     | Removes the viewer and stops everything it started.                                        |
+| Member                                                                                                              | Description                                                                                |
+| ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `console`                                                                                                           | An object with the console methods that writes to this viewer's store.                     |
+| `write(text, options?)`                                                                                             | Adds text as one entry.                                                                    |
+| `writeLines(text, options?)`                                                                                        | Adds text as one entry per line.                                                           |
+| `hookConsole(target?, options?)`                                                                                    | Records a console into the store. Returns a function that stops recording.                 |
+| `clear()`                                                                                                           | Removes every entry.                                                                       |
+| `setFilter(filter)`, `getFilter()`                                                                                  | Sets or returns the filter.                                                                |
+| `setFollowing(following)`                                                                                           | Turns following on or off.                                                                 |
+| `scrollToTop()`, `scrollToBottom()`, `scrollToEntry(id)`                                                            | Scroll the view.                                                                           |
+| `getSelectionText(options?)`, `getSelectedEntryIds()`, `selectAll()`, `clearSelection()`, `copySelection(options?)` | Work with the selection.                                                                   |
+| `getEntryText(id, options?)`, `copyEntry(id, options?)`                                                             | Return or copy the text of an entry.                                                       |
+| `expandEntry(id)`, `collapseEntry(id)`                                                                              | Open or close every value of an entry.                                                     |
+| `openSearch(query?, options?)`, `closeSearch()`, `findNext()`, `findPrevious()`                                     | Open or close the search bar and move between matches.                                     |
+| `focus()`                                                                                                           | Focuses the input line, or the log when there is no input line.                            |
+| `refresh()`                                                                                                         | Reads the theme and the font from CSS again.                                               |
+| `on(name, listener)`                                                                                                | Adds a listener for `follow`, `filter` or `selection`. Returns a function that removes it. |
+| `setOptions(options)`                                                                                               | Changes the options given and keeps the others.                                            |
+| `dispose()`                                                                                                         | Removes the viewer and stops everything it started.                                        |
 
 The full signatures are in the [LogViewer reference](/reference/log-viewer).
 
 ## Accessibility
 
-- The viewer is a region named by the `viewer` label, and the toolbar is a toolbar of labeled buttons. The follow and wrap buttons report whether they are pressed.
-- The log area can take keyboard focus, and the arrow keys and Page Up and Page Down scroll it the way they scroll any scrollable element.
+- The viewer is a region named by the `viewer` label, and the toolbar is a toolbar of labeled buttons. The follow, wrap and selection mode buttons report whether they are pressed.
+- The log area can take keyboard focus, and the arrow keys and Page Up and Page Down scroll it the way they scroll any scrollable element. In entry mode, the same keys move from entry to entry, and a live region tells a screen reader which entry the keyboard is on and how many entries are selected.
 - The level menu is a button that opens a list box. The arrow keys, Home and End move through the levels, Enter or Space chooses one, and Escape closes the list and gives focus back to the button.
 - The entry menu button is named by the `entryActions` label. Shift+F10 or the context menu key opens the menu without a pointer, and a long press opens it on a touch screen.
 - A link takes no keyboard focus of its own. Shift+F10 opens the entry menu, which lists the links of the entry. The link dialog is a modal dialog named by its title. Focus starts on **Open link** and returns to the log when the dialog closes.

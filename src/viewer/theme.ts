@@ -60,6 +60,8 @@ export const readTheme = (element: Element): RenderTheme => {
 		searchMatch: read('search-match', defaults.searchMatch),
 		searchCurrent: read('search-current', defaults.searchCurrent),
 		link: read('link', defaults.link),
+		entrySelection: read('entry-selection', defaults.entrySelection),
+		focusRing: read('focus-ring', defaults.focusRing),
 		error: read('error', defaults.error),
 		errorBackground: read('error-background', defaults.errorBackground),
 		warn: read('warn', defaults.warn),

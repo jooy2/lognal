@@ -198,6 +198,10 @@ export class CanvasRenderer implements Renderer {
 			if (row.first) {
 				this.drawGutter(row.entry, frame, top);
 			}
+
+			if (frame.decorations[index]?.entryFocused) {
+				this.drawEntryFocus(row, top);
+			}
 		});
 
 		this.flushGlyphRequests();
@@ -229,10 +233,34 @@ export class CanvasRenderer implements Renderer {
 			this.context.fillRect(0, top, this.width, this.metrics.height);
 		}
 
+		if (decoration?.entrySelected) {
+			this.context.fillStyle = this.theme.entrySelection;
+			this.context.fillRect(0, top, this.width, this.metrics.height);
+		}
+
 		// The hover color is translucent, so it also shows on the background of a warning or an error.
 		if (decoration?.hovered) {
 			this.context.fillStyle = this.theme.hover;
 			this.context.fillRect(0, top, this.width, this.metrics.height);
+		}
+	}
+
+	/** Draws the part of the outline of the focused entry that falls on one of its rows. */
+	private drawEntryFocus(row: VisualRow, top: number): void {
+		const context = this.context;
+		const height = this.metrics.height;
+		const size = Math.round(2 * this.pixelRatio) / this.pixelRatio;
+
+		context.fillStyle = this.theme.focusRing;
+		context.fillRect(0, top, size, height);
+		context.fillRect(this.width - size, top, size, height);
+
+		if (row.first) {
+			context.fillRect(0, top, this.width, size);
+		}
+
+		if (row.last) {
+			context.fillRect(0, top + height - size, this.width, size);
 		}
 	}
 

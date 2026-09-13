@@ -80,16 +80,15 @@ const spanHtml = (span: LineTextSpan, entry: LogEntry, theme: RenderTheme): stri
 };
 
 /**
- * Writes the spans of an entry as HTML with the colors of the theme, for the clipboard. Text
- * from the log is escaped, so it can never become markup.
+ * Writes the spans of entries as HTML with the colors of the theme, for the clipboard, one entry
+ * after another. Text from the log is escaped, so it can never become markup.
  */
-export const entryHtml = (options: {
-	entry: LogEntry;
-	spans: readonly LineTextSpan[];
+export const entriesHtml = (options: {
+	entries: readonly { entry: LogEntry; spans: readonly LineTextSpan[] }[];
 	theme: RenderTheme;
 	font: FontSettings;
 }): string => {
-	const { entry, spans, theme, font } = options;
+	const { entries, theme, font } = options;
 	const background = safeColor(theme.background) ?? '#ffffff';
 	const foreground = safeColor(theme.foreground) ?? '#000000';
 	const block = [
@@ -102,7 +101,9 @@ export const entryHtml = (options: {
 		`line-height: ${font.lineHeight}`,
 		'white-space: pre-wrap'
 	].join('; ');
-	const content = spans.map((span) => spanHtml(span, entry, theme)).join('');
+	const content = entries
+		.map(({ entry, spans }) => spans.map((span) => spanHtml(span, entry, theme)).join(''))
+		.join('\n');
 
 	return `<meta charset="utf-8"><pre style="${escapeHtml(block)}">${content}</pre>`;
 };

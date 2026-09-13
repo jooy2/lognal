@@ -305,13 +305,15 @@ The content area starts at `paddingLeft + (timestampCells + markerCells) * cellW
 
 ### RowDecoration
 
-| Field           | Type                 | Description                                                                                 |
-| --------------- | -------------------- | ------------------------------------------------------------------------------------------- |
-| `selection`     | `[number, number]`   | The selected columns of the content area, if any.                                           |
-| `matches`       | `[number, number][]` | The columns of filter matches, if any.                                                      |
-| `hovered`       | `boolean`            | Whether the row belongs to the entry under the pointer, or to the entry whose menu is open. |
-| `searchMatches` | `[number, number][]` | The columns of the matches of a search, other than the current match, if any.               |
-| `searchCurrent` | `[number, number]`   | The columns of the current match of a search, if the row shows it.                          |
+| Field           | Type                 | Description                                                                                          |
+| --------------- | -------------------- | ---------------------------------------------------------------------------------------------------- |
+| `selection`     | `[number, number]`   | The selected columns of the content area, if any.                                                    |
+| `matches`       | `[number, number][]` | The columns of filter matches, if any.                                                               |
+| `hovered`       | `boolean`            | Whether the row belongs to the entry under the pointer, or to the entry whose menu is open.          |
+| `searchMatches` | `[number, number][]` | The columns of the matches of a search, other than the current match, if any.                        |
+| `searchCurrent` | `[number, number]`   | The columns of the current match of a search, if the row shows it.                                   |
+| `entrySelected` | `boolean`            | Whether the row belongs to an entry selected in entry mode.                                          |
+| `entryFocused`  | `boolean`            | Whether the row belongs to the entry the keyboard moves from in entry mode, while the log has focus. |
 
 ### CellMetrics and FontSettings
 
@@ -332,13 +334,13 @@ The content area starts at `paddingLeft + (timestampCells + markerCells) * cellW
 
 The colors a renderer draws with. `readTheme` builds it from the `--lognal-*` custom properties, and any CSS color works.
 
-| Field                                                                              | Type                                             | CSS property                                            |
-| ---------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------- |
-| `background`, `foreground`, `muted`, `accent`                                      | `string`                                         | `--lognal-background` and so on                         |
-| `selection`, `match`, `separator`, `hover`, `searchMatch`, `searchCurrent`, `link` | `string`                                         | `--lognal-selection` and so on                          |
-| `error`, `errorBackground`, `warn`, `warnBackground`, `info`, `debug`              | `string`                                         | `--lognal-error`, `--lognal-error-background` and so on |
-| `tokens`                                                                           | `Record<Exclude<StyleToken, 'default'>, string>` | `--lognal-token-*`                                      |
-| `ansi`                                                                             | `string[]`                                       | `--lognal-ansi-0` to `--lognal-ansi-15`                 |
+| Field                                                                                                             | Type                                             | CSS property                                            |
+| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------- |
+| `background`, `foreground`, `muted`, `accent`                                                                     | `string`                                         | `--lognal-background` and so on                         |
+| `selection`, `match`, `separator`, `hover`, `searchMatch`, `searchCurrent`, `link`, `entrySelection`, `focusRing` | `string`                                         | `--lognal-selection` and so on                          |
+| `error`, `errorBackground`, `warn`, `warnBackground`, `info`, `debug`                                             | `string`                                         | `--lognal-error`, `--lognal-error-background` and so on |
+| `tokens`                                                                                                          | `Record<Exclude<StyleToken, 'default'>, string>` | `--lognal-token-*`                                      |
+| `ansi`                                                                                                            | `string[]`                                       | `--lognal-ansi-0` to `--lognal-ansi-15`                 |
 
 `DEFAULT_RENDER_THEME` holds the colors used until a theme is read from CSS. They are the dark palette of `lognal.css`, and a unit test keeps the two equal.
 
