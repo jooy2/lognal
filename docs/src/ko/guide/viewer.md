@@ -26,20 +26,21 @@ viewer.dispose();
 
 ## 옵션 {#options}
 
-| 옵션         | 타입                                    | 기본값       | 설명                                                                                  |
-| ------------ | --------------------------------------- | ------------ | ------------------------------------------------------------------------------------- |
-| `store`      | `LogStore`                              | 새 스토어    | 보여 줄 스토어입니다. 여러 뷰어가 스토어 하나를 함께 쓸 수 있습니다.                  |
-| `core`       | `Partial<CoreOptions>`                  | 아래 표 참고 | 보관할 양, 줄 배치 방식, 보여 줄 항목을 정합니다.                                     |
-| `theme`      | `'auto' \| 'light' \| 'dark'`           | `'auto'`     | 색 구성입니다. `'auto'`는 운영체제 설정을 따릅니다.                                   |
-| `font`       | `Partial<FontSettings>`                 | CSS 값       | 로그의 글꼴입니다. 빠진 값은 `--lognal-font-*` 속성에서 가져옵니다.                   |
-| `timestamps` | `boolean \| TimestampFormat`            | `true`       | 항목마다 시각을 보여 줄지, 어떤 형식으로 보여 줄지 정합니다. `true`는 `'time'`입니다. |
-| `follow`     | `boolean`                               | `true`       | 처음에 새 항목을 따라갈지 정합니다.                                                   |
-| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`       | 도구 모음의 컨트롤입니다. `false`이면 도구 모음을 숨깁니다.                           |
-| `statusBar`  | `boolean`                               | `true`       | 상태 표시줄을 보여 줄지 정합니다.                                                     |
-| `input`      | `InputOptions \| null`                  | `null`       | 입력 줄입니다. 읽기 전용 뷰어라면 생략합니다.                                         |
-| `locale`     | `string`                                | 없음         | 내장 레이블과 숫자 서식의 언어입니다. 예를 들면 `'ko'`입니다.                         |
-| `labels`     | `Partial<ViewerLabels>`                 | 내장 레이블  | 내장 레이블 대신 쓸 레이블입니다.                                                     |
-| `renderer`   | `(ownerDocument: Document) => Renderer` | Canvas 2D    | 렌더러를 만듭니다. [레이아웃과 렌더러](/ko/reference/layout#renderer)를 참고하세요.   |
+| 옵션         | 타입                                    | 기본값       | 설명                                                                                               |
+| ------------ | --------------------------------------- | ------------ | -------------------------------------------------------------------------------------------------- |
+| `store`      | `LogStore`                              | 새 스토어    | 보여 줄 스토어입니다. 여러 뷰어가 스토어 하나를 함께 쓸 수 있습니다.                               |
+| `core`       | `Partial<CoreOptions>`                  | 아래 표 참고 | 보관할 양, 줄 배치 방식, 보여 줄 항목을 정합니다.                                                  |
+| `theme`      | `'auto' \| 'light' \| 'dark'`           | `'auto'`     | 색 구성입니다. `'auto'`는 운영체제 설정을 따릅니다.                                                |
+| `font`       | `Partial<FontSettings>`                 | CSS 값       | 로그의 글꼴입니다. 빠진 값은 `--lognal-font-*` 속성에서 가져옵니다.                                |
+| `timestamps` | `boolean \| TimestampFormat`            | `true`       | 항목마다 시각을 보여 줄지, 어떤 형식으로 보여 줄지 정합니다. `true`는 `'time'`입니다.              |
+| `follow`     | `boolean`                               | `true`       | 처음에 새 항목을 따라갈지 정합니다.                                                                |
+| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`       | 도구 모음의 컨트롤입니다. `false`이면 도구 모음을 숨깁니다.                                        |
+| `statusBar`  | `boolean`                               | `true`       | 상태 표시줄을 보여 줄지 정합니다.                                                                  |
+| `input`      | `InputOptions \| null`                  | `null`       | 입력 줄입니다. 읽기 전용 뷰어라면 생략합니다.                                                      |
+| `locale`     | `string`                                | 없음         | 내장 레이블과 숫자 서식의 언어입니다. 예를 들면 `'ko'`입니다.                                      |
+| `labels`     | `Partial<ViewerLabels>`                 | 내장 레이블  | 내장 레이블 대신 쓸 레이블입니다.                                                                  |
+| `entryMenu`  | `boolean`                               | `true`       | 포인터가 올라간 항목에 작업 메뉴 버튼을 보여 줄지 정합니다. [항목 메뉴](#entry-menu)를 참고하세요. |
+| `renderer`   | `(ownerDocument: Document) => Renderer` | Canvas 2D    | 렌더러를 만듭니다. [레이아웃과 렌더러](/ko/reference/layout#renderer)를 참고하세요.                |
 
 ### 코어 옵션 {#core-options}
 
@@ -192,6 +193,26 @@ viewer.setFilter(null);
 
 같은 동작을 메서드로도 쓸 수 있습니다. `getSelectionText()`, `selectAll()`, `clearSelection()`, `copySelection()`이 있고, `copySelection()`은 복사한 내용이 있는지를 불리언으로 이행합니다. 선택한 텍스트가 바뀔 때마다 `selection` 이벤트가 그 텍스트를 알려 줍니다.
 
+## 항목 메뉴 {#entry-menu}
+
+포인터를 항목 위에 올리면, 화면에 보이는 그 항목의 첫 행 오른쪽 끝에 세로 점 세 개 모양의 버튼이 나옵니다. 이 버튼을 누르면 그 항목의 작업 메뉴가 열립니다.
+
+| 메뉴 항목     | 동작                                                                                                 |
+| ------------- | ---------------------------------------------------------------------------------------------------- |
+| 텍스트로 복사 | 항목 전체를 선택해 복사할 때처럼, 펼친 값의 행을 포함해 항목의 모든 줄을 타임스탬프 없이 복사합니다. |
+
+로그 영역에 포커스가 있을 때 Shift+F10이나 컨텍스트 메뉴 키를 누르면, 선택이 끝나는 항목이나 화면 맨 위 항목의 메뉴가 열립니다. 메뉴에서는 화살표 키로 이동하고, Enter로 고르고, Escape로 닫습니다. 터치 입력에서는 버튼이 나오지 않습니다.
+
+`entryMenu: false`를 넘기면 버튼과 단축키가 모두 꺼집니다. 복사는 메서드로도 할 수 있습니다. `getEntryText(id)`는 항목의 텍스트를 반환하고, `copyEntry(id)`는 그 텍스트를 복사한 뒤 복사한 내용이 있는지를 불리언으로 이행합니다.
+
+```ts
+const entry = viewer.store.write('Deploy finished', { level: 'info' });
+
+if (entry) {
+	await viewer.copyEntry(entry.id);
+}
+```
+
 ## 입력 줄 {#input-line}
 
 `input`을 넘기면 입력 줄이 나타납니다. 입력한 명령은 `onSubmit`으로 전달되고, 함수가 반환한 값을 응답으로 출력합니다.
@@ -270,6 +291,7 @@ new LogViewer(container, {
 | `setFollowing(following)`                                                  | 따라가기를 켜거나 끕니다.                                                                  |
 | `scrollToTop()`, `scrollToBottom()`, `scrollToEntry(id)`                   | 화면을 스크롤합니다.                                                                       |
 | `getSelectionText()`, `selectAll()`, `clearSelection()`, `copySelection()` | 선택을 다룹니다.                                                                           |
+| `getEntryText(id)`, `copyEntry(id)`                                        | 항목의 텍스트를 반환하거나 복사합니다.                                                     |
 | `focus()`                                                                  | 입력 줄에, 입력 줄이 없으면 로그 영역에 포커스를 줍니다.                                   |
 | `refresh()`                                                                | CSS에서 테마와 글꼴을 다시 읽습니다.                                                       |
 | `on(name, listener)`                                                       | `follow`, `filter`, `selection` 이벤트에 리스너를 답니다. 리스너를 떼는 함수를 반환합니다. |
@@ -282,6 +304,8 @@ new LogViewer(container, {
 
 - 뷰어 전체는 `viewer` 레이블을 이름으로 쓰는 region 역할의 요소이고, 도구 모음은 이름이 붙은 버튼을 담은 toolbar 역할의 요소입니다. 따라가기 버튼과 줄 바꿈 버튼은 눌린 상태를 알립니다.
 - 로그 영역은 키보드 포커스를 받을 수 있고, 다른 스크롤 영역처럼 화살표 키와 Page Up, Page Down으로 스크롤합니다.
+- 수준 메뉴는 목록 상자를 여는 버튼입니다. 화살표 키, Home, End로 수준을 오가고, Enter나 Space로 고르고, Escape로 목록을 닫으면 포커스가 버튼으로 돌아갑니다.
+- 항목 메뉴 버튼의 이름은 `entryActions` 레이블이고, 포인터가 없어도 Shift+F10이나 컨텍스트 메뉴 키로 메뉴를 열 수 있습니다.
 - 화면에 보이지 않는 목록이 화면의 항목을 스크린 리더에 전달합니다. 경고와 오류는 `warn:`, `error:`로 시작합니다.
 - 입력 줄은 이름이 붙은 `<textarea>`입니다.
 - 로그 영역과 입력 줄에는 포커스 윤곽선을 그리지 않고, 입력 줄에서는 캐럿이 포커스를 보여 줍니다. 포커스를 받은 로그 영역에 윤곽선이 필요하면 `.lognal-viewport:focus-visible { box-shadow: inset 0 0 0 2px var(--lognal-focus-ring); }` 같은 규칙을 추가하세요.

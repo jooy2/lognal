@@ -89,15 +89,16 @@ These style the parts of the viewer that are regular HTML.
 | `--lognal-toolbar-height`   | `40px`                                                                                     | The minimum height of the toolbar.               |
 | `--lognal-statusbar-height` | `26px`                                                                                     | The minimum height of the status bar.            |
 
-| Property                         | Light                      | Dark                        | Description                                       |
-| -------------------------------- | -------------------------- | --------------------------- | ------------------------------------------------- |
-| `--lognal-border`                | `#e3e6eb`                  | `#2a2e37`                   | The outline of the viewer, fields and separators. |
-| `--lognal-surface`               | `#f6f7f9`                  | `#1c1f25`                   | The background of the toolbar and the status bar. |
-| `--lognal-control-hover`         | `rgba(29, 33, 41, 0.07)`   | `rgba(227, 229, 234, 0.08)` | A button under the pointer.                       |
-| `--lognal-control-active`        | `rgba(31, 111, 214, 0.12)` | `rgba(90, 162, 255, 0.18)`  | A pressed button, such as follow.                 |
-| `--lognal-focus-ring`            | `#1f6fd6`                  | `#5aa2ff`                   | The focus outline.                                |
-| `--lognal-scrollbar-thumb`       | `rgba(29, 33, 41, 0.28)`   | `rgba(227, 229, 234, 0.25)` | The scrollbar thumb.                              |
-| `--lognal-scrollbar-thumb-hover` | `rgba(29, 33, 41, 0.45)`   | `rgba(227, 229, 234, 0.42)` | The scrollbar thumb under the pointer.            |
+| Property                         | Light                                                                 | Dark                                                           | Description                                                                                   |
+| -------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `--lognal-border`                | `#e3e6eb`                                                             | `#2a2e37`                                                      | The outline of the viewer, fields and separators.                                             |
+| `--lognal-surface`               | `#f6f7f9`                                                             | `#1c1f25`                                                      | The background of the toolbar and the status bar.                                             |
+| `--lognal-control-hover`         | `rgba(29, 33, 41, 0.07)`                                              | `rgba(227, 229, 234, 0.08)`                                    | A button under the pointer.                                                                   |
+| `--lognal-control-active`        | `rgba(31, 111, 214, 0.12)`                                            | `rgba(90, 162, 255, 0.18)`                                     | A pressed button, such as follow.                                                             |
+| `--lognal-focus-ring`            | `#1f6fd6`                                                             | `#5aa2ff`                                                      | The focus outline of the toolbar controls, the **New logs** button and the entry menu button. |
+| `--lognal-scrollbar-thumb`       | `rgba(29, 33, 41, 0.28)`                                              | `rgba(227, 229, 234, 0.25)`                                    | The scrollbar thumb.                                                                          |
+| `--lognal-scrollbar-thumb-hover` | `rgba(29, 33, 41, 0.45)`                                              | `rgba(227, 229, 234, 0.42)`                                    | The scrollbar thumb under the pointer.                                                        |
+| `--lognal-popup-shadow`          | `0 8px 24px rgba(29, 33, 41, 0.14), 0 1px 3px rgba(29, 33, 41, 0.08)` | `0 8px 24px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.3)` | The shadow of the level menu and the entry menu.                                              |
 
 ### Log colors
 

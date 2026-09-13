@@ -50,6 +50,8 @@ Creates the viewer and appends its root element to `container`.
 | `selectAll()`                                                        | `void`              | Selects the text of every visible entry. Emits `selection`.                                                                                         |
 | `clearSelection()`                                                   | `void`              | Clears the selection. Emits `selection` when there was one.                                                                                         |
 | `copySelection()`                                                    | `Promise<boolean>`  | Copies the selected text to the clipboard. Resolves to whether anything was copied.                                                                 |
+| `getEntryText(entryId: number)`                                      | `string`            | Returns every line of an entry, with the rows of open values and without the timestamp. Returns an empty string for an entry that is not visible.   |
+| `copyEntry(entryId: number)`                                         | `Promise<boolean>`  | Copies the text of an entry to the clipboard. Resolves to whether anything was copied.                                                              |
 | `focus()`                                                            | `void`              | Moves focus to the input line, or to the log when there is no input line.                                                                           |
 | `refresh()`                                                          | `void`              | Reads the theme and the font from CSS again, for example after the page changed them.                                                               |
 | `on(name, listener)`                                                 | `() => void`        | Calls `listener` for an event. Returns a function that removes the listener.                                                                        |
@@ -77,20 +79,21 @@ The events and their values are described by the `LogViewerEvents` type.
 
 ## LogViewerOptions
 
-| Option       | Type                                    | Default          | Description                                                                          |
-| ------------ | --------------------------------------- | ---------------- | ------------------------------------------------------------------------------------ |
-| `store`      | `LogStore`                              | A new store      | A store to show. Several viewers can share one store.                                |
-| `core`       | `Partial<CoreOptions>`                  | `{}`             | Core options. The store options also apply to a store passed in `store`.             |
-| `theme`      | `ThemeMode`                             | `'auto'`         | The color scheme. `'auto'` follows the operating system.                             |
-| `font`       | `Partial<FontSettings>`                 | `{}`             | The font. Values left out come from the `--lognal-font-*` CSS properties.            |
-| `timestamps` | `boolean \| TimestampFormat`            | `true`           | Whether each entry shows its time, and in which format. `true` is `'time'`.          |
-| `follow`     | `boolean`                               | `true`           | Whether the view follows new entries at the start.                                   |
-| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`           | The toolbar, or `false` to hide it. An object turns single controls off.             |
-| `statusBar`  | `boolean`                               | `true`           | Whether the status bar is shown.                                                     |
-| `input`      | `InputOptions \| null`                  | `null`           | The input line. Leave it out for a read-only viewer.                                 |
-| `locale`     | `string`                                | `undefined`      | The language of the built-in labels and number formatting, such as `'en'` or `'ko'`. |
-| `labels`     | `Partial<ViewerLabels>`                 | `{}`             | Labels that replace the built-in ones.                                               |
-| `renderer`   | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | Creates the renderer.                                                                |
+| Option       | Type                                    | Default          | Description                                                                             |
+| ------------ | --------------------------------------- | ---------------- | --------------------------------------------------------------------------------------- |
+| `store`      | `LogStore`                              | A new store      | A store to show. Several viewers can share one store.                                   |
+| `core`       | `Partial<CoreOptions>`                  | `{}`             | Core options. The store options also apply to a store passed in `store`.                |
+| `theme`      | `ThemeMode`                             | `'auto'`         | The color scheme. `'auto'` follows the operating system.                                |
+| `font`       | `Partial<FontSettings>`                 | `{}`             | The font. Values left out come from the `--lognal-font-*` CSS properties.               |
+| `timestamps` | `boolean \| TimestampFormat`            | `true`           | Whether each entry shows its time, and in which format. `true` is `'time'`.             |
+| `follow`     | `boolean`                               | `true`           | Whether the view follows new entries at the start.                                      |
+| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`           | The toolbar, or `false` to hide it. An object turns single controls off.                |
+| `statusBar`  | `boolean`                               | `true`           | Whether the status bar is shown.                                                        |
+| `input`      | `InputOptions \| null`                  | `null`           | The input line. Leave it out for a read-only viewer.                                    |
+| `locale`     | `string`                                | `undefined`      | The language of the built-in labels and number formatting, such as `'en'` or `'ko'`.    |
+| `labels`     | `Partial<ViewerLabels>`                 | `{}`             | Labels that replace the built-in ones.                                                  |
+| `entryMenu`  | `boolean`                               | `true`           | Whether the entry under the pointer shows a button that opens a menu of actions for it. |
+| `renderer`   | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | Creates the renderer.                                                                   |
 
 ## CoreOptions
 
@@ -154,6 +157,8 @@ Every label is used as visible text or as an accessible name.
 | `inputPlaceholder` | Type a command                    | 명령을 입력하세요             |
 | `newLogs`          | New logs                          | 새 로그                       |
 | `entryList`        | Visible log entries               | 화면에 보이는 로그            |
+| `entryActions`     | Entry actions                     | 항목 작업                     |
+| `copyEntry`        | Copy as text                      | 텍스트로 복사                 |
 | `following`        | Following                         | 따라가는 중                   |
 | `paused`           | Paused                            | 멈춤                          |
 | `entries`          | `3 entries`, `1 of 3 entries`     | `로그 3개`, `로그 3개 중 1개` |

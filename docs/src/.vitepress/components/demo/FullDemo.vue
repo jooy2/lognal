@@ -108,6 +108,7 @@ const settings = reactive({
 	customLabels: false,
 	timestamps: 'time' as TimestampChoice,
 	statusBar: true,
+	entryMenu: true,
 	secondViewer: false,
 	toolbar: true,
 	toolbarControls: {
@@ -233,6 +234,7 @@ const initialOptions = (): LogViewerOptions => ({
 	labels: viewerLabels(),
 	timestamps: viewerTimestamps(),
 	statusBar: settings.statusBar,
+	entryMenu: settings.entryMenu,
 	toolbar: viewerToolbar(),
 	input: viewerInput(),
 	core: {
@@ -558,6 +560,10 @@ watch(
 	(statusBar) => applyOptions({ statusBar })
 );
 watch(
+	() => settings.entryMenu,
+	(entryMenu) => applyOptions({ entryMenu })
+);
+watch(
 	[() => settings.toolbar, () => settings.toolbarControls],
 	() => applyOptions({ toolbar: viewerToolbar() }),
 	{ deep: true }
@@ -814,6 +820,10 @@ onBeforeUnmount(() => {
 					<label class="demo-check">
 						<input v-model="settings.statusBar" type="checkbox" />
 						{{ t('control', 'status-bar') }}
+					</label>
+					<label class="demo-check">
+						<input v-model="settings.entryMenu" type="checkbox" />
+						{{ t('control', 'entry-menu') }}
 					</label>
 					<label class="demo-check">
 						<input v-model="settings.secondViewer" type="checkbox" :disabled="!ready" />

@@ -26,20 +26,21 @@ viewer.dispose();
 
 ## Options
 
-| Option       | Type                                    | Default         | Description                                                                      |
-| ------------ | --------------------------------------- | --------------- | -------------------------------------------------------------------------------- |
-| `store`      | `LogStore`                              | A new store     | The store to show. Several viewers can share one store.                          |
-| `core`       | `Partial<CoreOptions>`                  | See below       | What is kept, how lines are laid out, and which entries are shown.               |
-| `theme`      | `'auto' \| 'light' \| 'dark'`           | `'auto'`        | The color scheme. `'auto'` follows the operating system.                         |
-| `font`       | `Partial<FontSettings>`                 | From CSS        | The font of the log. Values left out come from the `--lognal-font-*` properties. |
-| `timestamps` | `boolean \| TimestampFormat`            | `true`          | Whether each entry shows its time, and in which format. `true` means `'time'`.   |
-| `follow`     | `boolean`                               | `true`          | Whether the view follows new entries at the start.                               |
-| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`          | The toolbar controls, or `false` to hide the toolbar.                            |
-| `statusBar`  | `boolean`                               | `true`          | Whether the status bar is shown.                                                 |
-| `input`      | `InputOptions \| null`                  | `null`          | The input line. Leave it out for a read-only viewer.                             |
-| `locale`     | `string`                                | None            | The language of the built-in labels and of number formatting, such as `'ko'`.    |
-| `labels`     | `Partial<ViewerLabels>`                 | Built-in labels | Labels that replace the built-in ones.                                           |
-| `renderer`   | `(ownerDocument: Document) => Renderer` | Canvas 2D       | Creates the renderer. See [Layout and renderers](/reference/layout#renderer).    |
+| Option       | Type                                    | Default         | Description                                                                                               |
+| ------------ | --------------------------------------- | --------------- | --------------------------------------------------------------------------------------------------------- |
+| `store`      | `LogStore`                              | A new store     | The store to show. Several viewers can share one store.                                                   |
+| `core`       | `Partial<CoreOptions>`                  | See below       | What is kept, how lines are laid out, and which entries are shown.                                        |
+| `theme`      | `'auto' \| 'light' \| 'dark'`           | `'auto'`        | The color scheme. `'auto'` follows the operating system.                                                  |
+| `font`       | `Partial<FontSettings>`                 | From CSS        | The font of the log. Values left out come from the `--lognal-font-*` properties.                          |
+| `timestamps` | `boolean \| TimestampFormat`            | `true`          | Whether each entry shows its time, and in which format. `true` means `'time'`.                            |
+| `follow`     | `boolean`                               | `true`          | Whether the view follows new entries at the start.                                                        |
+| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`          | The toolbar controls, or `false` to hide the toolbar.                                                     |
+| `statusBar`  | `boolean`                               | `true`          | Whether the status bar is shown.                                                                          |
+| `input`      | `InputOptions \| null`                  | `null`          | The input line. Leave it out for a read-only viewer.                                                      |
+| `locale`     | `string`                                | None            | The language of the built-in labels and of number formatting, such as `'ko'`.                             |
+| `labels`     | `Partial<ViewerLabels>`                 | Built-in labels | Labels that replace the built-in ones.                                                                    |
+| `entryMenu`  | `boolean`                               | `true`          | Whether the entry under the pointer shows a button with a menu of actions. See [Entry menu](#entry-menu). |
+| `renderer`   | `(ownerDocument: Document) => Renderer` | Canvas 2D       | Creates the renderer. See [Layout and renderers](/reference/layout#renderer).                             |
 
 ### Core options
 
@@ -192,6 +193,26 @@ Touch input scrolls the log and does not select. A line that wraps over several 
 
 The same actions are available as methods: `getSelectionText()`, `selectAll()`, `clearSelection()` and `copySelection()`, which resolves to whether anything was copied. The `selection` event reports the selected text whenever it changes.
 
+## Entry menu
+
+When the pointer is over an entry, a button with three vertical dots appears at the right end of the first row of that entry on screen. The button opens a menu of actions for the entry.
+
+| Menu item    | What it does                                                                                                                |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| Copy as text | Copies every line of the entry, with the rows of open values and without the timestamp, as selecting the whole entry would. |
+
+While the log area has focus, Shift+F10 or the context menu key opens the same menu for the entry where the selection ends, or for the first entry on screen. The arrow keys move through the menu, Enter chooses an item, and Escape closes the menu. Touch input shows no button.
+
+`entryMenu: false` turns off the button and the keyboard shortcut. The copy is also available as methods: `getEntryText(id)` returns the text of an entry, and `copyEntry(id)` copies it and resolves to whether anything was copied.
+
+```ts
+const entry = viewer.store.write('Deploy finished', { level: 'info' });
+
+if (entry) {
+	await viewer.copyEntry(entry.id);
+}
+```
+
 ## Input line
 
 The input line appears when you pass `input`. Each command goes to `onSubmit`, and what the function returns is printed as the reply.
@@ -271,6 +292,7 @@ Every label is listed in [`ViewerLabels`](/reference/log-viewer#viewerlabels).
 | `setFollowing(following)`                                                  | Turns following on or off.                                                                 |
 | `scrollToTop()`, `scrollToBottom()`, `scrollToEntry(id)`                   | Scroll the view.                                                                           |
 | `getSelectionText()`, `selectAll()`, `clearSelection()`, `copySelection()` | Work with the selection.                                                                   |
+| `getEntryText(id)`, `copyEntry(id)`                                        | Return or copy the text of an entry.                                                       |
 | `focus()`                                                                  | Focuses the input line, or the log when there is no input line.                            |
 | `refresh()`                                                                | Reads the theme and the font from CSS again.                                               |
 | `on(name, listener)`                                                       | Adds a listener for `follow`, `filter` or `selection`. Returns a function that removes it. |
@@ -283,6 +305,8 @@ The full signatures are in the [LogViewer reference](/reference/log-viewer).
 
 - The viewer is a region named by the `viewer` label, and the toolbar is a toolbar of labeled buttons. The follow and wrap buttons report whether they are pressed.
 - The log area can take keyboard focus, and the arrow keys and Page Up and Page Down scroll it the way they scroll any scrollable element.
+- The level menu is a button that opens a list box. The arrow keys, Home and End move through the levels, Enter or Space chooses one, and Escape closes the list and gives focus back to the button.
+- The entry menu button is named by the `entryActions` label, and Shift+F10 or the context menu key opens the menu without a pointer.
 - A visually hidden list mirrors the entries on screen for screen readers. Warnings and errors start with `warn:` and `error:`.
 - The input line is a labeled `<textarea>`.
 - The log area and the input line draw no focus outline, and the caret shows focus in the input line. To outline the focused log area, add a rule such as `.lognal-viewport:focus-visible { box-shadow: inset 0 0 0 2px var(--lognal-focus-ring); }`.

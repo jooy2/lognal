@@ -50,6 +50,8 @@ new LogViewer(container: HTMLElement, options?: LogViewerOptions)
 | `selectAll()`                                                        | `void`              | 보이는 항목의 텍스트를 모두 선택합니다. `selection` 이벤트가 발생합니다.                                                     |
 | `clearSelection()`                                                   | `void`              | 선택을 해제합니다. 선택이 있었다면 `selection` 이벤트가 발생합니다.                                                          |
 | `copySelection()`                                                    | `Promise<boolean>`  | 선택한 텍스트를 클립보드에 복사합니다. 복사한 내용이 있는지를 이행 값으로 돌려줍니다.                                        |
+| `getEntryText(entryId: number)`                                      | `string`            | 항목의 모든 줄을 펼친 값의 행과 함께, 타임스탬프 없이 반환합니다. 보이지 않는 항목이면 빈 문자열을 반환합니다.               |
+| `copyEntry(entryId: number)`                                         | `Promise<boolean>`  | 항목의 텍스트를 클립보드에 복사합니다. 복사한 내용이 있는지를 이행 값으로 돌려줍니다.                                        |
 | `focus()`                                                            | `void`              | 입력 줄에, 입력 줄이 없으면 로그 영역에 포커스를 줍니다.                                                                     |
 | `refresh()`                                                          | `void`              | 페이지가 CSS를 바꾼 뒤처럼 필요할 때 CSS에서 테마와 글꼴을 다시 읽습니다.                                                    |
 | `on(name, listener)`                                                 | `() => void`        | 이벤트가 일어나면 `listener`를 호출합니다. 리스너를 떼는 함수를 반환합니다.                                                  |
@@ -90,6 +92,7 @@ off();
 | `input`      | `InputOptions \| null`                  | `null`           | 입력 줄입니다. 읽기 전용 뷰어라면 생략합니다.                                         |
 | `locale`     | `string`                                | `undefined`      | 내장 레이블과 숫자 서식의 언어입니다. 예를 들면 `'en'`, `'ko'`입니다.                 |
 | `labels`     | `Partial<ViewerLabels>`                 | `{}`             | 내장 레이블 대신 쓸 레이블입니다.                                                     |
+| `entryMenu`  | `boolean`                               | `true`           | 포인터가 올라간 항목에 작업 메뉴를 여는 버튼을 보여 줄지 정합니다.                    |
 | `renderer`   | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | 렌더러를 만듭니다.                                                                    |
 
 ## CoreOptions {#coreoptions}
@@ -154,6 +157,8 @@ off();
 | `inputPlaceholder` | Type a command                    | 명령을 입력하세요             |
 | `newLogs`          | New logs                          | 새 로그                       |
 | `entryList`        | Visible log entries               | 화면에 보이는 로그            |
+| `entryActions`     | Entry actions                     | 항목 작업                     |
+| `copyEntry`        | Copy as text                      | 텍스트로 복사                 |
 | `following`        | Following                         | 따라가는 중                   |
 | `paused`           | Paused                            | 멈춤                          |
 | `entries`          | `3 entries`, `1 of 3 entries`     | `로그 3개`, `로그 3개 중 1개` |

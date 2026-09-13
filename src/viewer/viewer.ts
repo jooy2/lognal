@@ -23,6 +23,7 @@ import { snapshotValue } from '../sources/console/snapshot.js';
 import { createIcon, type IconName } from './icons.js';
 import { InputLine } from './input-line.js';
 import { labelsFor, type ViewerLabels } from './labels.js';
+import { PopupMenu, type PopupAnchor } from './popup-menu.js';
 import { Scrollbar } from './scrollbar.js';
 import { readFont, readTheme, type ThemeMode } from './theme.js';
 
@@ -81,6 +82,8 @@ export interface LogViewerOptions {
 	locale?: string;
 	/** Labels that replace the built-in ones. */
 	labels?: Partial<ViewerLabels>;
+	/** Whether the entry under the pointer shows a button that opens a menu of actions for it. */
+	entryMenu?: boolean;
 	/** Creates the renderer. Defaults to the Canvas 2D renderer. */
 	renderer?: (ownerDocument: Document) => Renderer;
 }
@@ -108,6 +111,7 @@ interface ResolvedOptions {
 	/** The built-in labels for the locale with `labelOverrides` applied. */
 	labels: ViewerLabels;
 	labelOverrides: Partial<ViewerLabels>;
+	entryMenu: boolean;
 }
 
 interface Selection {
@@ -202,6 +206,8 @@ const pick = <Source extends object, Key extends keyof Source>(
 	return result;
 };
 
+let viewerCount = 0;
+
 const STORE_KEYS = Object.keys(DEFAULT_STORE_OPTIONS) as (keyof LogStoreOptions)[];
 const LAYOUT_KEYS = Object.keys(DEFAULT_LAYOUT_OPTIONS) as (keyof LayoutOptions)[];
 
@@ -226,13 +232,14 @@ export class LogViewer {
 	private readonly verticalScrollbar: Scrollbar;
 	private readonly horizontalScrollbar: Scrollbar;
 	private readonly newLogsButton: HTMLButtonElement;
+	private readonly entryButton: HTMLButtonElement;
+	private readonly popup: PopupMenu;
+	/** A prefix for the ids of elements that refer to each other. */
+	private readonly id = `lognal-${++viewerCount}`;
 	private toolbarElement: HTMLDivElement | null = null;
 	private statusElement: HTMLDivElement | null = null;
 	private inputLine: InputLine | null = null;
-	private readonly controls = new Map<
-		string,
-		HTMLButtonElement | HTMLInputElement | HTMLSelectElement
-	>();
+	private readonly controls = new Map<string, HTMLButtonElement | HTMLInputElement>();
 	private metrics: CellMetrics = { width: 8, height: 20, baseline: 14 };
 	private width = 0;
 	private height = 0;
@@ -256,6 +263,11 @@ export class LogViewer {
 	} | null = null;
 	private autoScrollFrame = 0;
 	private lastPointer: { x: number; y: number } | null = null;
+	/** Where the pointer is over the log, so the entry under it is found again after a scroll. */
+	private hoverPoint: { clientX: number; clientY: number } | null = null;
+	private hoverEntryId: number | null = null;
+	/** The entry whose menu is open. Its button stays in place while the pointer moves away. */
+	private menuEntryId: number | null = null;
 	private frame = 0;
 	private accessoryTimer: ReturnType<typeof setTimeout> | undefined;
 	private filterTimer: ReturnType<typeof setTimeout> | undefined;
@@ -306,15 +318,25 @@ export class LogViewer {
 		this.newLogsButton.className = 'lognal-new-logs';
 		this.newLogsButton.hidden = true;
 		this.newLogsButton.addEventListener('click', () => this.scrollToBottom());
+		this.entryButton = doc.createElement('button');
+		this.entryButton.type = 'button';
+		this.entryButton.className = 'lognal-entry-actions';
+		this.entryButton.hidden = true;
+		this.entryButton.setAttribute('aria-haspopup', 'menu');
+		this.entryButton.setAttribute('aria-expanded', 'false');
+		this.entryButton.append(createIcon(doc, 'more'));
+		this.entryButton.addEventListener('click', this.onEntryButtonClick);
 		this.body.append(
 			this.renderer.element,
 			this.viewport,
 			this.mirror,
 			this.verticalScrollbar.element,
 			this.horizontalScrollbar.element,
-			this.newLogsButton
+			this.newLogsButton,
+			this.entryButton
 		);
 		this.element.append(this.body);
+		this.popup = new PopupMenu(doc, this.element);
 		container.append(this.element);
 
 		this.buildChrome();
@@ -388,6 +410,11 @@ export class LogViewer {
 			this.setFollowing(options.follow);
 		}
 
+		if (options.entryMenu !== undefined && !this.options.entryMenu && this.menuEntryId !== null) {
+			this.popup.close(false);
+		}
+
+		this.updateEntryButton();
 		this.requestRender();
 	}
 
@@ -437,8 +464,8 @@ export class LogViewer {
 			input.title = compiled.error ? this.options.labels.invalidFilter : '';
 		}
 
-		if (levels instanceof HTMLSelectElement) {
-			levels.value = filter?.minLevel ?? '';
+		if (levels) {
+			this.syncLevels();
 		}
 
 		this.emit('filter', filter);
@@ -542,9 +569,35 @@ export class LogViewer {
 	}
 
 	/** Copies the selected text to the clipboard. Resolves to whether anything was copied. */
-	async copySelection(): Promise<boolean> {
-		const text = this.getSelectionText();
+	copySelection(): Promise<boolean> {
+		return this.writeClipboard(this.getSelectionText());
+	}
 
+	/**
+	 * Returns the text of an entry the way copying a selection of it would: every line, with the
+	 * rows of open values, and without the timestamp. Returns an empty string for an entry that
+	 * is not visible.
+	 */
+	getEntryText(entryId: number): string {
+		this.layout.sync();
+
+		if (this.layout.indexOf(entryId) < 0) {
+			return '';
+		}
+
+		return this.layout.getText(
+			{ entryId, line: 0, cell: 0 },
+			{ entryId, line: Number.MAX_SAFE_INTEGER, cell: Number.MAX_SAFE_INTEGER }
+		);
+	}
+
+	/** Copies the text of an entry to the clipboard. Resolves to whether anything was copied. */
+	copyEntry(entryId: number): Promise<boolean> {
+		return this.writeClipboard(this.getEntryText(entryId));
+	}
+
+	/** Writes text to the clipboard. Resolves to whether anything was copied. */
+	private async writeClipboard(text: string): Promise<boolean> {
 		if (!text) {
 			return false;
 		}
@@ -633,6 +686,7 @@ export class LogViewer {
 
 		this.layout.dispose();
 		this.renderer.dispose();
+		this.popup.dispose();
 		this.verticalScrollbar.dispose();
 		this.horizontalScrollbar.dispose();
 		this.inputLine?.dispose();
@@ -665,13 +719,23 @@ export class LogViewer {
 			input: options.input ?? null,
 			locale: options.locale,
 			labels,
-			labelOverrides
+			labelOverrides,
+			entryMenu: options.entryMenu ?? true
 		};
 	}
 
 	private unresolvedOptions(): LogViewerOptions {
-		const { theme, font, timestamps, toolbar, statusBar, input, locale, labelOverrides } =
-			this.options;
+		const {
+			theme,
+			font,
+			timestamps,
+			toolbar,
+			statusBar,
+			input,
+			locale,
+			labelOverrides,
+			entryMenu
+		} = this.options;
 
 		return {
 			theme,
@@ -681,7 +745,8 @@ export class LogViewer {
 			statusBar,
 			input,
 			locale,
-			labels: labelOverrides
+			labels: labelOverrides,
+			entryMenu
 		};
 	}
 
@@ -712,6 +777,7 @@ export class LogViewer {
 		this.listen(this.viewport, 'dblclick', this.onDoubleClick);
 		this.listen(this.viewport, 'keydown', this.onKeyDown);
 		this.listen(this.viewport, 'copy', this.onCopy);
+		this.listen(this.body, 'pointerleave', this.onPointerLeave);
 		this.cleanups.push(this.store.subscribe(this.onStoreChange));
 		this.renderer.onFontsChanged(() => this.applyFont());
 
@@ -770,6 +836,7 @@ export class LogViewer {
 		const doc = this.ownerDocument;
 		const { labels, toolbar, statusBar, input } = this.options;
 
+		this.popup.close(false);
 		this.toolbarElement?.remove();
 		this.statusElement?.remove();
 		this.controls.clear();
@@ -781,6 +848,8 @@ export class LogViewer {
 			createIcon(doc, 'arrowDown'),
 			doc.createTextNode(labels.newLogs)
 		);
+		this.entryButton.title = labels.entryActions;
+		this.entryButton.setAttribute('aria-label', labels.entryActions);
 
 		if (toolbar) {
 			this.toolbarElement = this.buildToolbar(toolbar, labels);
@@ -941,36 +1010,154 @@ export class LogViewer {
 		}
 
 		if (toolbar.levels) {
-			const select = doc.createElement('select');
+			const trigger = doc.createElement('button');
+			const label = doc.createElement('span');
+			const value = doc.createElement('span');
 
-			select.className = 'lognal-levels';
-			select.setAttribute('aria-label', labels.levels);
-			select.title = labels.levels;
-
-			for (const option of LEVEL_OPTIONS) {
-				const element = doc.createElement('option');
-
-				element.value = option.value;
-				element.textContent = labels[option.label] as string;
-				select.append(element);
-			}
-
-			select.value = this.filter?.minLevel ?? '';
-			select.addEventListener('change', () => {
-				// The menu sets a minimum level, which replaces a list of levels set through code.
-				this.setFilter({
-					...this.filter,
-					levels: undefined,
-					minLevel: (select.value || undefined) as LogLevel | undefined
-				});
+			trigger.type = 'button';
+			trigger.className = 'lognal-levels';
+			trigger.title = labels.levels;
+			trigger.setAttribute('aria-haspopup', 'listbox');
+			trigger.setAttribute('aria-expanded', 'false');
+			trigger.setAttribute('aria-labelledby', `${this.id}-levels-label ${this.id}-levels-value`);
+			label.id = `${this.id}-levels-label`;
+			label.hidden = true;
+			label.textContent = labels.levels;
+			value.id = `${this.id}-levels-value`;
+			value.className = 'lognal-levels-value';
+			trigger.append(label, value, createIcon(doc, 'chevronDown'));
+			trigger.addEventListener('click', () => {
+				if (this.popup.isOpen && this.popup.trigger === trigger) {
+					this.popup.close();
+				} else {
+					this.openLevelMenu(trigger);
+				}
 			});
-			end.append(select);
-			this.controls.set('levels', select);
+			trigger.addEventListener('keydown', (event) => {
+				if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+					event.preventDefault();
+					this.openLevelMenu(trigger);
+				}
+			});
+			end.append(trigger);
+			this.controls.set('levels', trigger);
+			this.syncLevels();
 		}
 
 		element.append(start, end);
 
 		return element;
+	}
+
+	/** Shows the chosen minimum level on the level menu button. */
+	private syncLevels(): void {
+		const value = this.controls.get('levels')?.querySelector('.lognal-levels-value');
+		const minLevel = this.filter?.minLevel ?? '';
+		const option = LEVEL_OPTIONS.find((item) => item.value === minLevel) ?? LEVEL_OPTIONS[0];
+
+		if (value) {
+			value.textContent = this.options.labels[option.label] as string;
+		}
+	}
+
+	private openLevelMenu(trigger: HTMLButtonElement): void {
+		const { labels } = this.options;
+		const minLevel = this.filter?.minLevel ?? '';
+
+		this.popup.close(false);
+		trigger.setAttribute('aria-expanded', 'true');
+		this.popup.open({
+			role: 'listbox',
+			label: labels.levels,
+			items: LEVEL_OPTIONS.map((option) => ({
+				label: labels[option.label] as string,
+				selected: option.value === minLevel,
+				onSelect: () => {
+					// The menu sets a minimum level, which replaces a list of levels set through code.
+					this.setFilter({
+						...this.filter,
+						levels: undefined,
+						minLevel: option.value || undefined
+					});
+				}
+			})),
+			anchor: trigger.getBoundingClientRect(),
+			align: 'end',
+			trigger,
+			returnFocus: trigger,
+			onClose: () => trigger.setAttribute('aria-expanded', 'false')
+		});
+	}
+
+	/**
+	 * Places the button of the entry under the pointer, or of the entry whose menu is open, at
+	 * the right end of the first row of that entry that is on screen.
+	 */
+	private updateEntryButton(): void {
+		const button = this.entryButton;
+		const entryId = this.menuEntryId ?? this.hoverEntryId;
+		const startRow = entryId === null ? -1 : this.layout.rowOfEntry(entryId);
+
+		if (!this.options.entryMenu || entryId === null || startRow < 0) {
+			button.hidden = true;
+
+			if (this.menuEntryId !== null) {
+				this.popup.close(false);
+			}
+
+			return;
+		}
+
+		const rowHeight = this.metrics.height;
+		const top = PADDING_TOP + startRow * rowHeight - this.topPixels;
+		const bottom = top + this.layout.rowsOf(entryId) * rowHeight;
+
+		if (bottom <= 0 || top >= this.height) {
+			button.hidden = true;
+
+			return;
+		}
+
+		button.style.transform = `translateY(${Math.round(Math.min(Math.max(top, 0), bottom - rowHeight))}px)`;
+		button.hidden = false;
+	}
+
+	private openEntryMenu(entryId: number): void {
+		const { labels } = this.options;
+
+		this.popup.close(false);
+		this.menuEntryId = entryId;
+		this.updateEntryButton();
+
+		const view = this.viewport.getBoundingClientRect();
+		// Without a button on screen, the menu opens from the top right corner of the log.
+		const anchor: PopupAnchor = this.entryButton.hidden
+			? { left: view.right, top: view.top, right: view.right, bottom: view.top }
+			: this.entryButton.getBoundingClientRect();
+
+		this.entryButton.setAttribute('aria-expanded', 'true');
+		this.popup.open({
+			role: 'menu',
+			label: labels.entryActions,
+			items: [
+				{
+					label: labels.copyEntry,
+					icon: 'copy',
+					onSelect: () => {
+						void this.copyEntry(entryId);
+					}
+				}
+			],
+			anchor,
+			align: 'end',
+			trigger: this.entryButton,
+			returnFocus: this.viewport,
+			onClose: () => {
+				this.menuEntryId = null;
+				this.entryButton.setAttribute('aria-expanded', 'false');
+				this.updateEntryButton();
+			}
+		});
 	}
 
 	private syncWrapButton(): void {
@@ -1149,6 +1336,12 @@ export class LogViewer {
 		});
 		this.verticalScrollbar.update();
 		this.horizontalScrollbar.update();
+
+		if (this.hoverPoint && !this.drag) {
+			this.hoverEntryId = this.hitTest(this.hoverPoint).visualRow?.entry.id ?? null;
+		}
+
+		this.updateEntryButton();
 		this.newLogsButton.hidden = this.following || !this.hasUnseen;
 		this.updateStatus();
 		this.scheduleAccessories();
@@ -1480,6 +1673,10 @@ export class LogViewer {
 
 			this.viewport.classList.toggle('has-action', Boolean(hit.action));
 
+			if (event.pointerType !== 'touch') {
+				this.setHover({ clientX: event.clientX, clientY: event.clientY }, hit);
+			}
+
 			return;
 		}
 
@@ -1487,10 +1684,35 @@ export class LogViewer {
 
 		if (Math.hypot(event.clientX - this.drag.x, event.clientY - this.drag.y) > DRAG_THRESHOLD) {
 			this.drag.moved = true;
+			// The button would sit over the text being selected.
+			this.setHover(null, null);
 		}
 
 		this.extendSelection();
 		this.updateAutoScroll();
+	};
+
+	private setHover(point: { clientX: number; clientY: number } | null, hit: HitTest | null): void {
+		const entryId = hit?.visualRow?.entry.id ?? null;
+
+		this.hoverPoint = point;
+
+		if (entryId !== this.hoverEntryId) {
+			this.hoverEntryId = entryId;
+			this.updateEntryButton();
+		}
+	}
+
+	private readonly onPointerLeave = (): void => {
+		this.setHover(null, null);
+	};
+
+	private readonly onEntryButtonClick = (): void => {
+		if (this.menuEntryId !== null) {
+			this.popup.close();
+		} else if (this.hoverEntryId !== null) {
+			this.openEntryMenu(this.hoverEntryId);
+		}
 	};
 
 	private readonly onPointerUp = (event: PointerEvent): void => {
@@ -1610,6 +1832,19 @@ export class LogViewer {
 		if (modifier && key === 'a') {
 			event.preventDefault();
 			this.selectAll();
+
+			return;
+		}
+
+		if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
+			const selected = this.selection && this.layout.indexOf(this.selection.head.entryId) >= 0;
+			const entryId = selected ? this.selection?.head.entryId : this.visibleRows[0]?.entry.id;
+
+			event.preventDefault();
+
+			if (this.options.entryMenu && entryId !== undefined) {
+				this.openEntryMenu(entryId);
+			}
 
 			return;
 		}

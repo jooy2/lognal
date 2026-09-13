@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import '../../src/styles/lognal.css';
 import { LogViewer } from '../../src/viewer/viewer.ts';
 import { KO_LABELS } from '../../src/viewer/labels.ts';
@@ -35,6 +35,35 @@ const paintedPixels = (viewer: LogViewer): number => {
 	}
 
 	return painted;
+};
+
+/** Opens the level menu and chooses the option with the given label. */
+const chooseLevel = (viewer: LogViewer, label: string): void => {
+	const trigger = viewer.element.querySelector('.lognal-levels') as HTMLButtonElement;
+
+	trigger.click();
+
+	const option = Array.from(viewer.element.querySelectorAll('.lognal-popup [role="option"]')).find(
+		(item) => item.textContent === label
+	) as HTMLElement;
+
+	option.click();
+};
+
+/** Moves a mouse pointer over the log, at a point relative to the top left of the log area. */
+const hover = (viewer: LogViewer, x: number, y: number): void => {
+	const viewport = viewer.element.querySelector('.lognal-viewport') as HTMLDivElement;
+	const rect = viewport.getBoundingClientRect();
+
+	viewport.dispatchEvent(
+		new PointerEvent('pointermove', {
+			clientX: rect.left + x,
+			clientY: rect.top + y,
+			bubbles: true,
+			pointerId: 1,
+			pointerType: 'mouse'
+		})
+	);
 };
 
 let container: HTMLDivElement;
@@ -121,13 +150,11 @@ describe('LogViewer', () => {
 			() => viewer.element.querySelector('.lognal-status-count')?.textContent === '1 of 3 entries'
 		);
 
-		const levels = viewer.element.querySelector('.lognal-levels') as HTMLSelectElement;
-
-		levels.value = 'error';
-		levels.dispatchEvent(new Event('change'));
+		chooseLevel(viewer, 'Errors only');
 		await nextFrame();
 
 		expect(viewer.getFilter()).toEqual({ text: 'disk', minLevel: 'error' });
+		expect(viewer.element.querySelector('.lognal-levels-value')?.textContent).toBe('Errors only');
 		expect(viewer.layout.visibleCount).toBe(0);
 		viewer.dispose();
 	});
@@ -162,17 +189,123 @@ describe('LogViewer', () => {
 		const wrap = viewer.element.querySelector(
 			'[aria-label="Wrap long lines"]'
 		) as HTMLButtonElement;
-		const levels = viewer.element.querySelector('.lognal-levels') as HTMLSelectElement;
-
 		wrap.click();
 		expect(viewer.layout.getOptions().wrap).toBe('none');
 		wrap.click();
 		expect(viewer.layout.getOptions().wrap).toBe('char');
 
 		viewer.setFilter({ levels: ['debug'] });
-		levels.value = 'warn';
-		levels.dispatchEvent(new Event('change'));
+		chooseLevel(viewer, 'Warnings and errors');
 		expect(viewer.getFilter()).toEqual({ levels: undefined, minLevel: 'warn' });
+		viewer.dispose();
+	});
+
+	it('opens the level menu with the keyboard and closes it with Escape', async () => {
+		const viewer = new LogViewer(container);
+		const trigger = viewer.element.querySelector('.lognal-levels') as HTMLButtonElement;
+		const popup = viewer.element.querySelector('.lognal-popup') as HTMLDivElement;
+		const key = (target: HTMLElement, name: string): void => {
+			target.dispatchEvent(
+				new KeyboardEvent('keydown', { key: name, bubbles: true, cancelable: true })
+			);
+		};
+
+		trigger.focus();
+		key(trigger, 'ArrowDown');
+		expect(trigger.getAttribute('aria-expanded')).toBe('true');
+		expect(popup.getAttribute('role')).toBe('listbox');
+		expect(document.activeElement).toBe(popup);
+		expect(popup.querySelector('[aria-selected="true"]')?.textContent).toBe('All levels');
+
+		key(popup, 'ArrowDown');
+		key(popup, 'ArrowDown');
+		key(popup, 'Enter');
+		expect(viewer.getFilter()).toEqual({ levels: undefined, minLevel: 'info' });
+		expect(trigger.getAttribute('aria-expanded')).toBe('false');
+		expect(document.activeElement).toBe(trigger);
+
+		key(trigger, 'ArrowDown');
+		expect(popup.querySelector('[aria-selected="true"]')?.textContent).toBe('Info and above');
+		key(popup, 'Escape');
+		expect(trigger.getAttribute('aria-expanded')).toBe('false');
+		expect(document.activeElement).toBe(trigger);
+		expect(viewer.getFilter()).toEqual({ levels: undefined, minLevel: 'info' });
+
+		viewer.setFilter({ minLevel: 'error' });
+		expect(viewer.element.querySelector('.lognal-levels-value')?.textContent).toBe('Errors only');
+		viewer.dispose();
+	});
+
+	it('shows a menu button over the entry under the pointer and copies the entry from it', async () => {
+		const viewer = new LogViewer(container, { timestamps: false, core: { mergeRepeats: false } });
+		const button = viewer.element.querySelector('.lognal-entry-actions') as HTMLButtonElement;
+		const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);
+
+		viewer.console.log('first entry');
+		viewer.write('second entry\nline two\nline three', { level: 'error' });
+		await nextFrame();
+		expect(button.hidden).toBe(true);
+
+		const rowHeight = parseFloat(viewer.element.style.getPropertyValue('--lognal-cell-height'));
+
+		// The third row is the second line of the second entry, which starts on the second row.
+		hover(viewer, 100, 4 + rowHeight * 2.5);
+		expect(button.hidden).toBe(false);
+		expect(button.getAttribute('aria-label')).toBe('Entry actions');
+		expect(button.style.transform).toBe(`translateY(${Math.round(4 + rowHeight)}px)`);
+
+		button.click();
+
+		const popup = viewer.element.querySelector('.lognal-popup') as HTMLDivElement;
+		const item = popup.querySelector('[role="menuitem"]') as HTMLElement;
+
+		expect(popup.getAttribute('role')).toBe('menu');
+		expect(button.getAttribute('aria-expanded')).toBe('true');
+		expect(item.textContent).toBe('Copy as text');
+
+		item.click();
+		await waitFor(() => writeText.mock.calls.length === 1);
+
+		const [first, second] = viewer.store.toArray();
+
+		expect(writeText).toHaveBeenCalledWith(viewer.getEntryText(second.id));
+		expect(viewer.getEntryText(second.id)).toBe('second entry\nline two\nline three');
+		expect(viewer.getEntryText(first.id)).toBe('first entry');
+		expect(button.getAttribute('aria-expanded')).toBe('false');
+
+		viewer.element
+			.querySelector('.lognal-body')
+			?.dispatchEvent(new PointerEvent('pointerleave', { pointerType: 'mouse' }));
+		expect(button.hidden).toBe(true);
+
+		writeText.mockRestore();
+		viewer.dispose();
+	});
+
+	it('opens the entry menu with Shift+F10 and hides the button when entryMenu is off', async () => {
+		const viewer = new LogViewer(container, { toolbar: false });
+		const viewport = viewer.element.querySelector('.lognal-viewport') as HTMLDivElement;
+		const popup = viewer.element.querySelector('.lognal-popup') as HTMLDivElement;
+		const button = viewer.element.querySelector('.lognal-entry-actions') as HTMLButtonElement;
+
+		viewer.console.log('only entry');
+		await nextFrame();
+
+		viewport.focus();
+		viewport.dispatchEvent(
+			new KeyboardEvent('keydown', { key: 'F10', shiftKey: true, bubbles: true, cancelable: true })
+		);
+		expect(popup.getAttribute('role')).toBe('menu');
+		expect(document.activeElement).toBe(popup);
+		expect(button.hidden).toBe(false);
+
+		popup.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+		expect(document.activeElement).toBe(viewport);
+		expect(button.hidden).toBe(true);
+
+		viewer.setOptions({ entryMenu: false });
+		hover(viewer, 100, 8);
+		expect(button.hidden).toBe(true);
 		viewer.dispose();
 	});
 

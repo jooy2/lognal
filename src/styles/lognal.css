@@ -45,6 +45,7 @@
 	--lognal-debug: #646a78;
 	--lognal-scrollbar-thumb: rgba(29, 33, 41, 0.28);
 	--lognal-scrollbar-thumb-hover: rgba(29, 33, 41, 0.45);
+	--lognal-popup-shadow: 0 8px 24px rgba(29, 33, 41, 0.14), 0 1px 3px rgba(29, 33, 41, 0.08);
 	--lognal-token-muted: #646a78;
 	--lognal-token-string: #1f7a47;
 	--lognal-token-number: #6f42c1;
@@ -118,6 +119,7 @@
 	--lognal-debug: #8f94a1;
 	--lognal-scrollbar-thumb: rgba(227, 229, 234, 0.25);
 	--lognal-scrollbar-thumb-hover: rgba(227, 229, 234, 0.42);
+	--lognal-popup-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.3);
 	--lognal-token-muted: #8f94a1;
 	--lognal-token-string: #7fd6a4;
 	--lognal-token-number: #b9a8ff;
@@ -176,6 +178,7 @@
 		--lognal-debug: #8f94a1;
 		--lognal-scrollbar-thumb: rgba(227, 229, 234, 0.25);
 		--lognal-scrollbar-thumb-hover: rgba(227, 229, 234, 0.42);
+		--lognal-popup-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.3);
 		--lognal-token-muted: #8f94a1;
 		--lognal-token-string: #7fd6a4;
 		--lognal-token-number: #b9a8ff;
@@ -288,7 +291,8 @@
 .lognal-button:focus-visible,
 .lognal-filter:focus-within,
 .lognal-levels:focus-visible,
-.lognal-new-logs:focus-visible {
+.lognal-new-logs:focus-visible,
+.lognal-entry-actions:focus-visible {
 	outline: 2px solid var(--lognal-focus-ring);
 	outline-offset: 1px;
 }
@@ -333,17 +337,101 @@
 }
 
 .lognal-levels {
-	/* Keep the native arrow on pages whose reset sets appearance to none. */
-	-webkit-appearance: auto;
-	appearance: auto;
+	display: inline-flex;
+	flex: 0 1 auto;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+	max-width: 160px;
 	height: 28px;
-	padding: 0 24px 0 8px;
+	padding: 0 6px 0 10px;
 	color: var(--lognal-foreground);
-	background-color: var(--lognal-background);
+	background: var(--lognal-background);
 	border: 1px solid var(--lognal-border);
 	border-radius: var(--lognal-control-radius);
 	font: inherit;
+	white-space: nowrap;
 	cursor: pointer;
+	transition: border-color 120ms ease;
+}
+
+.lognal-levels:hover,
+.lognal-levels[aria-expanded='true'] {
+	border-color: var(--lognal-muted);
+}
+
+.lognal-levels-value {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.lognal-levels .lognal-icon {
+	color: var(--lognal-muted);
+	transition: transform 120ms ease;
+}
+
+.lognal-levels[aria-expanded='true'] .lognal-icon {
+	transform: rotate(180deg);
+}
+
+/* Menus: the level menu and the entry menu */
+
+.lognal-popup {
+	position: fixed;
+	inset: auto;
+	z-index: 1000;
+	min-width: 160px;
+	max-width: min(320px, calc(100vw - 16px));
+	max-height: min(360px, calc(100vh - 16px));
+	margin: 0;
+	padding: 4px;
+	overflow: auto;
+	color: var(--lognal-foreground);
+	background: var(--lognal-background);
+	border: 1px solid var(--lognal-border);
+	border-radius: calc(var(--lognal-control-radius) + 2px);
+	box-shadow: var(--lognal-popup-shadow);
+	font-family: var(--lognal-ui-font-family);
+	font-size: var(--lognal-ui-font-size);
+	line-height: 1.4;
+	outline: 0;
+}
+
+.lognal-popup-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 28px;
+	padding: 0 12px 0 8px;
+	border-radius: var(--lognal-control-radius);
+	white-space: nowrap;
+	cursor: pointer;
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+.lognal-popup-item.is-active {
+	background: var(--lognal-control-hover);
+}
+
+.lognal-popup-item .lognal-icon {
+	color: var(--lognal-muted);
+}
+
+.lognal-popup-item .lognal-popup-check {
+	visibility: hidden;
+	color: var(--lognal-accent);
+}
+
+.lognal-popup-item[aria-selected='true'] .lognal-popup-check {
+	visibility: visible;
+}
+
+.lognal-popup-label {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 /* Log area */
@@ -485,6 +573,38 @@
 	}
 }
 
+/* The button that opens the menu of the entry under the pointer */
+
+.lognal-entry-actions {
+	position: absolute;
+	top: 0;
+	right: 14px;
+	z-index: 2;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: var(--lognal-cell-height, 20px);
+	min-height: 18px;
+	padding: 0;
+	color: var(--lognal-muted);
+	background: var(--lognal-surface);
+	border: 1px solid var(--lognal-border);
+	border-radius: var(--lognal-control-radius);
+	cursor: pointer;
+}
+
+.lognal-entry-actions:hover,
+.lognal-entry-actions[aria-expanded='true'] {
+	color: var(--lognal-foreground);
+	background-image: linear-gradient(var(--lognal-control-hover), var(--lognal-control-hover));
+}
+
+.lognal-entry-actions .lognal-icon {
+	width: 14px;
+	height: 14px;
+}
+
 /* Input line */
 
 .lognal-input {
@@ -560,12 +680,6 @@
 	background: var(--lognal-accent);
 }
 
-.lognal-levels {
-	flex: 0 1 auto;
-	min-width: 0;
-	max-width: 160px;
-}
-
 @media (max-width: 480px) {
 	.lognal-separator {
 		display: none;
@@ -574,6 +688,8 @@
 
 @media (prefers-reduced-motion: reduce) {
 	.lognal-button,
+	.lognal-levels,
+	.lognal-levels .lognal-icon,
 	.lognal-scrollbar,
 	.lognal-scrollbar-thumb {
 		transition: none;

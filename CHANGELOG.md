@@ -4,7 +4,17 @@ Changes to `lognal` that affect its users, newest first.
 
 ## vNext (2026--)
 
+### Breaking changes
+
+- `ViewerLabels` has two new labels, `entryActions` and `copyEntry`. A complete `ViewerLabels` object of your own needs both. Overrides passed in `labels` are not affected.
+- The level menu in the toolbar is a `<button class="lognal-levels">` that opens a list box, instead of a `<select>`. Styles or tests written for the `<select>` need to target the button and its menu.
+
+### Changes
+
+- The level menu follows the theme of the viewer. The arrow keys, Home and End move through the levels, Enter or Space chooses one, and Escape closes it.
+- The entry under the pointer shows a button that opens a menu of actions for it. **Copy as text** copies every line of the entry. Shift+F10 or the context menu key opens the menu from the keyboard, and `entryMenu: false` turns it off. `getEntryText` and `copyEntry` do the same from code.
 - The log area and the input line no longer draw a focus outline.
+- `--lognal-popup-shadow` sets the shadow of the level menu and the entry menu.
 - Enter at the end of Korean text in the input line submits the command with one press. Before, the first press added a line and the second one submitted. Enter that confirms a Japanese or Chinese candidate still does not submit.
 
 ## 0.1.0 (2026-09-13)

@@ -20,7 +20,7 @@ The container has `height: 100%`, and your `style` is applied on top. Give the c
 
 ## Props
 
-Every [viewer option](/guide/viewer#options) is also a prop: `store`, `core`, `theme`, `font`, `timestamps`, `follow`, `toolbar`, `statusBar`, `input`, `locale`, `labels` and `renderer`. The component adds these:
+Every [viewer option](/guide/viewer#options) is also a prop: `store`, `core`, `theme`, `font`, `timestamps`, `follow`, `toolbar`, `statusBar`, `input`, `locale`, `labels`, `entryMenu` and `renderer`. The component adds these:
 
 | Prop                | Type                                  | Description                                                                  |
 | ------------------- | ------------------------------------- | ---------------------------------------------------------------------------- |
@@ -42,12 +42,12 @@ Every [viewer option](/guide/viewer#options) is also a prop: `store`, `core`, `t
 
 A prop that you remove goes back to its default:
 
-| Removed prop                                          | Value applied                                                                             |
-| ----------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `theme`, `font`, `timestamps`, `toolbar`, `statusBar` | `'auto'`, `{}`, `true`, `true`, `true`                                                    |
-| `input`, `labels`, `locale`                           | `null`, `{}`, `undefined`, which shows the English labels                                 |
-| A key of `core`, or `core` itself                     | The value in `DEFAULT_STORE_OPTIONS` or `DEFAULT_LAYOUT_OPTIONS`, and `null` for `filter` |
-| `follow`                                              | Nothing is applied. The view keeps following, or stays paused, as it is.                  |
+| Removed prop                                                       | Value applied                                                                             |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `theme`, `font`, `timestamps`, `toolbar`, `statusBar`, `entryMenu` | `'auto'`, `{}`, `true`, `true`, `true`, `true`                                            |
+| `input`, `labels`, `locale`                                        | `null`, `{}`, `undefined`, which shows the English labels                                 |
+| A key of `core`, or `core` itself                                  | The value in `DEFAULT_STORE_OPTIONS` or `DEFAULT_LAYOUT_OPTIONS`, and `null` for `filter` |
+| `follow`                                                           | Nothing is applied. The view keeps following, or stays paused, as it is.                  |
 
 ## Write logs
 

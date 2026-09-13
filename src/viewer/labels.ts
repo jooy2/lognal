@@ -24,6 +24,10 @@ export interface ViewerLabels {
 	newLogs: string;
 	/** Accessible name of the list that mirrors the visible entries for screen readers. */
 	entryList: string;
+	/** The button at the end of the entry under the pointer, and the menu it opens. */
+	entryActions: string;
+	/** The menu item that copies the text of an entry. */
+	copyEntry: string;
 	following: string;
 	paused: string;
 	/** The entry count in the status bar. `format` formats a number for the locale. */
@@ -50,6 +54,8 @@ export const EN_LABELS: ViewerLabels = {
 	inputPlaceholder: 'Type a command',
 	newLogs: 'New logs',
 	entryList: 'Visible log entries',
+	entryActions: 'Entry actions',
+	copyEntry: 'Copy as text',
 	following: 'Following',
 	paused: 'Paused',
 	entries: (shown, total, format) => {
@@ -81,6 +87,8 @@ export const KO_LABELS: ViewerLabels = {
 	inputPlaceholder: '명령을 입력하세요',
 	newLogs: '새 로그',
 	entryList: '화면에 보이는 로그',
+	entryActions: '항목 작업',
+	copyEntry: '텍스트로 복사',
 	following: '따라가는 중',
 	paused: '멈춤',
 	entries: (shown, total, format) => {

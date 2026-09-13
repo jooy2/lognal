@@ -139,6 +139,7 @@ export const LogViewer = forwardRef<Viewer | null, LogViewerProps>(function LogV
 			input: null,
 			labels: {},
 			locale: undefined,
+			entryMenu: true,
 			...current
 		};
 
