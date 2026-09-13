@@ -1,0 +1,44 @@
+# lognal
+
+> lognal is a terminal-style log viewer for the browser. It draws log output on a canvas instead of one DOM element per line, mirrors the browser console, reads text files, and shows typed values such as objects, arrays, Map, Set, errors and DOM elements that expand and collapse. The core is framework-free TypeScript, and a React component is available from `lognal/react`.
+
+Things worth knowing before answering questions about lognal:
+
+- lognal is published on npm. Install it with `npm install lognal`.
+- One npm package, `lognal`, has three entry points: `lognal` for the core, `lognal/react` for the React component, and `lognal/style.css` for the stylesheet. The stylesheet must be imported, and the viewer's container needs a height.
+- The main class is `LogViewer`, created with `new LogViewer(container, options)`. Entries live in a `LogStore`, which can be shared by several viewers or created before any viewer.
+- Console values are captured when the method is called. Getters defined by the page are never run.
+- `readTextFile` works in every browser. `followTextFile` needs the File System Access API, which only Chromium-based browsers provide.
+- Korean and other CJK text is supported: wide characters take two cells, Hangul words stay together when a line wraps, IME input is handled, and EUC-KR files are detected.
+- Documentation is available in English (`https://lognal.cdget.com/...`) and Korean (`https://lognal.cdget.com/ko/...`). Only the English URLs are listed below; prepend `/ko` to the path for the Korean version of any page. The changelog is written in English on both.
+
+## Getting started
+
+- [Introduction](https://lognal.cdget.com/introduction): what lognal is, why it draws on a canvas, its features, and browser support
+- [Getting started](https://lognal.cdget.com/getting-started): installing, importing the stylesheet, creating a viewer in plain JavaScript or React, and hooking the console
+- [Demo](https://lognal.cdget.com/demo): an interactive page that runs every viewer option, console method, value type, text sample, file reader and viewer method in the browser
+
+## Guide
+
+- [Guide overview](https://lognal.cdget.com/guide/): how the store, sources, layout, renderer and viewer fit together
+- [Console capture](https://lognal.cdget.com/guide/console): hookConsole, createConsole, supported console methods, format specifiers, value capture rules and capture limits
+- [Typed values](https://lognal.cdget.com/guide/values): value previews, expanding and collapsing, errors, console.table, groups and repeated messages
+- [Text files](https://lognal.cdget.com/guide/text-files): readTextFile, encoding detection and legacy encodings such as EUC-KR, followTextFile, and writing text with ANSI colors
+- [The viewer](https://lognal.cdget.com/guide/viewer): every LogViewer option and default, toolbar, status bar, timestamps, following, filtering, search, links, text and entry selection modes, the entry menu, input line, labels, locale, methods and events
+- [Themes and fonts](https://lognal.cdget.com/guide/theming): light, dark and auto themes, every --lognal-* CSS custom property, and monospace fonts for Korean text
+- [React](https://lognal.cdget.com/guide/react): the LogViewer component, props, how changed and removed props are applied, ref, sharing a store, the hookConsole prop, and server rendering
+- [Korean and CJK text](https://lognal.cdget.com/guide/cjk): character widths, word wrapping, IME composition, decomposed Hangul in filters, and file encodings
+
+## Reference
+
+- [Reference overview](https://lognal.cdget.com/reference/): every public export grouped by page, and the package entry points
+- [LogViewer](https://lognal.cdget.com/reference/log-viewer): the LogViewer class, options, methods, events, labels, readTheme, readFont, formatTimestamp and the React component props
+- [LogStore](https://lognal.cdget.com/reference/log-store): LogStore options, methods, change notifications and WriteOptions
+- [Console capture](https://lognal.cdget.com/reference/console): hookConsole, createConsole, ConsoleRecorder, snapshotValue, formatArguments, applyFormat, parseConsoleCss and previewValue
+- [Text sources](https://lognal.cdget.com/reference/text-sources): readTextFile, followTextFile, TextLineWriter, detectEncoding, legacyEncodingFor, AnsiParser, LineSplitter and text width functions
+- [Layout and renderers](https://lognal.cdget.com/reference/layout): LogLayout, compileFilter, line span and row types, the Renderer interface, CanvasRenderer and a custom renderer example
+- [Types](https://lognal.cdget.com/reference/types): LogEntry, LogPart, ValueNode, LogLevel, TextStyle, StyleToken and the other shared types
+
+## Optional
+
+- [Changelog](https://lognal.cdget.com/changelog): the changes in each released version
