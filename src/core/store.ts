@@ -46,6 +46,8 @@ export interface WriteOptions {
 	groups?: readonly number[];
 	token?: StyleToken;
 	style?: TextStyle;
+	/** Set to `false` to keep every line on one row, for text such as a table. */
+	wrap?: boolean;
 	/**
 	 * Whether ANSI escape codes in the text are turned into styles. Pass a parser to keep the
 	 * style running across several calls. Defaults to `false`.
@@ -69,7 +71,7 @@ const signatureOf = (init: LogEntryInit, level: LogLevel, kind: LogKind): string
 	for (const part of init.parts) {
 		if (part.type === 'text') {
 			pieces.push(
-				`t${part.text}${part.token ?? ''}${part.style ? JSON.stringify(part.style) : ''}`
+				`t${part.wrap === false ? 'n' : ''}${part.text}${part.token ?? ''}${part.style ? JSON.stringify(part.style) : ''}`
 			);
 			continue;
 		}
@@ -258,10 +260,22 @@ export class LogStore {
 		if (options.ansi) {
 			const parser = options.ansi instanceof AnsiParser ? options.ansi : new AnsiParser();
 
-			return parser.parse(text).map((part) => ({ ...part, token: part.token ?? options.token }));
+			return parser.parse(text).map((part) => ({
+				...part,
+				token: part.token ?? options.token,
+				...(options.wrap === false ? { wrap: false } : {})
+			}));
 		}
 
-		return [{ type: 'text', text, token: options.token, style: options.style }];
+		return [
+			{
+				type: 'text',
+				text,
+				token: options.token,
+				style: options.style,
+				...(options.wrap === false ? { wrap: false } : {})
+			}
+		];
 	}
 
 	private trimToLimit(): void {

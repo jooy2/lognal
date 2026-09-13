@@ -68,6 +68,11 @@ export interface TextPart {
 	text: string;
 	token?: StyleToken;
 	style?: TextStyle;
+	/**
+	 * Set to `false` to keep every line of this part on one row, for text whose layout matters,
+	 * such as a table. A line wider than the viewer then scrolls sideways instead of wrapping.
+	 */
+	wrap?: boolean;
 }
 
 /** A captured value, displayed with type-aware formatting. */

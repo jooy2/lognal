@@ -208,7 +208,11 @@ export class ConsoleRecorder {
 		const columns = Array.isArray(properties) ? properties.map((key) => String(key)) : undefined;
 		const table = formatTable(node, columns);
 
-		this.add('log', table === null ? [{ type: 'value', value: node }] : [text(table)]);
+		// A table keeps its rows whole; a table wider than the viewer scrolls sideways.
+		this.add(
+			'log',
+			table === null ? [{ type: 'value', value: node }] : [text(table, { wrap: false })]
+		);
 	}
 
 	private group(args: readonly unknown[], collapsed: boolean): void {

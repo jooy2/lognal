@@ -87,6 +87,12 @@ new LogViewer(container, { toolbar: false });
 
 When wrapping was turned off another way, for example with `core: { wrap: 'none' }`, the wrap button turns on `'word'`, or `'char'` if the button turned `'char'` off before.
 
+Some text keeps its lines whole whatever `wrap` says: the output of `console.table`, and text written with `wrap: false`. When such a line is wider than the viewer, the log scrolls sideways and the horizontal scrollbar appears.
+
+```ts
+viewer.write(['+-------+------+', '| build | pass |', '+-------+------+'].join('\n'), { wrap: false });
+```
+
 ## Status bar
 
 The status bar shows the number of entries on the left, such as `3 entries`, or `1 of 3 entries` while a filter or a collapsed group hides some of them. On the right it shows `Following` or `Paused`. It updates at most every 200 ms, and numbers are formatted for the `locale` option.

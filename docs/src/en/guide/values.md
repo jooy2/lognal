@@ -89,6 +89,7 @@ console.table([
 - The `(index)` column holds the property name or the array index of each row.
 - Every key of the row objects becomes a column. Pass an array of keys as the second argument to choose the columns.
 - Rows that are not objects go into a `Values` column. The column is left out when you choose the columns.
+- A table keeps every row on one line. When it is wider than the viewer, the log scrolls sideways instead of wrapping the table.
 - A table shows at most 100 rows and 20 columns, and a cell is cut at 40 cells. The rows left out are counted below the table.
 - A value that is not an object is logged the usual way. An object with no rows is logged as a typed value.
 

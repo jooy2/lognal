@@ -102,6 +102,7 @@ export const buildEntryLines = (entry: LogEntry, isExpanded: ExpansionLookup): L
 	const baseIndent = entry.groups.length * INDENT_CELLS;
 	const lines: LogicalLine[] = [];
 	let current: LineSpan[] = [];
+	let currentWraps = true;
 	const expandedParts: { node: ValueNode; path: string }[] = [];
 
 	if (entry.kind === 'group') {
@@ -118,8 +119,13 @@ export const buildEntryLines = (entry: LogEntry, isExpanded: ExpansionLookup): L
 
 			pieces.forEach((piece, pieceIndex) => {
 				if (pieceIndex > 0) {
-					lines.push({ indent: baseIndent, spans: current });
+					lines.push({ indent: baseIndent, spans: current, wrap: currentWraps });
 					current = [];
+					currentWraps = true;
+				}
+
+				if (part.wrap === false) {
+					currentWraps = false;
 				}
 
 				if (piece) {
@@ -155,7 +161,7 @@ export const buildEntryLines = (entry: LogEntry, isExpanded: ExpansionLookup): L
 		}
 	});
 
-	lines.push({ indent: baseIndent, spans: current });
+	lines.push({ indent: baseIndent, spans: current, wrap: currentWraps });
 
 	for (const { node, path } of expandedParts) {
 		childLines(node, path, baseIndent + INDENT_CELLS, isExpanded, lines);

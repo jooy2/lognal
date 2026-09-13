@@ -211,10 +211,11 @@ A small drawn symbol that takes two cells, such as the triangle that expands a v
 
 One line of an entry before wrapping. An entry has one logical line for each line of its text, plus one for each row of an open value.
 
-| Field    | Type         | Description                                                             |
-| -------- | ------------ | ----------------------------------------------------------------------- |
-| `indent` | `number`     | Cells of indentation before the content, repeated on every wrapped row. |
-| `spans`  | `LineSpan[]` | The spans of the line, in order.                                        |
+| Field    | Type         | Description                                                                              |
+| -------- | ------------ | ---------------------------------------------------------------------------------------- |
+| `indent` | `number`     | Cells of indentation before the content, repeated on every wrapped row.                  |
+| `spans`  | `LineSpan[]` | The spans of the line, in order.                                                         |
+| `wrap`   | `boolean`    | `false` when the line holds a text part with `wrap: false`, so it never wraps. Optional. |
 
 ## Renderer
 

@@ -28,6 +28,8 @@ export interface LogicalLine {
 	/** Cells of indentation before the content, repeated on every wrapped row. */
 	indent: number;
 	spans: LineSpan[];
+	/** `false` when the line holds a text part that must not wrap. */
+	wrap?: boolean;
 }
 
 /** How a cluster lets a wrapped row break next to it. */
@@ -74,6 +76,8 @@ export interface ShapedLine {
 	length: number;
 	/** Total width in cells, without the indentation. */
 	cells: number;
+	/** Whether the line may wrap. A line that holds a part with `wrap: false` never does. */
+	wrap: boolean;
 }
 
 /** How long lines are handled. */

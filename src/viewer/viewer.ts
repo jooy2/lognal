@@ -227,6 +227,7 @@ export class LogViewer {
 	private visibleRows: VisualRow[] = [];
 	private expectedScrollTop: number | null = null;
 	private lastScrollTop = 0;
+	private columns = 1;
 	private selection: Selection | null = null;
 	private drag: {
 		pointerId: number;
@@ -246,8 +247,10 @@ export class LogViewer {
 	private consoleObject: LognalConsole | null = null;
 	/** The wrapping mode the toolbar button restores after turning wrapping off. */
 	private wrapMode: WrapMode = 'word';
-	private cachedNumberFormat: { locale: string | undefined; format: Intl.NumberFormat } | null =
-		null;
+	private cachedNumberFormat: {
+		locale: string | undefined;
+		format: Intl.NumberFormat;
+	} | null = null;
 	private disposed = false;
 
 	constructor(container: HTMLElement, options: LogViewerOptions = {}) {
@@ -345,7 +348,10 @@ export class LogViewer {
 
 		const previous = this.options;
 
-		this.options = this.resolveOptions({ ...this.unresolvedOptions(), ...options });
+		this.options = this.resolveOptions({
+			...this.unresolvedOptions(),
+			...options
+		});
 
 		if (
 			options.toolbar !== undefined ||
@@ -502,7 +508,11 @@ export class LogViewer {
 
 		this.selection = {
 			anchor: { entryId: first.id, line: 0, cell: 0 },
-			head: { entryId: last.id, line: Number.MAX_SAFE_INTEGER, cell: Number.MAX_SAFE_INTEGER }
+			head: {
+				entryId: last.id,
+				line: Number.MAX_SAFE_INTEGER,
+				cell: Number.MAX_SAFE_INTEGER
+			}
 		};
 		this.emit('selection', this.getSelectionText());
 		this.requestRender();
@@ -885,7 +895,9 @@ export class LogViewer {
 						this.wrapMode = current;
 					}
 
-					this.layout.setOptions({ wrap: current === 'none' ? this.wrapMode : 'none' });
+					this.layout.setOptions({
+						wrap: current === 'none' ? this.wrapMode : 'none'
+					});
 					this.syncWrapButton();
 					this.requestRender();
 				},
@@ -989,7 +1001,8 @@ export class LogViewer {
 	private updateColumns(): void {
 		const available = this.width - this.contentLeft() - PADDING_RIGHT;
 
-		this.layout.setColumns(Math.max(1, Math.floor(available / this.metrics.width)));
+		this.columns = Math.max(1, Math.floor(available / this.metrics.width));
+		this.layout.setColumns(this.columns);
 	}
 
 	private scrollScale(): number {
@@ -1032,13 +1045,13 @@ export class LogViewer {
 		const content = this.contentHeight();
 		const client = this.viewport.clientHeight;
 		const spacerHeight = Math.min(content, MAX_SCROLL_HEIGHT);
-		const wrapOff = this.layout.getOptions().wrap === 'none';
-		const spacerWidth = wrapOff
-			? this.contentLeft() + this.layout.maxCells * this.metrics.width + PADDING_RIGHT
-			: 0;
+		// Lines that do not wrap, such as tables, can be wider than the view and scroll sideways.
+		const wide = this.layout.getOptions().wrap === 'none' || this.layout.maxCells > this.columns;
 
 		this.spacer.style.height = `${spacerHeight}px`;
-		this.spacer.style.width = wrapOff ? `${spacerWidth}px` : '';
+		this.spacer.style.width = wide
+			? `${this.contentLeft() + this.layout.maxCells * this.metrics.width + PADDING_RIGHT}px`
+			: '';
 
 		const maxScroll = Math.max(0, spacerHeight - client);
 		const scrollTop = this.viewport.scrollTop;
@@ -1082,7 +1095,7 @@ export class LogViewer {
 			rows,
 			decorations: rows.map((row) => this.decorationFor(row)),
 			offsetY,
-			scrollX: wrapOff ? this.viewport.scrollLeft : 0,
+			scrollX: this.viewport.scrollLeft,
 			paddingLeft: PADDING_LEFT,
 			timestampCells: this.timestampCells(),
 			markerCells: MARKER_CELLS,
@@ -1255,7 +1268,10 @@ export class LogViewer {
 
 	private numberFormat(locale: string | undefined): Intl.NumberFormat {
 		if (!this.cachedNumberFormat || this.cachedNumberFormat.locale !== locale) {
-			this.cachedNumberFormat = { locale, format: new Intl.NumberFormat(locale) };
+			this.cachedNumberFormat = {
+				locale,
+				format: new Intl.NumberFormat(locale)
+			};
 		}
 
 		return this.cachedNumberFormat.format;
@@ -1266,8 +1282,7 @@ export class LogViewer {
 		const x = event.clientX - rect.left;
 		const y = event.clientY - rect.top;
 		const row = Math.floor((y + this.topPixels - PADDING_TOP) / this.metrics.height);
-		const scrollX = this.layout.getOptions().wrap === 'none' ? this.viewport.scrollLeft : 0;
-		const exactColumn = (x + scrollX - this.contentLeft()) / this.metrics.width;
+		const exactColumn = (x + this.viewport.scrollLeft - this.contentLeft()) / this.metrics.width;
 		const visualRow = this.visibleRows[row - this.firstRow];
 		const cellColumn = Math.floor(exactColumn);
 		const run = visualRow?.runs.find(
@@ -1532,7 +1547,10 @@ export class LogViewer {
 		}
 
 		if (input.echo !== false) {
-			this.store.append({ kind: 'input', parts: [{ type: 'text', text: command }] });
+			this.store.append({
+				kind: 'input',
+				parts: [{ type: 'text', text: command }]
+			});
 		}
 
 		this.setFollowing(true);
@@ -1569,6 +1587,10 @@ export class LogViewer {
 				? { type: 'text', text: value }
 				: { type: 'value', value: snapshotValue(value) };
 
-		this.store.append({ kind: 'output', level: failed ? 'error' : 'log', parts: [part] });
+		this.store.append({
+			kind: 'output',
+			level: failed ? 'error' : 'log',
+			parts: [part]
+		});
 	}
 }

@@ -360,7 +360,10 @@ export class LogLayout {
 
 	/** Expands or collapses the value at a path of an entry. */
 	setExpanded(entry: LogEntry, path: string, expanded: boolean): void {
-		const expansion = this.expansions.get(entry.id) ?? { version: 0, paths: new Map() };
+		const expansion = this.expansions.get(entry.id) ?? {
+			version: 0,
+			paths: new Map()
+		};
 
 		expansion.paths.set(path, expanded);
 		expansion.version++;
@@ -426,7 +429,11 @@ export class LogLayout {
 			break;
 		}
 
-		return { entryId: visualRow.entry.id, line: visualRow.line, cell: visualRow.startCell + cell };
+		return {
+			entryId: visualRow.entry.id,
+			line: visualRow.line,
+			cell: visualRow.startCell + cell
+		};
 	}
 
 	/**
@@ -532,7 +539,11 @@ export class LogLayout {
 
 		return this.getText(
 			{ entryId: first.id, line: 0, cell: 0 },
-			{ entryId: last.id, line: Number.MAX_SAFE_INTEGER, cell: Number.MAX_SAFE_INTEGER }
+			{
+				entryId: last.id,
+				line: Number.MAX_SAFE_INTEGER,
+				cell: Number.MAX_SAFE_INTEGER
+			}
 		);
 	}
 
@@ -613,7 +624,11 @@ export class LogLayout {
 
 		const rows = this.countPlainRows(entry) ?? this.layoutOf(entry).rows;
 
-		this.rowCounts.set(entry.id, { stateKey, layoutVersion: this.layoutVersion, rows });
+		this.rowCounts.set(entry.id, {
+			stateKey,
+			layoutVersion: this.layoutVersion,
+			rows
+		});
 
 		return rows;
 	}
@@ -631,6 +646,7 @@ export class LogLayout {
 
 		if (
 			part.type !== 'text' ||
+			part.wrap === false ||
 			part.text.length > this.options.maxClusters ||
 			!PRINTABLE_ASCII.test(part.text)
 		) {
@@ -638,10 +654,12 @@ export class LogLayout {
 		}
 
 		const line = shapeLine([{ text: part.text }], 0, this.options);
+		const width = Math.max(MIN_WRAP_COLUMNS, this.columns);
+		const rows = wrapLine(line, width, this.options.wrap).length;
 
-		this.widest = Math.max(this.widest, line.cells);
+		this.widest = Math.max(this.widest, rows > 1 ? Math.min(line.cells, width) : line.cells);
 
-		return wrapLine(line, Math.max(MIN_WRAP_COLUMNS, this.columns), this.options.wrap).length;
+		return rows;
 	}
 
 	private layoutOf(entry: LogEntry): EntryLayout {
@@ -649,8 +667,14 @@ export class LogLayout {
 		let layout = this.layouts.get(entry.id);
 
 		if (!layout || layout.stateKey !== stateKey || layout.optionsVersion !== this.optionsVersion) {
-			const lines = buildEntryLines(entry, (path) => this.isExpanded(entry, path)).map((line) =>
-				shapeLine(line.spans, line.indent, this.options)
+			const lines = buildEntryLines(entry, (path) => this.isExpanded(entry, path)).map(
+				(logical) => {
+					const shaped = shapeLine(logical.spans, logical.indent, this.options);
+
+					shaped.wrap = logical.wrap !== false;
+
+					return shaped;
+				}
 			);
 
 			layout = {
@@ -671,14 +695,12 @@ export class LogLayout {
 			let cells = 0;
 
 			layout.wraps = layout.lines.map((line) => {
-				const wraps = wrapLine(
-					line,
-					Math.max(MIN_WRAP_COLUMNS, this.columns - line.indent),
-					this.options.wrap
-				);
+				const width = Math.max(MIN_WRAP_COLUMNS, this.columns - line.indent);
+				const wraps = wrapLine(line, width, line.wrap ? this.options.wrap : 'none');
+				const widest = wraps.length > 1 ? Math.min(line.cells, width) : line.cells;
 
 				rows += wraps.length;
-				cells = Math.max(cells, line.indent + line.cells);
+				cells = Math.max(cells, line.indent + widest);
 
 				return wraps;
 			});

@@ -38,7 +38,8 @@ const generalLine = (text: string): ShapedLine => {
 			text.split('').map((character) => (character === ' ' ? BREAK_SPACE : BREAK_NORMAL))
 		),
 		length: text.length,
-		cells: text.length
+		cells: text.length,
+		wrap: true
 	};
 };
 

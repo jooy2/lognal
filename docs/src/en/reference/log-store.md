@@ -79,15 +79,16 @@ const stop = store.subscribe((change) => {
 
 The options of `write` and `writeLines`, on the store and on the viewer.
 
-| Option   | Type                    | Default     | Description                                                                                                |
-| -------- | ----------------------- | ----------- | ---------------------------------------------------------------------------------------------------------- |
-| `level`  | `LogLevel`              | `'log'`     | The level of the entries.                                                                                  |
-| `kind`   | `LogKind`               | `'message'` | What the entries represent.                                                                                |
-| `time`   | `number`                | Now         | The time of the entries, in epoch milliseconds.                                                            |
-| `groups` | `readonly number[]`     | `[]`        | The ids of the open groups the entries belong to, outermost first.                                         |
-| `token`  | `StyleToken`            | None        | A semantic color for the text.                                                                             |
-| `style`  | `TextStyle`             | None        | Explicit styling for the text. Ignored when `ansi` is set.                                                 |
-| `ansi`   | `boolean \| AnsiParser` | `false`     | Whether ANSI escape codes in the text become styles. Pass a parser to keep the style running across calls. |
+| Option   | Type                    | Default     | Description                                                                                                        |
+| -------- | ----------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------ |
+| `level`  | `LogLevel`              | `'log'`     | The level of the entries.                                                                                          |
+| `kind`   | `LogKind`               | `'message'` | What the entries represent.                                                                                        |
+| `time`   | `number`                | Now         | The time of the entries, in epoch milliseconds.                                                                    |
+| `groups` | `readonly number[]`     | `[]`        | The ids of the open groups the entries belong to, outermost first.                                                 |
+| `token`  | `StyleToken`            | None        | A semantic color for the text.                                                                                     |
+| `style`  | `TextStyle`             | None        | Explicit styling for the text. Ignored when `ansi` is set.                                                         |
+| `ansi`   | `boolean \| AnsiParser` | `false`     | Whether ANSI escape codes in the text become styles. Pass a parser to keep the style running across calls.         |
+| `wrap`   | `boolean`               | `true`      | Set to `false` to keep every line of the text on one row, for text such as a table. A wider line scrolls sideways. |
 
 ## StoreChange
 

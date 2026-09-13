@@ -188,7 +188,10 @@ describe('LogViewer', () => {
 	});
 
 	it('follows new entries to the bottom and stops when scrolled up', async () => {
-		const viewer = new LogViewer(container, { statusBar: false, toolbar: false });
+		const viewer = new LogViewer(container, {
+			statusBar: false,
+			toolbar: false
+		});
 		const viewport = viewer.element.querySelector('.lognal-viewport') as HTMLDivElement;
 
 		for (let index = 0; index < 200; index++) {
@@ -217,8 +220,29 @@ describe('LogViewer', () => {
 		viewer.dispose();
 	});
 
+	it('scrolls sideways for a table wider than the viewer while other lines wrap', async () => {
+		container.style.width = '320px';
+
+		const viewer = new LogViewer(container, { timestamps: false });
+		const viewport = viewer.element.querySelector('.lognal-viewport') as HTMLDivElement;
+
+		viewer.console.log('A sentence that wraps inside the narrow viewer instead of scrolling.');
+		await nextFrame();
+		expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth);
+
+		viewer.console.table([
+			{ name: 'Alice', role: 'administrator', team: 'platform', active: true }
+		]);
+		await nextFrame();
+		expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth);
+		viewer.dispose();
+	});
+
 	it('expands a value when its row is clicked', async () => {
-		const viewer = new LogViewer(container, { toolbar: false, timestamps: false });
+		const viewer = new LogViewer(container, {
+			toolbar: false,
+			timestamps: false
+		});
 		const viewport = viewer.element.querySelector('.lognal-viewport') as HTMLDivElement;
 
 		viewer.console.log({ id: 1, name: 'lognal' });
@@ -312,7 +336,10 @@ describe('LogViewer', () => {
 		const [input, output] = viewer.store.toArray();
 
 		expect(input).toMatchObject({ kind: 'input', parts: [{ text: '안녕' }] });
-		expect(output).toMatchObject({ kind: 'output', parts: [{ text: 'echo: 안녕' }] });
+		expect(output).toMatchObject({
+			kind: 'output',
+			parts: [{ text: 'echo: 안녕' }]
+		});
 		viewer.dispose();
 	});
 });

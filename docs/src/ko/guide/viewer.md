@@ -87,6 +87,12 @@ new LogViewer(container, { toolbar: false });
 
 `core: { wrap: 'none' }`처럼 버튼이 아닌 방법으로 줄 바꿈을 껐다면, 버튼을 누를 때 `'word'`가 켜집니다. 버튼으로 `'char'`를 끈 적이 있으면 `'char'`가 켜집니다.
 
+`wrap` 설정과 상관없이 줄을 바꾸지 않는 텍스트도 있습니다. `console.table`의 출력과 `wrap: false`로 쓴 텍스트입니다. 이런 줄이 뷰어보다 넓으면 로그를 가로로 스크롤할 수 있고 가로 스크롤바가 나타납니다.
+
+```ts
+viewer.write(['+-------+------+', '| build | pass |', '+-------+------+'].join('\n'), { wrap: false });
+```
+
 ## 상태 표시줄 {#status-bar}
 
 상태 표시줄 왼쪽에는 `3 entries`처럼 항목 수가 나오고, 필터나 접힌 그룹 때문에 일부가 숨겨지면 `1 of 3 entries`처럼 나옵니다. 오른쪽에는 `Following`이나 `Paused`가 나옵니다. `locale: 'ko'`이면 `로그 3개`, `따라가는 중`처럼 한국어로 나옵니다. 상태 표시줄은 최대 200ms마다 갱신하고, 숫자는 `locale` 옵션에 맞는 서식으로 씁니다.

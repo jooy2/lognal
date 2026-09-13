@@ -68,12 +68,13 @@ type LogPart = TextPart | ValuePart;
 
 ### TextPart
 
-| Field   | Type         | Description                           |
-| ------- | ------------ | ------------------------------------- |
-| `type`  | `'text'`     | Marks a text part.                    |
-| `text`  | `string`     | The text. It can contain line breaks. |
-| `token` | `StyleToken` | A semantic color, optional.           |
-| `style` | `TextStyle`  | Explicit styling, optional.           |
+| Field   | Type         | Description                                                                                                 |
+| ------- | ------------ | ----------------------------------------------------------------------------------------------------------- |
+| `type`  | `'text'`     | Marks a text part.                                                                                          |
+| `text`  | `string`     | The text. It can contain line breaks.                                                                       |
+| `token` | `StyleToken` | A semantic color, optional.                                                                                 |
+| `style` | `TextStyle`  | Explicit styling, optional.                                                                                 |
+| `wrap`  | `boolean`    | `false` keeps every line of the part on one row, for text such as a table. Optional; parts wrap by default. |
 
 ### ValuePart
 

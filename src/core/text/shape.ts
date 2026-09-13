@@ -187,7 +187,8 @@ const shapeSimple = (span: ShapedSpan, indent: number): ShapedLine => {
 		widths: null,
 		breaks: null,
 		length: span.text.length,
-		cells: span.text.length
+		cells: span.text.length,
+		wrap: true
 	};
 };
 
@@ -249,7 +250,8 @@ export const shapeLine = (
 			widths: null,
 			breaks: null,
 			length: builder.clusters.length,
-			cells: builder.cells
+			cells: builder.cells,
+			wrap: true
 		};
 	}
 
@@ -263,7 +265,8 @@ export const shapeLine = (
 		widths: Uint8Array.from(builder.widths),
 		breaks: Uint8Array.from(builder.breaks),
 		length: builder.clusters.length,
-		cells: builder.cells
+		cells: builder.cells,
+		wrap: true
 	};
 };
 
