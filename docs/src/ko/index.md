@@ -16,6 +16,9 @@ hero:
     - theme: alt
       text: 가이드
       link: /ko/guide/
+    - theme: alt
+      text: 데모
+      link: /ko/demo
   image:
     src: /icon.webp
     alt: lognal
@@ -49,7 +52,7 @@ features:
 
 ## 직접 써 보기 {#try-it}
 
-아래 뷰어는 이 저장소의 라이브러리 코드로 동작합니다. 버튼으로 로그를 쓴 다음 도구 모음을 써 보세요. 텍스트로 거르거나, 수준을 고르거나, 줄 바꿈을 끄거나, 위로 스크롤해서 따라가기를 멈출 수 있습니다.
+아래 뷰어는 이 저장소의 라이브러리 코드로 동작합니다. 버튼으로 로그를 쓴 다음 도구 모음을 써 보세요. 텍스트로 거르거나, 수준을 고르거나, 줄 바꿈을 끄거나, 위로 스크롤해서 따라가기를 멈출 수 있습니다. 나머지 옵션과 기능은 [데모 페이지](/ko/demo)에 모두 있습니다.
 
 <ClientOnly>
   <LiveViewer preset="console" />

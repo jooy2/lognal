@@ -16,6 +16,9 @@ hero:
     - theme: alt
       text: Guide
       link: /guide/
+    - theme: alt
+      text: Demo
+      link: /demo
   image:
     src: /icon.webp
     alt: lognal
@@ -49,7 +52,7 @@ features:
 
 ## Try it
 
-The viewer below runs the library from this repository. Use the buttons to write logs, then try the toolbar: filter the text, pick a level, turn wrapping off, or scroll up to stop following.
+The viewer below runs the library from this repository. Use the buttons to write logs, then try the toolbar: filter the text, pick a level, turn wrapping off, or scroll up to stop following. Every other option and feature is on the [demo page](/demo).
 
 <ClientOnly>
   <LiveViewer preset="console" />

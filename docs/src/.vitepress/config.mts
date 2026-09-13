@@ -117,9 +117,9 @@ const vitePressSidebarConfigs: VitePressSidebarOptions[] = supportedLocale.map((
 	return {
 		...commonSidebarConfig,
 		documentRootPath: `/src/${lang}`,
-		// The changelog is in the navigation bar. The English copy sits outside `src/en`, so the
-		// Korean copy is left out of the sidebar too, and both sidebars stay the same.
-		excludeByGlobPattern: ['changelog.md'],
+		// The demo and the changelog are in the navigation bar. The demo page has no sidebar, and
+		// the English changelog sits outside `src/en`, so both stay out of every sidebar.
+		excludeByGlobPattern: ['changelog.md', 'demo.md'],
 		resolvePath: defaultLocale === lang ? '/' : `/${lang}/`,
 		...(defaultLocale === lang ? {} : { basePath: `/${lang}/` })
 	};
@@ -136,6 +136,7 @@ const vitePressI18nConfigs: VitePressI18nOptions = {
 				{ text: 'Getting started', link: '/getting-started' },
 				{ text: 'Guide', link: '/guide/' },
 				{ text: 'Reference', link: '/reference/' },
+				{ text: 'Demo', link: '/demo' },
 				{ text: 'Changelog', link: '/changelog' }
 			]
 		},
@@ -144,6 +145,7 @@ const vitePressI18nConfigs: VitePressI18nOptions = {
 				{ text: '시작하기', link: '/ko/getting-started' },
 				{ text: '가이드', link: '/ko/guide/' },
 				{ text: '레퍼런스', link: '/ko/reference/' },
+				{ text: '데모', link: '/ko/demo' },
 				{ text: '변경 내역', link: '/ko/changelog' }
 			]
 		}

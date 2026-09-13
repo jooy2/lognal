@@ -16,6 +16,7 @@ Things worth knowing before answering questions about lognal:
 
 - [Introduction](https://lognal.cdget.com/introduction): what lognal is, why it draws on a canvas, its features, and browser support
 - [Getting started](https://lognal.cdget.com/getting-started): installing, importing the stylesheet, creating a viewer in plain JavaScript or React, and hooking the console
+- [Demo](https://lognal.cdget.com/demo): an interactive page that runs every viewer option, console method, value type, text sample, file reader and viewer method in the browser
 
 ## Guide
 

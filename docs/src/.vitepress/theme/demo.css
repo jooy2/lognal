@@ -1,0 +1,29 @@
+/*
+ * The frame of the demo page. The page uses `layout: page` without a sidebar, so the viewer and
+ * its controls can sit side by side.
+ */
+
+.demo-page {
+	max-width: 1600px;
+	margin: 0 auto;
+	padding: 24px 24px 96px;
+}
+
+.demo-page .demo-intro {
+	max-width: 840px;
+	margin-bottom: 24px;
+}
+
+/*
+ * On narrow screens the viewer sticks to the top of the screen while the controls scroll. The
+ * bar that returns to the top would cover it there, and the page has no outline to show in it.
+ */
+.demo-layout .VPLocalNav {
+	display: none;
+}
+
+@media (min-width: 768px) {
+	.demo-page {
+		padding: 32px 32px 96px;
+	}
+}

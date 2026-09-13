@@ -6,7 +6,7 @@ Guidance for AI agents and people working in this repository. Read it before sta
 
 lognal is a JavaScript log viewer library that looks like a terminal. It displays a fast stream of log messages and a long history, and it can also take input when something is connected to answer it. The core is plain TypeScript with no framework dependency. React is the first framework adapter, and other frameworks are meant to follow.
 
-The library is published on npm as `lognal`, starting with 0.1.0 on 2026-09-13. The documentation site is `docs/`, published to https://lognal.cdget.com.
+The library is published on npm as `lognal`, starting with 0.1.0 on 2026-09-13. The documentation site is `docs/`, published to https://lognal.cdget.com, and its demo page at `/demo` runs every feature of the viewer.
 
 ## Use cases
 
