@@ -566,6 +566,42 @@ describe('LogViewer', () => {
 		viewer.dispose();
 	});
 
+	it('opens a link without asking on Ctrl+click or Cmd+click in text mode', async () => {
+		const open = vi.spyOn(window, 'open').mockReturnValue(null);
+		const viewer = new LogViewer(container, { timestamps: false, toolbar: false });
+		const dialog = viewer.element.querySelector('.lognal-dialog') as HTMLDialogElement;
+		const apple = /Mac|iPhone|iPad/.test(navigator.platform);
+		const primary = apple ? { metaKey: true } : { ctrlKey: true };
+		const secondary = apple ? { ctrlKey: true } : { metaKey: true };
+		const url = `https://example.com/${'c'.repeat(60)}`;
+		const entry = viewer.store.write(url);
+
+		await nextFrame();
+
+		click(viewer, 100, 12, primary);
+		expect(open).toHaveBeenCalledWith(url, '_blank', 'noopener,noreferrer');
+		expect(dialog.open).toBe(false);
+
+		// Shift along with it, or the other key of the platform, selects text instead.
+		click(viewer, 100, 12, { ...primary, shiftKey: true });
+		click(viewer, 100, 12, secondary);
+		expect(open).toHaveBeenCalledTimes(1);
+		expect(dialog.open).toBe(false);
+
+		viewer.setOptions({ linkClick: 'ignore' });
+		click(viewer, 100, 12, primary);
+		expect(open).toHaveBeenCalledTimes(1);
+
+		// In entry mode, the same click adds the entry to the selection.
+		viewer.setOptions({ linkClick: 'confirm', selectionMode: 'entry' });
+		click(viewer, 100, 12, primary);
+		expect(open).toHaveBeenCalledTimes(1);
+		expect(viewer.getSelectedEntryIds()).toEqual([entry!.id]);
+
+		open.mockRestore();
+		viewer.dispose();
+	});
+
 	it('offers to open the links of an entry from its menu', async () => {
 		const viewer = new LogViewer(container, { timestamps: false });
 		const button = viewer.element.querySelector('.lognal-entry-actions') as HTMLButtonElement;

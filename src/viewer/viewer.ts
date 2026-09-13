@@ -416,6 +416,8 @@ export class LogViewer {
 		moved: boolean;
 		/** In entry mode, the entries a drag adds its range to, or `null` when the press selected nothing. */
 		baseEntries: ReadonlySet<number> | null;
+		/** Whether a click on a link opens it without asking, for Ctrl or Cmd held with the click. */
+		openLinkDirectly: boolean;
 	} | null = null;
 	private autoScrollFrame = 0;
 	private lastPointer: { x: number; y: number } | null = null;
@@ -2474,14 +2476,21 @@ export class LogViewer {
 
 		const hit = this.hitTest(event);
 		const position = this.positionFrom(hit);
+		// In text mode, a click with Ctrl, or with Cmd on macOS, opens a link without asking. In entry
+		// mode the same click adds to the selection.
+		const openLinkDirectly =
+			this.options.selectionMode === 'text' &&
+			hit.action?.type === 'open-link' &&
+			this.hasOnlyPrimaryModifier(event);
 
 		this.drag = {
 			pointerId: event.pointerId,
 			x: event.clientX,
 			y: event.clientY,
-			action: hit.action && !hasModifier(event) ? hit : null,
+			action: hit.action && (!hasModifier(event) || openLinkDirectly) ? hit : null,
 			moved: false,
-			baseEntries: null
+			baseEntries: null,
+			openLinkDirectly
 		};
 		this.lastPointer = { x: event.clientX, y: event.clientY };
 		capturePointer(this.viewport, event.pointerId);
@@ -2607,10 +2616,13 @@ export class LogViewer {
 		}
 	}
 
-	/** Runs the action of a span: opens a link, or opens or closes a value or a group. */
-	private runLineAction(entryId: number, action: LineAction): void {
+	/**
+	 * Runs the action of a span: opens a link, or opens or closes a value or a group. With
+	 * `openLinkDirectly`, a link opens without asking.
+	 */
+	private runLineAction(entryId: number, action: LineAction, openLinkDirectly = false): void {
 		if (action.type === 'open-link') {
-			this.activateLink(action.url);
+			this.activateLink(action.url, openLinkDirectly);
 		} else {
 			this.layout.runAction(entryId, action);
 		}
@@ -2618,8 +2630,11 @@ export class LogViewer {
 		this.requestRender();
 	}
 
-	/** Opens a link in a new tab the way `linkClick` says: after asking, right away, or not at all. */
-	private activateLink(url: string): void {
+	/**
+	 * Opens a link in a new tab the way `linkClick` says: after asking, right away, or not at all.
+	 * `openDirectly` skips the question, but still opens nothing with `ignore`.
+	 */
+	private activateLink(url: string, openDirectly = false): void {
 		const href = linkHref(url);
 		const { linkClick } = this.options;
 
@@ -2631,7 +2646,7 @@ export class LogViewer {
 			this.ownerDocument.defaultView?.open(href, '_blank', 'noopener,noreferrer');
 		};
 
-		if (linkClick === 'open') {
+		if (linkClick === 'open' || openDirectly) {
 			open();
 
 			return;
@@ -2726,7 +2741,7 @@ export class LogViewer {
 			return;
 		}
 
-		const { action, moved } = this.drag;
+		const { action, moved, openLinkDirectly } = this.drag;
 
 		this.drag = null;
 		cancelAnimationFrame(this.autoScrollFrame);
@@ -2750,7 +2765,7 @@ export class LogViewer {
 
 		if (action?.action && action.visualRow && !moved) {
 			this.selection = null;
-			this.runLineAction(action.visualRow.entry.id, action.action);
+			this.runLineAction(action.visualRow.entry.id, action.action, openLinkDirectly);
 
 			return;
 		}
@@ -2787,6 +2802,17 @@ export class LogViewer {
 		} else {
 			this.extendSelection();
 		}
+	}
+
+	/**
+	 * Whether the only key held is the one that adds to a selection: Cmd on macOS and iOS, where
+	 * Ctrl with a click opens the context menu, and Ctrl elsewhere.
+	 */
+	private hasOnlyPrimaryModifier(event: MouseEvent): boolean {
+		const primary = this.applePlatform ? event.metaKey : event.ctrlKey;
+		const secondary = this.applePlatform ? event.ctrlKey : event.metaKey;
+
+		return primary && !secondary && !event.shiftKey && !event.altKey;
 	}
 
 	/**

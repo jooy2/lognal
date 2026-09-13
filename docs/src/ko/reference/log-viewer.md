@@ -205,7 +205,7 @@ type LinkClick = 'confirm' | 'open' | 'ignore';
 | `'open'`    | 새 탭에서 바로 엽니다.                                           |
 | `'ignore'`  | 아무것도 하지 않습니다. 주소는 링크 모양 그대로 보입니다.        |
 
-`http`, `https` 주소만 열고, 열 때는 `noopener`와 `noreferrer`를 붙입니다.
+`http`, `https` 주소만 열고, 열 때는 `noopener`와 `noreferrer`를 붙입니다. 텍스트 모드에서 Ctrl+클릭(macOS에서는 Cmd+클릭)은 값이 `'ignore'`가 아니면 링크를 바로 엽니다.
 
 ## ViewerLabels {#viewerlabels}
 

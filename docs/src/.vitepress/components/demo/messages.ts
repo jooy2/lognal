@@ -171,7 +171,8 @@ const EN = {
 		'entry-menu':
 			'Hover an entry, or press and hold it on a touch screen. The last two items of the menu come from the items option.',
 		'second-viewer': 'Warnings and errors from the same store',
-		links: 'Write the Links sample from the Text group, then click an address.',
+		links:
+			'Write the Links sample from the Text group, then click an address. Ctrl+click or Cmd+click opens it without asking.',
 		'selection-mode':
 			'With whole entries, click, Ctrl or Cmd and click, Shift and click, or press the arrow keys, then right-click the selection.',
 		font: 'A font that is not installed on your device falls back to the next one in the list.',
@@ -375,7 +376,8 @@ const KO: Messages = {
 		'entry-menu':
 			'항목에 포인터를 올리거나, 터치 화면에서 항목을 길게 누르세요. 메뉴의 마지막 두 항목은 items 옵션으로 넣은 것입니다.',
 		'second-viewer': '같은 스토어의 경고와 오류',
-		links: '텍스트 묶음의 링크 예제를 쓴 뒤 주소를 클릭해 보세요.',
+		links:
+			'텍스트 묶음의 링크 예제를 쓴 뒤 주소를 클릭해 보세요. Ctrl+클릭이나 Cmd+클릭은 묻지 않고 바로 엽니다.',
 		'selection-mode':
 			'항목 단위에서는 클릭하거나, Ctrl이나 Cmd 또는 Shift를 누른 채 클릭하거나, 화살표 키로 항목을 고른 뒤 오른쪽 클릭해 보세요.',
 		font: '기기에 설치되지 않은 글꼴은 목록의 다음 글꼴로 대신합니다.',

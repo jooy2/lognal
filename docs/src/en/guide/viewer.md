@@ -226,7 +226,8 @@ new LogViewer(container, { core: { links: false } });
 - The dialog writes the host the way the browser reads it, so a host made of letters that look like other letters shows its `xn--` form. An invisible or bidirectional formatting character is never part of an address; the link ends before it.
 - A link opens with `noopener` and `noreferrer`, so the new page cannot reach the page of the viewer and is not told where it was opened from.
 - The entry menu lists up to five links of the entry, so a link also opens from the keyboard with Shift+F10. With `linkClick: 'ignore'`, the menu leaves them out.
-- A click with Shift, Ctrl, Alt or Cmd held selects text and does not open the link.
+- Ctrl+click, or Cmd+click on macOS, opens a link right away, without the dialog. It does nothing with `linkClick: 'ignore'`, and in entry mode it adds the entry to the selection instead.
+- Any other click with Shift, Ctrl, Alt or Cmd held selects text and does not open the link.
 
 `findLinks(text)` returns the addresses the viewer finds in a string, with their positions.
 

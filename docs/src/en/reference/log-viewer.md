@@ -205,7 +205,7 @@ type LinkClick = 'confirm' | 'open' | 'ignore';
 | `'open'`    | Opens the link in a new tab right away.                                            |
 | `'ignore'`  | Nothing. The address is still drawn as a link.                                     |
 
-Only `http` and `https` addresses open, and they open with `noopener` and `noreferrer`.
+Only `http` and `https` addresses open, and they open with `noopener` and `noreferrer`. In text mode, Ctrl+click, or Cmd+click on macOS, opens a link right away unless the value is `'ignore'`.
 
 ## ViewerLabels
 
