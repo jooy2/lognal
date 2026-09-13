@@ -340,7 +340,10 @@ export class CanvasRenderer implements Renderer {
 				currentFont = font;
 			}
 
-			const color = this.colorOf(run, row.entry);
+			// A link takes the link color, unless its text was given a color of its own.
+			const isLink = run.action?.type === 'open-link';
+			const color =
+				isLink && style?.color === undefined ? this.theme.link : this.colorOf(run, row.entry);
 
 			context.fillStyle = color;
 			context.globalAlpha = style?.dim ? 0.6 : 1;
@@ -373,7 +376,7 @@ export class CanvasRenderer implements Renderer {
 
 			context.globalAlpha = 1;
 
-			if (style?.underline) {
+			if (style?.underline || isLink) {
 				context.fillRect(x, top + baseline + 2, runWidth, 1);
 			}
 

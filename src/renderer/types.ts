@@ -36,6 +36,8 @@ export interface RenderTheme {
 	searchMatch: string;
 	/** The highlight of the current match of a search. */
 	searchCurrent: string;
+	/** The text of a link, unless the text has a color of its own. */
+	link: string;
 	error: string;
 	errorBackground: string;
 	warn: string;

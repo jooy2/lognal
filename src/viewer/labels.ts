@@ -38,6 +38,16 @@ export interface ViewerLabels {
 	expandAll: string;
 	/** The menu item that collapses every value of an entry. */
 	collapseAll: string;
+	/** The menu item that opens a link of an entry. `url` is the address of the link. */
+	openLink: (url: string) => string;
+	/** The title of the dialog that asks before a link opens. */
+	linkDialogTitle: string;
+	/** The sentence under the title of the link dialog. */
+	linkDialogMessage: string;
+	/** The button of the link dialog that opens the link. */
+	linkDialogOpen: string;
+	/** The button of the link dialog that closes it without opening the link. */
+	linkDialogCancel: string;
 	/** Accessible name of the search bar, and the placeholder of its field. */
 	search: string;
 	searchPrevious: string;
@@ -87,6 +97,11 @@ export const EN_LABELS: ViewerLabels = {
 	copyEntryData: 'Copy as data',
 	expandAll: 'Expand all',
 	collapseAll: 'Collapse all',
+	openLink: (url) => `Open ${url}`,
+	linkDialogTitle: 'Open this link?',
+	linkDialogMessage: 'The link opens in a new tab. Check the address before you open it.',
+	linkDialogOpen: 'Open link',
+	linkDialogCancel: 'Cancel',
 	search: 'Find in log',
 	searchPrevious: 'Previous match',
 	searchNext: 'Next match',
@@ -135,6 +150,11 @@ export const KO_LABELS: ViewerLabels = {
 	copyEntryData: '데이터로 복사',
 	expandAll: '모두 펼치기',
 	collapseAll: '모두 접기',
+	openLink: (url) => `링크 열기: ${url}`,
+	linkDialogTitle: '이 링크를 열까요?',
+	linkDialogMessage: '링크는 새 탭에서 열립니다. 열기 전에 주소를 확인하세요.',
+	linkDialogOpen: '링크 열기',
+	linkDialogCancel: '취소',
 	search: '로그에서 찾기',
 	searchPrevious: '이전 결과',
 	searchNext: '다음 결과',

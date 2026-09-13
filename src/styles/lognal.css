@@ -40,6 +40,7 @@
 	--lognal-hover: rgba(29, 33, 41, 0.04);
 	--lognal-search-match: rgba(255, 200, 0, 0.4);
 	--lognal-search-current: rgba(255, 140, 0, 0.7);
+	--lognal-link: #1f6fd6;
 	--lognal-error: #c4262c;
 	--lognal-error-background: rgba(222, 53, 58, 0.07);
 	--lognal-warn: #8a5a00;
@@ -117,6 +118,7 @@
 	--lognal-hover: rgba(227, 229, 234, 0.06);
 	--lognal-search-match: rgba(255, 200, 0, 0.28);
 	--lognal-search-current: rgba(255, 140, 0, 0.6);
+	--lognal-link: #5aa2ff;
 	--lognal-error: #ff8a8d;
 	--lognal-error-background: rgba(252, 79, 83, 0.1);
 	--lognal-warn: #fcc549;
@@ -179,6 +181,7 @@
 		--lognal-hover: rgba(227, 229, 234, 0.06);
 		--lognal-search-match: rgba(255, 200, 0, 0.28);
 		--lognal-search-current: rgba(255, 140, 0, 0.6);
+		--lognal-link: #5aa2ff;
 		--lognal-error: #ff8a8d;
 		--lognal-error-background: rgba(252, 79, 83, 0.1);
 		--lognal-warn: #fcc549;
@@ -453,6 +456,101 @@
 	text-overflow: ellipsis;
 }
 
+/* The dialog that asks before a link opens */
+
+.lognal-dialog {
+	position: fixed;
+	inset: 0;
+	z-index: 1001;
+	width: min(440px, calc(100vw - 32px));
+	max-width: none;
+	height: fit-content;
+	max-height: calc(100vh - 32px);
+	margin: auto;
+	padding: 0;
+	overflow: auto;
+	color: var(--lognal-foreground);
+	background: var(--lognal-background);
+	border: 1px solid var(--lognal-border);
+	border-radius: var(--lognal-radius);
+	box-shadow: var(--lognal-popup-shadow);
+	font-family: var(--lognal-ui-font-family);
+	font-size: var(--lognal-ui-font-size);
+	line-height: 1.4;
+}
+
+.lognal-dialog:not([open]) {
+	display: none;
+}
+
+.lognal-dialog::backdrop {
+	background: rgba(0, 0, 0, 0.32);
+}
+
+.lognal-dialog-body {
+	padding: 16px;
+}
+
+.lognal-dialog-title {
+	margin: 0 0 4px;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.lognal-dialog-message {
+	margin: 0 0 12px;
+	color: var(--lognal-muted);
+}
+
+.lognal-dialog-address {
+	max-height: 120px;
+	margin: 0 0 16px;
+	padding: 8px 10px;
+	overflow: auto;
+	background: var(--lognal-surface);
+	border: 1px solid var(--lognal-border);
+	border-radius: var(--lognal-control-radius);
+	font-family: var(--lognal-font-family);
+	font-size: 12px;
+	overflow-wrap: anywhere;
+	-webkit-user-select: text;
+	user-select: text;
+}
+
+.lognal-dialog-actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 8px;
+}
+
+.lognal-dialog-button {
+	height: 30px;
+	padding: 0 14px;
+	color: var(--lognal-foreground);
+	background-color: var(--lognal-background);
+	border: 1px solid var(--lognal-border);
+	border-radius: var(--lognal-control-radius);
+	font: inherit;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.lognal-dialog-button:hover {
+	background-image: linear-gradient(var(--lognal-control-hover), var(--lognal-control-hover));
+}
+
+.lognal-dialog-button.is-primary {
+	color: #ffffff;
+	background-color: var(--lognal-accent);
+	border-color: var(--lognal-accent);
+}
+
+.lognal-dialog-button:focus-visible {
+	outline: 2px solid var(--lognal-focus-ring);
+	outline-offset: 2px;
+}
+
 /* Log area */
 
 .lognal-body {
@@ -584,12 +682,14 @@
 	cursor: pointer;
 }
 
-.lognal[data-theme='dark'] .lognal-new-logs {
+.lognal[data-theme='dark'] .lognal-new-logs,
+.lognal[data-theme='dark'] .lognal-dialog-button.is-primary {
 	color: #0b1220;
 }
 
 @media (prefers-color-scheme: dark) {
-	.lognal[data-theme='auto'] .lognal-new-logs {
+	.lognal[data-theme='auto'] .lognal-new-logs,
+	.lognal[data-theme='auto'] .lognal-dialog-button.is-primary {
 		color: #0b1220;
 	}
 }

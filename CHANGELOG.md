@@ -6,8 +6,9 @@ Changes to `lognal` that affect its users, newest first.
 
 ### Breaking changes
 
-- `ViewerLabels` has fifteen new labels: `entryActions`, `copyEntry`, `copyEntryWithTime`, `copyEntryFormatted`, `copyEntryData`, `expandAll`, `collapseAll`, `search`, `searchPrevious`, `searchNext`, `searchClose`, `searchCase`, `searchRegex`, `searchInvalid` and `searchResults`. A complete `ViewerLabels` object of your own needs all of them. Overrides passed in `labels` are not affected.
-- `RenderTheme` has the new colors `hover`, `searchMatch` and `searchCurrent`, and `RowDecoration` the new fields `hovered`, `searchMatches` and `searchCurrent`. A `RenderTheme` object built by hand needs the three colors; spreading `DEFAULT_RENDER_THEME` covers them.
+- `ViewerLabels` has twenty new labels: `entryActions`, `copyEntry`, `copyEntryWithTime`, `copyEntryFormatted`, `copyEntryData`, `expandAll`, `collapseAll`, `search`, `searchPrevious`, `searchNext`, `searchClose`, `searchCase`, `searchRegex`, `searchInvalid`, `searchResults`, `openLink`, `linkDialogTitle`, `linkDialogMessage`, `linkDialogOpen` and `linkDialogCancel`. A complete `ViewerLabels` object of your own needs all of them. Overrides passed in `labels` are not affected.
+- `RenderTheme` has the new colors `hover`, `searchMatch`, `searchCurrent` and `link`, and `RowDecoration` the new fields `hovered`, `searchMatches` and `searchCurrent`. A `RenderTheme` object built by hand needs the four colors; spreading `DEFAULT_RENDER_THEME` covers them.
+- `LineAction` has a new type, `{ type: 'open-link'; url: string }`, on the spans of links. Code that handles every type of action, such as a custom renderer, needs to handle it too.
 - The level menu in the toolbar is a `<button class="lognal-levels">` that opens a list box, instead of a `<select>`. Styles or tests written for the `<select>` need to target the button and its menu.
 
 ### Changes
@@ -21,6 +22,8 @@ Changes to `lognal` that affect its users, newest first.
 - `--lognal-popup-shadow` sets the shadow of the level menu and the entry menu.
 - Enter at the end of Korean text in the input line submits the command with one press. Before, the first press added a line and the second one submitted. Enter that confirms a Japanese or Chinese candidate still does not submit.
 - A tap on a value or a group header on a touch screen opens or closes it, as a click does. Before, a tap did nothing.
+- `http` and `https` addresses in the log are drawn as links in `--lognal-link` and open in a new tab. `linkClick` decides what a click or a tap does: `'confirm'`, the default, shows the address in a dialog and asks first, `'open'` opens the link right away, and `'ignore'` only draws it. `core: { links: false }` draws addresses as plain text. The entry menu lists the links of an entry, so they also open from the keyboard, and `findLinks` finds the addresses in a string.
+- A click with Shift, Ctrl, Alt or Cmd held on a value, a group header or a link selects text instead of opening it.
 
 ## 0.1.0 (2026-09-13)
 

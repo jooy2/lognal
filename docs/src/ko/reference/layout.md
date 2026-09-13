@@ -21,12 +21,13 @@ new LogLayout(store: LogStore, options?: Partial<LayoutOptions>)
 
 `DEFAULT_LAYOUT_OPTIONS`에 기본값이 들어 있습니다.
 
-| 옵션             | 타입             | 기본값   | 설명                                                              |
-| ---------------- | ---------------- | -------- | ----------------------------------------------------------------- |
-| `wrap`           | `WrapMode`       | `'word'` | 뷰어보다 긴 줄을 처리하는 방식입니다.                             |
-| `tabSize`        | `number`         | `8`      | 탭 위치 사이의 칸 수입니다.                                       |
-| `ambiguousWidth` | `AmbiguousWidth` | `1`      | 동아시아 모호 폭 문자가 차지하는 칸 수입니다.                     |
-| `maxClusters`    | `number`         | `10000`  | 한 줄에 남기는 최대 클러스터 수입니다. 나머지는 `…`로 대신합니다. |
+| 옵션             | 타입             | 기본값   | 설명                                                                                 |
+| ---------------- | ---------------- | -------- | ------------------------------------------------------------------------------------ |
+| `wrap`           | `WrapMode`       | `'word'` | 뷰어보다 긴 줄을 처리하는 방식입니다.                                                |
+| `tabSize`        | `number`         | `8`      | 탭 위치 사이의 칸 수입니다.                                                          |
+| `ambiguousWidth` | `AmbiguousWidth` | `1`      | 동아시아 모호 폭 문자가 차지하는 칸 수입니다.                                        |
+| `maxClusters`    | `number`         | `10000`  | 한 줄에 남기는 최대 클러스터 수입니다. 나머지는 `…`로 대신합니다.                    |
+| `links`          | `boolean`        | `true`   | 텍스트 안의 `http`, `https` 주소를 `open-link` 동작이 붙은 조각으로 만들지 정합니다. |
 
 ```ts
 type WrapMode = 'word' | 'char' | 'none';
@@ -68,10 +69,11 @@ type WrapMode = 'word' | 'char' | 'none';
 | `expandAll(entryId: number)`                                                    | `void`                                          | 항목의 값과 그 안의 값을 캡처된 만큼 모두 펼칩니다.                                                                                                                                |
 | `collapseAll(entryId: number)`                                                  | `void`                                          | 따로 로그를 남긴 오류까지 포함해 항목의 값을 모두 접습니다.                                                                                                                        |
 | `hasExpandableValues(entry: LogEntry)`                                          | `boolean`                                       | 항목에 펼칠 수 있는 값이 있는지 반환합니다.                                                                                                                                        |
+| `linksOf(entryId: number)`                                                      | `string[]`                                      | 펼친 값의 행까지, 화면에 보이는 대로 항목의 링크 주소를 순서대로 반환합니다. 같은 주소는 한 번만 넣습니다.                                                                         |
 | `indexFrom(entryId: number)`                                                    | `number`                                        | id가 `entryId` 이상인 첫 보이는 항목의 보이는 위치를 반환합니다.                                                                                                                   |
 | `findInEntry(entry: LogEntry, pattern: RegExp, limit?: number)`                 | `TextMatch[]`                                   | 전역 패턴이 항목의 보이는 줄에서 일치하는 곳을 유니코드 정규화 형식 C로 비교해 찾습니다. `TextMatch`는 `{ entryId, line, from, to }`이고, `from`과 `to`는 논리 줄의 칸 위치입니다. |
 | `locatePosition(position: TextPosition)`                                        | `{ entryRow: number; indent: number } \| null`  | 텍스트 위치를 보여 주는 항목 안의 행과 그 행의 들여쓰기를 반환합니다.                                                                                                              |
-| `runAction(entryId: number, action: LineAction)`                                | `void`                                          | 클릭한 조각의 동작을 실행합니다.                                                                                                                                                   |
+| `runAction(entryId: number, action: LineAction)`                                | `void`                                          | 클릭한 조각의 동작을 실행합니다. 링크를 여는 일은 뷰어가 맡습니다.                                                                                                                 |
 | `positionAt(row: number, column: number)`                                       | `TextPosition \| null`                          | 콘텐츠 영역의 행과 열에 있는 텍스트 위치를 반환합니다.                                                                                                                             |
 | `wordAt(position: TextPosition)`                                                | `[TextPosition, TextPosition] \| null`          | 위치에 있는 낱말의 시작과 끝을 반환합니다.                                                                                                                                         |
 | `getText(from: TextPosition, to: TextPosition)`                                 | `string`                                        | 두 위치 사이의 텍스트를 논리 줄마다 한 줄씩 반환합니다.                                                                                                                            |
@@ -201,10 +203,23 @@ interface TextPosition {
 ### LineAction {#lineaction}
 
 ```ts
-type LineAction = { type: 'toggle-value'; path: string } | { type: 'toggle-group' };
+type LineAction = { type: 'toggle-value'; path: string } | { type: 'toggle-group' } | { type: 'open-link'; url: string };
 ```
 
-조각을 클릭했을 때의 동작입니다. `toggle-value`는 `path`에 있는 값을 펼치거나 접고, `toggle-group`은 항목이 시작하는 그룹을 접거나 펼칩니다.
+조각을 클릭했을 때의 동작입니다. `toggle-value`는 `path`에 있는 값을 펼치거나 접고, `toggle-group`은 항목이 시작하는 그룹을 접거나 펼칩니다. `open-link`는 `url`을 여는 동작이며, 뷰어가 `linkClick` 옵션에 따라 처리합니다.
+
+### findLinks {#findlinks}
+
+```ts
+findLinks(text: string): TextLink[]
+```
+
+`links`가 켜져 있을 때 레이아웃이 찾는 방식 그대로 문자열에서 `http`, `https` 주소를 찾습니다. `TextLink`는 `{ start, end, url }`입니다. `start`와 `end`는 UTF-16 코드 단위로 센 위치이고, `url`은 그 사이의 텍스트입니다.
+
+```ts
+findLinks('Docs: https://lognal.cdget.com/guide/viewer.');
+// [{ start: 6, end: 43, url: 'https://lognal.cdget.com/guide/viewer' }]
+```
 
 ### 줄 조각 {#line-spans}
 
@@ -317,13 +332,13 @@ interface Renderer {
 
 렌더러가 그릴 때 쓰는 색입니다. `readTheme`이 `--lognal-*` 사용자 지정 속성으로 만들며, CSS 색이면 무엇이든 쓸 수 있습니다.
 
-| 필드                                                                       | 타입                                             | CSS 속성                                         |
-| -------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------ |
-| `background`, `foreground`, `muted`, `accent`                              | `string`                                         | `--lognal-background` 등                         |
-| `selection`, `match`, `separator`, `hover`, `searchMatch`, `searchCurrent` | `string`                                         | `--lognal-selection` 등                          |
-| `error`, `errorBackground`, `warn`, `warnBackground`, `info`, `debug`      | `string`                                         | `--lognal-error`, `--lognal-error-background` 등 |
-| `tokens`                                                                   | `Record<Exclude<StyleToken, 'default'>, string>` | `--lognal-token-*`                               |
-| `ansi`                                                                     | `string[]`                                       | `--lognal-ansi-0`부터 `--lognal-ansi-15`까지     |
+| 필드                                                                               | 타입                                             | CSS 속성                                         |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------ |
+| `background`, `foreground`, `muted`, `accent`                                      | `string`                                         | `--lognal-background` 등                         |
+| `selection`, `match`, `separator`, `hover`, `searchMatch`, `searchCurrent`, `link` | `string`                                         | `--lognal-selection` 등                          |
+| `error`, `errorBackground`, `warn`, `warnBackground`, `info`, `debug`              | `string`                                         | `--lognal-error`, `--lognal-error-background` 등 |
+| `tokens`                                                                           | `Record<Exclude<StyleToken, 'default'>, string>` | `--lognal-token-*`                               |
+| `ansi`                                                                             | `string[]`                                       | `--lognal-ansi-0`부터 `--lognal-ansi-15`까지     |
 
 `DEFAULT_RENDER_THEME`에는 CSS에서 테마를 읽기 전까지 쓰는 색이 들어 있습니다. 이 색은 `lognal.css`의 어두운 팔레트와 같고, 단위 테스트가 두 값이 같은지 확인합니다.
 

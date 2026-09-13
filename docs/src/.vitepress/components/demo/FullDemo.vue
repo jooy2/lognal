@@ -11,6 +11,7 @@ import type {
 	FileHandleLike,
 	FollowHandle,
 	InputOptions,
+	LinkClick,
 	LogFilter,
 	LogLevel,
 	LogViewer,
@@ -111,6 +112,7 @@ const settings = reactive({
 	statusBar: true,
 	entryMenu: true,
 	search: true,
+	linkClick: 'confirm' as LinkClick,
 	secondViewer: false,
 	toolbar: true,
 	toolbarControls: {
@@ -127,6 +129,7 @@ const settings = reactive({
 	maxEntries: 10000,
 	maxClusters: 10000,
 	mergeRepeats: true,
+	links: true,
 	...DEFAULT_APPEARANCE,
 	input: true,
 	prompt: '>',
@@ -258,6 +261,7 @@ const initialOptions = (): LogViewerOptions => ({
 	statusBar: settings.statusBar,
 	entryMenu: viewerEntryMenu(),
 	search: settings.search,
+	linkClick: settings.linkClick,
 	toolbar: viewerToolbar(),
 	input: viewerInput(),
 	core: {
@@ -266,7 +270,8 @@ const initialOptions = (): LogViewerOptions => ({
 		ambiguousWidth: settings.ambiguousWidth,
 		maxEntries: settings.maxEntries,
 		maxClusters: settings.maxClusters,
-		mergeRepeats: settings.mergeRepeats
+		mergeRepeats: settings.mergeRepeats,
+		links: settings.links
 	}
 });
 
@@ -587,6 +592,10 @@ watch(
 	(search) => applyOptions({ search })
 );
 watch(
+	() => settings.linkClick,
+	(linkClick) => applyOptions({ linkClick })
+);
+watch(
 	() => settings.entryMenu,
 	() => applyOptions({ entryMenu: viewerEntryMenu() })
 );
@@ -618,6 +627,10 @@ watch(
 watch(
 	() => settings.mergeRepeats,
 	(mergeRepeats) => applyOptions({ core: { mergeRepeats } })
+);
+watch(
+	() => settings.links,
+	(links) => applyOptions({ core: { links } })
 );
 watch([() => settings.input, () => settings.prompt, () => settings.echo], () => {
 	applyOptions({ input: viewerInput() });
@@ -837,8 +850,17 @@ onBeforeUnmount(() => {
 								<option value="elapsed">{{ t('control', 'timestamps-elapsed') }}</option>
 							</select>
 						</label>
+						<label class="demo-field">
+							<span>{{ t('control', 'link-click') }}</span>
+							<select v-model="settings.linkClick">
+								<option value="confirm">{{ t('control', 'link-click-confirm') }}</option>
+								<option value="open">{{ t('control', 'link-click-open') }}</option>
+								<option value="ignore">{{ t('control', 'link-click-ignore') }}</option>
+							</select>
+						</label>
 					</div>
 					<p class="demo-hint">{{ t('hint', 'locale') }}</p>
+					<p class="demo-hint">{{ t('hint', 'links') }}</p>
 					<label class="demo-check">
 						<input v-model="settings.customLabels" type="checkbox" />
 						{{ t('control', 'custom-labels') }}
@@ -942,6 +964,10 @@ onBeforeUnmount(() => {
 					<label class="demo-check">
 						<input v-model="settings.mergeRepeats" type="checkbox" />
 						{{ t('control', 'merge-repeats') }}
+					</label>
+					<label class="demo-check">
+						<input v-model="settings.links" type="checkbox" />
+						{{ t('control', 'links') }}
 					</label>
 				</details>
 

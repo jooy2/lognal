@@ -383,6 +383,20 @@ export const SAMPLE_GROUPS: SampleGroup[] = [
 				}
 			},
 			{
+				key: 'links',
+				run: ({ log, viewer }) => {
+					log.info('Documentation: https://lognal.cdget.com/guide/viewer#links');
+					log.log('A link in brackets (https://github.com/jooy2/lognal) ends before the bracket.');
+					viewer.write(
+						'한국어 문장 속 주소 https://lognal.cdget.com/ko/guide/viewer 도 링크가 됩니다.'
+					);
+					log.log('An address inside a value is a link once the value is open', {
+						docs: 'https://lognal.cdget.com/reference/log-viewer'
+					});
+					log.warn('Other schemes stay text: javascript:alert(1), ftp://example.com');
+				}
+			},
+			{
 				key: 'tabs',
 				run: ({ viewer }) => {
 					viewer.writeLines(

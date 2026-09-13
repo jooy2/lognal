@@ -1,6 +1,6 @@
 ---
 order: 4
-description: Every LogViewer option with its default, and how the toolbar, status bar, timestamps, following, filtering, selection, input line, labels and events work.
+description: Every LogViewer option with its default, and how the toolbar, status bar, timestamps, following, filtering, links, selection, input line, labels and events work.
 ---
 
 # The viewer
@@ -41,6 +41,7 @@ viewer.dispose();
 | `labels`     | `Partial<ViewerLabels>`                 | Built-in labels | Labels that replace the built-in ones.                                                                        |
 | `entryMenu`  | `boolean \| EntryMenuOptions`           | `true`          | The menu of actions of the entry under the pointer, or `false` to turn it off. See [Entry menu](#entry-menu). |
 | `search`     | `boolean`                               | `true`          | Whether Ctrl+F or Cmd+F opens a search bar over the log. See [Search](#search).                               |
+| `linkClick`  | `'confirm' \| 'open' \| 'ignore'`       | `'confirm'`     | What a click or a tap on a link does. See [Links](#links).                                                    |
 | `renderer`   | `(ownerDocument: Document) => Renderer` | Canvas 2D       | Creates the renderer. See [Layout and renderers](/reference/layout#renderer).                                 |
 
 ### Core options
@@ -53,6 +54,7 @@ viewer.dispose();
 | `tabSize`        | `number`                     | `8`      | Cells between tab stops.                                                                                                    |
 | `ambiguousWidth` | `1 \| 2`                     | `1`      | Cells an East Asian Ambiguous character takes.                                                                              |
 | `maxClusters`    | `number`                     | `10000`  | The most characters a line keeps. The rest is replaced with `…`.                                                            |
+| `links`          | `boolean`                    | `true`   | Whether `http` and `https` addresses in the text are drawn as links. See [Links](#links).                                   |
 | `filter`         | `LogFilter \| null`          | `null`   | The initial filter. See [Filtering](#filtering).                                                                            |
 
 `maxEntries` and `mergeRepeats` belong to the store. When you pass a `store` together with these options, they are applied to that store, and so to every viewer that shares it.
@@ -199,6 +201,33 @@ Press Ctrl+F, or Cmd+F on macOS, while focus is anywhere in the viewer, to open 
 
 The same actions are available as methods: `openSearch(query?, options?)`, `closeSearch()`, `findNext()` and `findPrevious()`. `options` is `{ caseSensitive?, regex? }` and switches the toggles. `search: false` turns off the shortcut and the bar, and Ctrl+F reaches the browser again.
 
+## Links
+
+`http` and `https` addresses in the log are drawn as links, underlined in the `--lognal-link` color. A click or a tap on a link does what `linkClick` says, and the link opens in a new tab.
+
+| `linkClick` | What a click on a link does                                                                                                                  |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `'confirm'` | Opens a dialog that shows the whole address. **Open link** opens it, and **Cancel**, Escape or a click outside the dialog closes the dialog. |
+| `'open'`    | Opens the link right away.                                                                                                                   |
+| `'ignore'`  | Nothing. The address is still drawn as a link, and a click selects text as it does anywhere else.                                            |
+
+```ts
+// Open links without asking.
+new LogViewer(container, { linkClick: 'open' });
+
+// Draw addresses as plain text.
+new LogViewer(container, { core: { links: false } });
+```
+
+- An address starts with `http://` or `https://` and ends before the next space, quote or angle bracket. Punctuation at its end, such as the period of a sentence, is left out, and so is a closing bracket that has no opening bracket in the address. Addresses with other schemes, such as `javascript:` or `file:`, never become links.
+- An address inside the preview of a value that opens, such as `{ url: 'https://…' }`, is not a link, because a click there opens the value. Open the value, and the address on its own row is a link.
+- The dialog writes the host the way the browser reads it, so a host made of letters that look like other letters shows its `xn--` form. An invisible or bidirectional formatting character is never part of an address; the link ends before it.
+- A link opens with `noopener` and `noreferrer`, so the new page cannot reach the page of the viewer and is not told where it was opened from.
+- The entry menu lists up to five links of the entry, so a link also opens from the keyboard with Shift+F10. With `linkClick: 'ignore'`, the menu leaves them out.
+- A click with Shift, Ctrl, Alt or Cmd held selects text and does not open the link.
+
+`findLinks(text)` returns the addresses the viewer finds in a string, with their positions.
+
 ## Selection and copy
 
 While the log area has focus, the mouse and the keyboard work like this:
@@ -228,6 +257,7 @@ When the pointer is over an entry, the rows of that entry get a light background
 | Copy as data           | Copies the values of the entry as JSON: the value itself, or an array when the entry holds several. Shown only for entries with values.                                                                            |
 | Expand all             | Opens every value of the entry, and every value inside them, as far as they were captured. Shown only for entries with values that open.                                                                           |
 | Collapse all           | Closes every value of the entry, including an error logged on its own.                                                                                                                                             |
+| Open https://…         | Opens a link of the entry the way `linkClick` says. The menu lists up to five links, and none with `linkClick: 'ignore'`.                                                                                          |
 
 While the log area has focus, Shift+F10 or the context menu key opens the menu for the entry where the selection ends, or for the first entry on screen. The arrow keys move through the menu, Enter chooses an item, and Escape closes the menu.
 
@@ -369,6 +399,7 @@ The full signatures are in the [LogViewer reference](/reference/log-viewer).
 - The log area can take keyboard focus, and the arrow keys and Page Up and Page Down scroll it the way they scroll any scrollable element.
 - The level menu is a button that opens a list box. The arrow keys, Home and End move through the levels, Enter or Space chooses one, and Escape closes the list and gives focus back to the button.
 - The entry menu button is named by the `entryActions` label. Shift+F10 or the context menu key opens the menu without a pointer, and a long press opens it on a touch screen.
+- A link takes no keyboard focus of its own. Shift+F10 opens the entry menu, which lists the links of the entry. The link dialog is a modal dialog named by its title. Focus starts on **Open link** and returns to the log when the dialog closes.
 - A visually hidden list mirrors the entries on screen for screen readers. Warnings and errors start with `warn:` and `error:`.
 - The input line is a labeled `<textarea>`.
 - The search bar is a search landmark named by the `search` label. Its buttons are labeled, and the position of the current match is announced when it changes.

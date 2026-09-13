@@ -141,6 +141,7 @@ export const LogViewer = forwardRef<Viewer | null, LogViewerProps>(function LogV
 			locale: undefined,
 			entryMenu: true,
 			search: true,
+			linkClick: 'confirm',
 			...current
 		};
 
@@ -170,18 +171,25 @@ export const LogViewer = forwardRef<Viewer | null, LogViewerProps>(function LogV
 			};
 		}
 
-		if (current.labels?.entries || current.labels?.searchResults) {
-			const labels: Partial<ViewerLabels> = { ...current.labels };
+		if (current.labels) {
+			const labels: Record<string, unknown> = { ...current.labels };
 
-			if (current.labels.entries) {
-				labels.entries = (...args) => latest.current.labels?.entries?.(...args) ?? '';
+			for (const [name, value] of Object.entries(current.labels)) {
+				if (typeof value !== 'function') {
+					continue;
+				}
+
+				// Labels such as `entries` are functions, and call the latest props too.
+				labels[name] = (...args: unknown[]) => {
+					const label = latest.current.labels?.[name as keyof ViewerLabels];
+
+					return typeof label === 'function'
+						? (label as (...values: unknown[]) => string)(...args)
+						: '';
+				};
 			}
 
-			if (current.labels.searchResults) {
-				labels.searchResults = (...args) => latest.current.labels?.searchResults?.(...args) ?? '';
-			}
-
-			result.labels = labels;
+			result.labels = labels as Partial<ViewerLabels>;
 		}
 
 		return result;

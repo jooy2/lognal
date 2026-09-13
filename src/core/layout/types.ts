@@ -1,7 +1,10 @@
 import type { LogEntry, StyleToken, TextStyle } from '../types.js';
 
 /** What happens when a span is clicked. */
-export type LineAction = { type: 'toggle-value'; path: string } | { type: 'toggle-group' };
+export type LineAction =
+	| { type: 'toggle-value'; path: string }
+	| { type: 'toggle-group' }
+	| { type: 'open-link'; url: string };
 
 /** A run of text on a logical line. */
 export interface LineTextSpan {

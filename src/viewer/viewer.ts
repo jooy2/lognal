@@ -33,6 +33,7 @@ import { entryHtml } from './entry-html.js';
 import { createIcon, type IconName } from './icons.js';
 import { InputLine } from './input-line.js';
 import { labelsFor, type ViewerLabels } from './labels.js';
+import { LinkDialog } from './link-dialog.js';
 import { PopupMenu, type PopupAnchor, type PopupItem } from './popup-menu.js';
 import { Scrollbar } from './scrollbar.js';
 import { SearchBar } from './search-bar.js';
@@ -107,6 +108,15 @@ export interface EntryTextOptions {
 	timestamp?: boolean;
 }
 
+/**
+ * What a click on a link does. A link opens in a new tab.
+ *
+ * - `confirm`: a dialog shows the address and asks before the link opens.
+ * - `open`: the link opens right away.
+ * - `ignore`: nothing happens. The link is still drawn as a link.
+ */
+export type LinkClick = 'confirm' | 'open' | 'ignore';
+
 export interface LogViewerOptions {
 	/** A store to show. Several viewers can share one store. A new store is created when absent. */
 	store?: LogStore;
@@ -140,6 +150,11 @@ export interface LogViewerOptions {
 	 * highlights every match without hiding any entry.
 	 */
 	search?: boolean;
+	/**
+	 * What a click or a tap on a link does. Links are the `http` and `https` addresses in the
+	 * text, while `core.links` is on. Defaults to `confirm`.
+	 */
+	linkClick?: LinkClick;
 	/** Creates the renderer. Defaults to the Canvas 2D renderer. */
 	renderer?: (ownerDocument: Document) => Renderer;
 }
@@ -170,6 +185,7 @@ interface ResolvedOptions {
 	/** The entry menu, or `null` when it is off or would have no items. */
 	entryMenu: EntryMenuOptions | null;
 	search: boolean;
+	linkClick: LinkClick;
 }
 
 interface Selection {
@@ -236,6 +252,8 @@ const SEARCH_SELECTION_LENGTH = 200;
 /** How long one slice of background layout may run, and how many entries it takes at a time. */
 const MEASURE_SLICE_MS = 8;
 const MEASURE_BATCH = 200;
+/** The most links of an entry that its menu offers to open. */
+const MAX_MENU_LINKS = 5;
 
 const LEVEL_OPTIONS: { value: LogLevel | ''; label: keyof ViewerLabels }[] = [
 	{ value: '', label: 'levelAll' },
@@ -256,6 +274,22 @@ const capturePointer = (element: Element, pointerId: number): void => {
 
 const comparePositions = (a: TextPosition, b: TextPosition): number => {
 	return a.entryId - b.entryId || a.line - b.line || a.cell - b.cell;
+};
+
+/** Whether Shift, Ctrl, Alt or Cmd was held. A click with one of them selects instead of acting. */
+const hasModifier = (event: MouseEvent): boolean => {
+	return event.shiftKey || event.ctrlKey || event.altKey || event.metaKey;
+};
+
+/** Returns the address a link opens, or `null` for anything but an `http` or `https` URL. */
+const linkHref = (url: string): string | null => {
+	try {
+		const parsed = new URL(url);
+
+		return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.href : null;
+	} catch {
+		return null;
+	}
 };
 
 const pick = <Source extends object, Key extends keyof Source>(
@@ -301,6 +335,7 @@ export class LogViewer {
 	private readonly newLogsButton: HTMLButtonElement;
 	private readonly entryButton: HTMLButtonElement;
 	private readonly popup: PopupMenu;
+	private readonly linkDialog: LinkDialog;
 	private readonly search: LogSearch;
 	private readonly searchBar: SearchBar;
 	private searchTimer: ReturnType<typeof setTimeout> | undefined;
@@ -428,6 +463,7 @@ export class LogViewer {
 		);
 		this.element.append(this.body);
 		this.popup = new PopupMenu(doc, this.element);
+		this.linkDialog = new LinkDialog(doc, this.element);
 		container.append(this.element);
 
 		this.buildChrome();
@@ -503,6 +539,10 @@ export class LogViewer {
 
 		if (options.search === false) {
 			this.closeSearch();
+		}
+
+		if (options.linkClick !== undefined && options.linkClick !== 'confirm') {
+			this.linkDialog.close();
 		}
 
 		if (options.entryMenu !== undefined && !this.options.entryMenu && this.menuEntryId !== null) {
@@ -911,6 +951,7 @@ export class LogViewer {
 		this.layout.dispose();
 		this.renderer.dispose();
 		this.popup.dispose();
+		this.linkDialog.dispose();
 		clearTimeout(this.searchTimer);
 		this.searchBar.dispose();
 		this.verticalScrollbar.dispose();
@@ -952,7 +993,8 @@ export class LogViewer {
 			labels,
 			labelOverrides,
 			entryMenu,
-			search: options.search ?? true
+			search: options.search ?? true,
+			linkClick: options.linkClick ?? 'confirm'
 		};
 	}
 
@@ -967,7 +1009,8 @@ export class LogViewer {
 			locale,
 			labelOverrides,
 			entryMenu,
-			search
+			search,
+			linkClick
 		} = this.options;
 
 		return {
@@ -980,7 +1023,8 @@ export class LogViewer {
 			locale,
 			labels: labelOverrides,
 			entryMenu: entryMenu ?? false,
-			search
+			search,
+			linkClick
 		};
 	}
 
@@ -1087,6 +1131,7 @@ export class LogViewer {
 		this.entryButton.title = labels.entryActions;
 		this.entryButton.setAttribute('aria-label', labels.entryActions);
 		this.searchBar.setLabels(labels);
+		this.linkDialog.setLabels(labels);
 
 		if (toolbar) {
 			this.toolbarElement = this.buildToolbar(toolbar, labels);
@@ -1420,6 +1465,20 @@ export class LogViewer {
 					onSelect: () => this.collapseEntry(entryId)
 				}
 			);
+		}
+
+		if (this.options.linkClick !== 'ignore') {
+			this.layout
+				.linksOf(entryId)
+				.slice(0, MAX_MENU_LINKS)
+				.forEach((url, index) => {
+					items.push({
+						label: labels.openLink(url),
+						icon: 'link',
+						startsGroup: index === 0 && items.length > 0,
+						onSelect: () => this.activateLink(url)
+					});
+				});
 		}
 
 		for (const [index, item] of (entryMenu.items?.(entry, this) ?? []).entries()) {
@@ -2030,12 +2089,17 @@ export class LogViewer {
 		const run = visualRow?.runs.find(
 			(item) => cellColumn >= item.column && cellColumn < item.column + item.cells
 		);
+		// With `linkClick: 'ignore'`, a link is text like any other.
+		const action =
+			run?.action?.type === 'open-link' && this.options.linkClick === 'ignore'
+				? undefined
+				: run?.action;
 
 		return {
 			row,
 			column: Math.max(0, Math.round(exactColumn)),
 			visualRow,
-			action: run?.action
+			action
 		};
 	}
 
@@ -2120,7 +2184,7 @@ export class LogViewer {
 			pointerId: event.pointerId,
 			x: event.clientX,
 			y: event.clientY,
-			action: hit.action ? hit : null,
+			action: hit.action && !hasModifier(event) ? hit : null,
 			moved: false
 		};
 		this.lastPointer = { x: event.clientX, y: event.clientY };
@@ -2236,9 +2300,42 @@ export class LogViewer {
 		const hit = this.hitTest(point);
 
 		if (hit.action && hit.visualRow) {
-			this.layout.runAction(hit.visualRow.entry.id, hit.action);
-			this.requestRender();
+			this.runLineAction(hit.visualRow.entry.id, hit.action);
 		}
+	}
+
+	/** Runs the action of a span: opens a link, or opens or closes a value or a group. */
+	private runLineAction(entryId: number, action: LineAction): void {
+		if (action.type === 'open-link') {
+			this.activateLink(action.url);
+		} else {
+			this.layout.runAction(entryId, action);
+		}
+
+		this.requestRender();
+	}
+
+	/** Opens a link in a new tab the way `linkClick` says: after asking, right away, or not at all. */
+	private activateLink(url: string): void {
+		const href = linkHref(url);
+		const { linkClick } = this.options;
+
+		if (!href || linkClick === 'ignore') {
+			return;
+		}
+
+		const open = (): void => {
+			this.ownerDocument.defaultView?.open(href, '_blank', 'noopener,noreferrer');
+		};
+
+		if (linkClick === 'open') {
+			open();
+
+			return;
+		}
+
+		this.popup.close(false);
+		this.linkDialog.open({ href, onOpen: open, returnFocus: this.viewport });
 	}
 
 	/**
@@ -2301,8 +2398,7 @@ export class LogViewer {
 
 		if (action?.action && action.visualRow && !moved) {
 			this.selection = null;
-			this.layout.runAction(action.visualRow.entry.id, action.action);
-			this.requestRender();
+			this.runLineAction(action.visualRow.entry.id, action.action);
 
 			return;
 		}
@@ -2425,7 +2521,7 @@ export class LogViewer {
 
 	/** Keys that work wherever focus is inside the viewer: the search shortcuts. */
 	private readonly onViewerKeyDown = (event: KeyboardEvent): void => {
-		if (!this.options.search) {
+		if (!this.options.search || this.linkDialog.isOpen) {
 			return;
 		}
 

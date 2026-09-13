@@ -46,6 +46,7 @@ export { formatTimestamp, type TimestampFormat } from './core/time.js';
 export { AnsiParser, stripAnsi } from './core/text/ansi.js';
 export { LineSplitter, splitLines } from './core/text/line-splitter.js';
 export { measureCells, truncateCells } from './core/text/measure.js';
+export { findLinks, type TextLink } from './core/text/links.js';
 export {
 	setGraphemeSplitter,
 	splitGraphemes,
@@ -111,6 +112,7 @@ export {
 	type EntryTextFormat,
 	type EntryTextOptions,
 	type InputOptions,
+	type LinkClick,
 	type LogViewerEvents,
 	type LogViewerOptions,
 	type ToolbarOptions

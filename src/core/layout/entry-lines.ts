@@ -1,3 +1,4 @@
+import { findLinks } from '../text/links.js';
 import { errorTitle, formatKey, isExpandable, previewValue } from '../value/preview.js';
 import type { LogEntry, ValueEntry, ValueNode } from '../types.js';
 import type { LineSpan, LineTextSpan, LogicalLine } from './types.js';
@@ -7,6 +8,56 @@ export const INDENT_CELLS = 2;
 
 /** Decides whether the value at a path is shown expanded. */
 export type ExpansionLookup = (path: string) => boolean;
+
+/** Options of `buildEntryLines`. */
+export interface EntryLineOptions {
+	/** Whether `http` and `https` addresses in text become links. Defaults to `false`. */
+	links?: boolean;
+}
+
+/**
+ * Splits the text spans of a line around the addresses they hold, and gives every address an
+ * action that opens it. A span that already has an action, such as the preview of a value that
+ * opens, is left as it is.
+ */
+const splitLinks = (spans: LineSpan[]): LineSpan[] => {
+	let result: LineSpan[] | null = null;
+
+	for (let index = 0; index < spans.length; index++) {
+		const span = spans[index];
+
+		if ('icon' in span || span.action || !span.text.includes('://')) {
+			result?.push(span);
+			continue;
+		}
+
+		const links = findLinks(span.text);
+
+		if (links.length === 0) {
+			result?.push(span);
+			continue;
+		}
+
+		result ??= spans.slice(0, index);
+
+		let cursor = 0;
+
+		for (const link of links) {
+			if (link.start > cursor) {
+				result.push({ ...span, text: span.text.slice(cursor, link.start) });
+			}
+
+			result.push({ ...span, text: link.url, action: { type: 'open-link', url: link.url } });
+			cursor = link.end;
+		}
+
+		if (cursor < span.text.length) {
+			result.push({ ...span, text: span.text.slice(cursor) });
+		}
+	}
+
+	return result ?? spans;
+};
 
 /**
  * Returns whether a value path is expanded when the user has not toggled it: errors logged
@@ -98,7 +149,11 @@ const childLine = (
  * Builds the logical lines of an entry: one for every line of its text, followed by the rows
  * of every expanded value in the order the values appear.
  */
-export const buildEntryLines = (entry: LogEntry, isExpanded: ExpansionLookup): LogicalLine[] => {
+export const buildEntryLines = (
+	entry: LogEntry,
+	isExpanded: ExpansionLookup,
+	options: EntryLineOptions = {}
+): LogicalLine[] => {
 	const baseIndent = entry.groups.length * INDENT_CELLS;
 	const lines: LogicalLine[] = [];
 	let current: LineSpan[] = [];
@@ -165,6 +220,12 @@ export const buildEntryLines = (entry: LogEntry, isExpanded: ExpansionLookup): L
 
 	for (const { node, path } of expandedParts) {
 		childLines(node, path, baseIndent + INDENT_CELLS, isExpanded, lines);
+	}
+
+	if (options.links) {
+		for (const line of lines) {
+			line.spans = splitLinks(line.spans);
+		}
 	}
 
 	return lines;

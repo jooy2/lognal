@@ -67,6 +67,24 @@ const hover = (viewer: LogViewer, x: number, y: number): void => {
 	);
 };
 
+/** Clicks the log with a mouse, at a point relative to the top left of the log area. */
+const click = (viewer: LogViewer, x: number, y: number, init: PointerEventInit = {}): void => {
+	const viewport = viewer.element.querySelector('.lognal-viewport') as HTMLDivElement;
+	const rect = viewport.getBoundingClientRect();
+	const point: PointerEventInit = {
+		clientX: rect.left + x,
+		clientY: rect.top + y,
+		bubbles: true,
+		button: 0,
+		pointerId: 1,
+		pointerType: 'mouse',
+		...init
+	};
+
+	viewport.dispatchEvent(new PointerEvent('pointerdown', point));
+	viewport.dispatchEvent(new PointerEvent('pointerup', point));
+};
+
 let container: HTMLDivElement;
 
 beforeEach(() => {
@@ -473,6 +491,117 @@ describe('LogViewer', () => {
 		expect(labelsAt(4 + rowHeight * 1.5)).not.toContain('Expand all');
 		popup.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
 		expect(viewer.getEntryText(plain.id)).toBe('plain text');
+		viewer.dispose();
+	});
+
+	it('asks before it opens a link in a new tab', async () => {
+		const open = vi.spyOn(window, 'open').mockReturnValue(null);
+		const viewer = new LogViewer(container, { timestamps: false, toolbar: false });
+		const viewport = viewer.element.querySelector('.lognal-viewport') as HTMLDivElement;
+		const dialog = viewer.element.querySelector('.lognal-dialog') as HTMLDialogElement;
+		const url = `https://example.com/${'a'.repeat(60)}`;
+
+		viewer.write(url);
+		await nextFrame();
+
+		click(viewer, 100, 12);
+		expect(dialog.open).toBe(true);
+		expect(dialog.querySelector('.lognal-dialog-address')?.textContent).toBe(url);
+		expect(document.activeElement?.textContent).toBe('Open link');
+
+		(
+			Array.from(dialog.querySelectorAll('button')).find(
+				(button) => button.textContent === 'Cancel'
+			) as HTMLButtonElement
+		).click();
+		expect(dialog.open).toBe(false);
+
+		click(viewer, 100, 12);
+		dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+		expect(dialog.open).toBe(false);
+		expect(open).not.toHaveBeenCalled();
+
+		click(viewer, 100, 12);
+		(dialog.querySelector('.is-primary') as HTMLButtonElement).click();
+		expect(open).toHaveBeenCalledWith(url, '_blank', 'noopener,noreferrer');
+		expect(dialog.open).toBe(false);
+		expect(document.activeElement).toBe(viewport);
+
+		open.mockRestore();
+		viewer.dispose();
+	});
+
+	it('opens a link right away, ignores it, or draws plain text, as the options say', async () => {
+		const open = vi.spyOn(window, 'open').mockReturnValue(null);
+		const viewer = new LogViewer(container, {
+			timestamps: false,
+			toolbar: false,
+			linkClick: 'open'
+		});
+		const dialog = viewer.element.querySelector('.lognal-dialog') as HTMLDialogElement;
+		const entry = viewer.store.write(`https://example.com/${'b'.repeat(60)}`);
+
+		await nextFrame();
+
+		click(viewer, 100, 12);
+		expect(open).toHaveBeenCalledTimes(1);
+		expect(dialog.open).toBe(false);
+
+		// A click with Shift extends the selection instead.
+		click(viewer, 100, 12, { shiftKey: true });
+		expect(open).toHaveBeenCalledTimes(1);
+
+		viewer.setOptions({ linkClick: 'ignore' });
+		click(viewer, 100, 12);
+		expect(open).toHaveBeenCalledTimes(1);
+		expect(dialog.open).toBe(false);
+
+		viewer.setOptions({ linkClick: 'confirm', core: { links: false } });
+		await nextFrame();
+		click(viewer, 100, 12);
+		expect(dialog.open).toBe(false);
+		expect(viewer.layout.linksOf(entry!.id)).toEqual([]);
+
+		open.mockRestore();
+		viewer.dispose();
+	});
+
+	it('offers to open the links of an entry from its menu', async () => {
+		const viewer = new LogViewer(container, { timestamps: false });
+		const button = viewer.element.querySelector('.lognal-entry-actions') as HTMLButtonElement;
+		const popup = viewer.element.querySelector('.lognal-popup') as HTMLDivElement;
+		const dialog = viewer.element.querySelector('.lognal-dialog') as HTMLDialogElement;
+
+		viewer.write('Mirrors: https://a.example/x and https://b.example/문서');
+		await nextFrame();
+		hover(viewer, 200, 8);
+		button.click();
+
+		const items = Array.from(popup.querySelectorAll<HTMLElement>('[role="menuitem"]'));
+
+		expect(items.map((item) => item.textContent)).toEqual([
+			'Copy as text',
+			'Copy with timestamp',
+			'Copy as formatted text',
+			'Open https://a.example/x',
+			'Open https://b.example/문서'
+		]);
+
+		items[4].click();
+		expect(dialog.open).toBe(true);
+		// The address is decoded for reading, although the browser encodes the path.
+		expect(dialog.querySelector('.lognal-dialog-address')?.textContent).toBe(
+			'https://b.example/문서'
+		);
+
+		dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+		expect(dialog.open).toBe(false);
+
+		viewer.setOptions({ linkClick: 'ignore' });
+		hover(viewer, 200, 30);
+		hover(viewer, 200, 8);
+		button.click();
+		expect(popup.textContent).not.toContain('https://');
 		viewer.dispose();
 	});
 

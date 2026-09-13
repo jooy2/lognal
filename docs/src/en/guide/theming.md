@@ -116,6 +116,7 @@ The canvas draws with these. `background`, `foreground`, `muted` and `accent` al
 | `--lognal-hover`            | `rgba(29, 33, 41, 0.04)`   | `rgba(227, 229, 234, 0.06)` | The background of the rows of the entry under the pointer. Use `transparent` to turn it off. |
 | `--lognal-search-match`     | `rgba(255, 200, 0, 0.4)`   | `rgba(255, 200, 0, 0.28)`   | Every match of a search.                                                                     |
 | `--lognal-search-current`   | `rgba(255, 140, 0, 0.7)`   | `rgba(255, 140, 0, 0.6)`    | The current match of a search.                                                               |
+| `--lognal-link`             | `#1f6fd6`                  | `#5aa2ff`                   | The text and the underline of a link.                                                        |
 | `--lognal-error`            | `#c4262c`                  | `#ff8a8d`                   | Error text, marker and repeat badge.                                                         |
 | `--lognal-error-background` | `rgba(222, 53, 58, 0.07)`  | `rgba(252, 79, 83, 0.1)`    | The row background of errors.                                                                |
 | `--lognal-warn`             | `#8a5a00`                  | `#fcc549`                   | Warning text, marker and repeat badge.                                                       |

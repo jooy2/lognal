@@ -24,7 +24,7 @@ Things worth knowing before answering questions about lognal:
 - [Console capture](https://lognal.cdget.com/guide/console): hookConsole, createConsole, supported console methods, format specifiers, value capture rules and capture limits
 - [Typed values](https://lognal.cdget.com/guide/values): value previews, expanding and collapsing, errors, console.table, groups and repeated messages
 - [Text files](https://lognal.cdget.com/guide/text-files): readTextFile, encoding detection and legacy encodings such as EUC-KR, followTextFile, and writing text with ANSI colors
-- [The viewer](https://lognal.cdget.com/guide/viewer): every LogViewer option and default, toolbar, status bar, timestamps, following, filtering, search, selection, the entry menu, input line, labels, locale, methods and events
+- [The viewer](https://lognal.cdget.com/guide/viewer): every LogViewer option and default, toolbar, status bar, timestamps, following, filtering, search, links, selection, the entry menu, input line, labels, locale, methods and events
 - [Themes and fonts](https://lognal.cdget.com/guide/theming): light, dark and auto themes, every --lognal-* CSS custom property, and monospace fonts for Korean text
 - [React](https://lognal.cdget.com/guide/react): the LogViewer component, props, how changed and removed props are applied, ref, sharing a store, the hookConsole prop, and server rendering
 - [Korean and CJK text](https://lognal.cdget.com/guide/cjk): character widths, word wrapping, IME composition, decomposed Hangul in filters, and file encodings

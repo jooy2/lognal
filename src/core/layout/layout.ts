@@ -25,11 +25,17 @@ import type {
 export interface LayoutOptions extends ShapeOptions {
 	/** How lines longer than the viewer are handled. */
 	wrap: WrapMode;
+	/**
+	 * Whether `http` and `https` addresses in text become links: spans with an `open-link` action.
+	 * A value that opens keeps its preview as one span, so an address inside it is not a link.
+	 */
+	links: boolean;
 }
 
 export const DEFAULT_LAYOUT_OPTIONS: LayoutOptions = {
 	...DEFAULT_SHAPE_OPTIONS,
-	wrap: 'word'
+	wrap: 'word',
+	links: true
 };
 
 /** The fewest columns a line wraps into, however deeply it is indented. */
@@ -230,20 +236,28 @@ export class LogLayout {
 			next.tabSize !== this.options.tabSize ||
 			next.ambiguousWidth !== this.options.ambiguousWidth ||
 			next.maxClusters !== this.options.maxClusters;
+		const wrapChanged = next.wrap !== this.options.wrap;
+		const linksChanged = next.links !== this.options.links;
 
-		if (!shapeChanged && next.wrap === this.options.wrap) {
+		if (!shapeChanged && !wrapChanged && !linksChanged) {
 			return;
 		}
 
 		this.options = next;
 
-		if (shapeChanged) {
+		if (shapeChanged || linksChanged) {
 			this.optionsVersion++;
-			this.version++;
 			this.layouts.clear();
 		}
 
-		this.invalidateRows();
+		if (shapeChanged) {
+			this.version++;
+		}
+
+		// Links change the spans of a line, not its text, so the rows stay as they are.
+		if (shapeChanged || wrapChanged) {
+			this.invalidateRows();
+		}
 	}
 
 	/** Sets the number of columns rows wrap into. */
@@ -517,7 +531,7 @@ export class LogLayout {
 		return this.expansions.get(entry.id)?.paths.get(path) ?? isExpandedByDefault(entry, path);
 	}
 
-	/** Runs the action of a clicked span. */
+	/** Runs the action of a clicked span. Opening a link is left to the viewer. */
 	runAction(entryId: number, action: LineAction): void {
 		const entry = this.store.get(entryId);
 
@@ -549,6 +563,29 @@ export class LogLayout {
 	/** Returns whether an entry holds a value that can be expanded. */
 	hasExpandableValues(entry: LogEntry): boolean {
 		return entry.parts.some((part) => part.type === 'value' && isExpandable(part.value));
+	}
+
+	/**
+	 * Returns the addresses of the links of an entry as shown, with the rows of open values, each
+	 * address once and in order. Returns an empty array while `links` is off.
+	 */
+	linksOf(entryId: number): string[] {
+		const entry = this.store.get(entryId);
+		const urls = new Set<string>();
+
+		if (!entry || !this.options.links) {
+			return [];
+		}
+
+		for (const line of this.shapedLinesOf(entry)) {
+			for (const span of line.spans) {
+				if (span.action?.type === 'open-link') {
+					urls.add(span.action.url);
+				}
+			}
+		}
+
+		return [...urls];
 	}
 
 	/** Expands every value of an entry, and every value inside them, as far as they were captured. */
@@ -1055,9 +1092,9 @@ export class LogLayout {
 			return cached.lines;
 		}
 
-		return buildEntryLines(entry, (path) => this.isExpanded(entry, path)).map((logical) =>
-			shapeLine(logical.spans, logical.indent, this.options)
-		);
+		return buildEntryLines(entry, (path) => this.isExpanded(entry, path), {
+			links: this.options.links
+		}).map((logical) => shapeLine(logical.spans, logical.indent, this.options));
 	}
 
 	private layoutOf(entry: LogEntry): EntryLayout {
@@ -1065,15 +1102,15 @@ export class LogLayout {
 		let layout = this.layouts.get(entry.id);
 
 		if (!layout || layout.stateKey !== stateKey || layout.optionsVersion !== this.optionsVersion) {
-			const lines = buildEntryLines(entry, (path) => this.isExpanded(entry, path)).map(
-				(logical) => {
-					const shaped = shapeLine(logical.spans, logical.indent, this.options);
+			const lines = buildEntryLines(entry, (path) => this.isExpanded(entry, path), {
+				links: this.options.links
+			}).map((logical) => {
+				const shaped = shapeLine(logical.spans, logical.indent, this.options);
 
-					shaped.wrap = logical.wrap !== false;
+				shaped.wrap = logical.wrap !== false;
 
-					return shaped;
-				}
-			);
+				return shaped;
+			});
 
 			layout = {
 				stateKey,

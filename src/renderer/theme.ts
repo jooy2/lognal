@@ -12,6 +12,7 @@ export const DEFAULT_RENDER_THEME: RenderTheme = {
 	hover: 'rgba(227, 229, 234, 0.06)',
 	searchMatch: 'rgba(255, 200, 0, 0.28)',
 	searchCurrent: 'rgba(255, 140, 0, 0.6)',
+	link: '#5aa2ff',
 	error: '#ff8a8d',
 	errorBackground: 'rgba(252, 79, 83, 0.1)',
 	warn: '#fcc549',

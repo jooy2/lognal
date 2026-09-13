@@ -116,6 +116,7 @@ darkModeSwitch.addEventListener('change', () => {
 | `--lognal-hover`            | `rgba(29, 33, 41, 0.04)`   | `rgba(227, 229, 234, 0.06)` | 포인터가 올라간 항목의 행 배경입니다. `transparent`로 지정하면 꺼집니다. |
 | `--lognal-search-match`     | `rgba(255, 200, 0, 0.4)`   | `rgba(255, 200, 0, 0.28)`   | 검색 결과입니다.                                                         |
 | `--lognal-search-current`   | `rgba(255, 140, 0, 0.7)`   | `rgba(255, 140, 0, 0.6)`    | 현재 검색 결과입니다.                                                    |
+| `--lognal-link`             | `#1f6fd6`                  | `#5aa2ff`                   | 링크의 텍스트와 밑줄입니다.                                              |
 | `--lognal-error`            | `#c4262c`                  | `#ff8a8d`                   | 오류 텍스트, 표시, 반복 배지입니다.                                      |
 | `--lognal-error-background` | `rgba(222, 53, 58, 0.07)`  | `rgba(252, 79, 83, 0.1)`    | 오류 행의 배경입니다.                                                    |
 | `--lognal-warn`             | `#8a5a00`                  | `#fcc549`                   | 경고 텍스트, 표시, 반복 배지입니다.                                      |

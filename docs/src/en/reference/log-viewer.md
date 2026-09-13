@@ -100,6 +100,7 @@ The events and their values are described by the `LogViewerEvents` type.
 | `labels`     | `Partial<ViewerLabels>`                 | `{}`             | Labels that replace the built-in ones.                                                                                        |
 | `entryMenu`  | `boolean \| EntryMenuOptions`           | `true`           | The menu of actions of the entry under the pointer, or `false` to turn it off.                                                |
 | `search`     | `boolean`                               | `true`           | Whether Ctrl+F or Cmd+F, while focus is in the viewer, opens a search bar that highlights every match without hiding entries. |
+| `linkClick`  | `LinkClick`                             | `'confirm'`      | What a click or a tap on a link does. See [`LinkClick`](#linkclick).                                                          |
 | `renderer`   | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | Creates the renderer.                                                                                                         |
 
 ## CoreOptions
@@ -114,6 +115,7 @@ The events and their values are described by the `LogViewerEvents` type.
 | `tabSize`        | `number`            | `8`      | Cells between tab stops.                                                              |
 | `ambiguousWidth` | `AmbiguousWidth`    | `1`      | Cells an East Asian Ambiguous character takes, `1` or `2`.                            |
 | `maxClusters`    | `number`            | `10000`  | The most grapheme clusters a line keeps. The rest is replaced with `…`.               |
+| `links`          | `boolean`           | `true`   | Whether `http` and `https` addresses in the text become links.                        |
 | `filter`         | `LogFilter \| null` | `null`   | The filter. See [`LogFilter`](/reference/layout#logfilter).                           |
 
 ## ToolbarOptions
@@ -175,49 +177,70 @@ With `copy: false` and no `items`, the menu is off. A menu that would have no it
 | `caseSensitive` | `boolean` | `false` | Whether letter case must match.                                     |
 | `regex`         | `boolean` | `false` | Whether the text is a regular expression rather than text as typed. |
 
+### LinkClick
+
+```ts
+type LinkClick = 'confirm' | 'open' | 'ignore';
+```
+
+| Value       | What a click or a tap on a link does                                               |
+| ----------- | ---------------------------------------------------------------------------------- |
+| `'confirm'` | Opens a dialog that shows the address and asks before the link opens in a new tab. |
+| `'open'`    | Opens the link in a new tab right away.                                            |
+| `'ignore'`  | Nothing. The address is still drawn as a link.                                     |
+
+Only `http` and `https` addresses open, and they open with `noopener` and `noreferrer`.
+
 ## ViewerLabels
 
 Every label is used as visible text or as an accessible name.
 
-| Label                | English (`EN_LABELS`)             | Korean (`KO_LABELS`)          |
-| -------------------- | --------------------------------- | ----------------------------- |
-| `viewer`             | Log viewer                        | 로그 뷰어                     |
-| `toolbar`            | Log viewer tools                  | 로그 뷰어 도구                |
-| `follow`             | Follow new logs                   | 새 로그 따라가기              |
-| `clear`              | Clear logs                        | 로그 지우기                   |
-| `scrollToTop`        | Scroll to top                     | 맨 위로 이동                  |
-| `scrollToBottom`     | Scroll to bottom                  | 맨 아래로 이동                |
-| `wrap`               | Wrap long lines                   | 긴 줄 바꾸기                  |
-| `filter`             | Filter                            | 필터                          |
-| `invalidFilter`      | The filter is not a valid pattern | 필터 패턴이 올바르지 않습니다 |
-| `levels`             | Log levels                        | 로그 수준                     |
-| `levelAll`           | All levels                        | 모든 수준                     |
-| `levelLog`           | Log and above                     | 로그 이상                     |
-| `levelInfo`          | Info and above                    | 정보 이상                     |
-| `levelWarn`          | Warnings and errors               | 경고와 오류                   |
-| `levelError`         | Errors only                       | 오류만                        |
-| `input`              | Command                           | 명령                          |
-| `inputPlaceholder`   | Type a command                    | 명령을 입력하세요             |
-| `newLogs`            | New logs                          | 새 로그                       |
-| `entryList`          | Visible log entries               | 화면에 보이는 로그            |
-| `entryActions`       | Entry actions                     | 항목 작업                     |
-| `copyEntry`          | Copy as text                      | 텍스트로 복사                 |
-| `copyEntryWithTime`  | Copy with timestamp               | 타임스탬프와 함께 복사        |
-| `copyEntryFormatted` | Copy as formatted text            | 서식 있는 텍스트로 복사       |
-| `copyEntryData`      | Copy as data                      | 데이터로 복사                 |
-| `expandAll`          | Expand all                        | 모두 펼치기                   |
-| `collapseAll`        | Collapse all                      | 모두 접기                     |
-| `search`             | Find in log                       | 로그에서 찾기                 |
-| `searchPrevious`     | Previous match                    | 이전 결과                     |
-| `searchNext`         | Next match                        | 다음 결과                     |
-| `searchClose`        | Close search                      | 검색 닫기                     |
-| `searchCase`         | Match case                        | 대소문자 구분                 |
-| `searchRegex`        | Use regular expression            | 정규 표현식 사용              |
-| `searchInvalid`      | Not a valid regular expression    | 올바른 정규 표현식이 아닙니다 |
-| `searchResults`      | `3/12`, `No results`              | `3/12`, `결과 없음`           |
-| `following`          | Following                         | 따라가는 중                   |
-| `paused`             | Paused                            | 멈춤                          |
-| `entries`            | `3 entries`, `1 of 3 entries`     | `로그 3개`, `로그 3개 중 1개` |
+| Label                | English (`EN_LABELS`)                                              | Korean (`KO_LABELS`)                                    |
+| -------------------- | ------------------------------------------------------------------ | ------------------------------------------------------- |
+| `viewer`             | Log viewer                                                         | 로그 뷰어                                               |
+| `toolbar`            | Log viewer tools                                                   | 로그 뷰어 도구                                          |
+| `follow`             | Follow new logs                                                    | 새 로그 따라가기                                        |
+| `clear`              | Clear logs                                                         | 로그 지우기                                             |
+| `scrollToTop`        | Scroll to top                                                      | 맨 위로 이동                                            |
+| `scrollToBottom`     | Scroll to bottom                                                   | 맨 아래로 이동                                          |
+| `wrap`               | Wrap long lines                                                    | 긴 줄 바꾸기                                            |
+| `filter`             | Filter                                                             | 필터                                                    |
+| `invalidFilter`      | The filter is not a valid pattern                                  | 필터 패턴이 올바르지 않습니다                           |
+| `levels`             | Log levels                                                         | 로그 수준                                               |
+| `levelAll`           | All levels                                                         | 모든 수준                                               |
+| `levelLog`           | Log and above                                                      | 로그 이상                                               |
+| `levelInfo`          | Info and above                                                     | 정보 이상                                               |
+| `levelWarn`          | Warnings and errors                                                | 경고와 오류                                             |
+| `levelError`         | Errors only                                                        | 오류만                                                  |
+| `input`              | Command                                                            | 명령                                                    |
+| `inputPlaceholder`   | Type a command                                                     | 명령을 입력하세요                                       |
+| `newLogs`            | New logs                                                           | 새 로그                                                 |
+| `entryList`          | Visible log entries                                                | 화면에 보이는 로그                                      |
+| `entryActions`       | Entry actions                                                      | 항목 작업                                               |
+| `copyEntry`          | Copy as text                                                       | 텍스트로 복사                                           |
+| `copyEntryWithTime`  | Copy with timestamp                                                | 타임스탬프와 함께 복사                                  |
+| `copyEntryFormatted` | Copy as formatted text                                             | 서식 있는 텍스트로 복사                                 |
+| `copyEntryData`      | Copy as data                                                       | 데이터로 복사                                           |
+| `expandAll`          | Expand all                                                         | 모두 펼치기                                             |
+| `collapseAll`        | Collapse all                                                       | 모두 접기                                               |
+| `openLink`           | `Open https://…`                                                   | `링크 열기: https://…`                                  |
+| `linkDialogTitle`    | Open this link?                                                    | 이 링크를 열까요?                                       |
+| `linkDialogMessage`  | The link opens in a new tab. Check the address before you open it. | 링크는 새 탭에서 열립니다. 열기 전에 주소를 확인하세요. |
+| `linkDialogOpen`     | Open link                                                          | 링크 열기                                               |
+| `linkDialogCancel`   | Cancel                                                             | 취소                                                    |
+| `search`             | Find in log                                                        | 로그에서 찾기                                           |
+| `searchPrevious`     | Previous match                                                     | 이전 결과                                               |
+| `searchNext`         | Next match                                                         | 다음 결과                                               |
+| `searchClose`        | Close search                                                       | 검색 닫기                                               |
+| `searchCase`         | Match case                                                         | 대소문자 구분                                           |
+| `searchRegex`        | Use regular expression                                             | 정규 표현식 사용                                        |
+| `searchInvalid`      | Not a valid regular expression                                     | 올바른 정규 표현식이 아닙니다                           |
+| `searchResults`      | `3/12`, `No results`                                               | `3/12`, `결과 없음`                                     |
+| `following`          | Following                                                          | 따라가는 중                                             |
+| `paused`             | Paused                                                             | 멈춤                                                    |
+| `entries`            | `3 entries`, `1 of 3 entries`                                      | `로그 3개`, `로그 3개 중 1개`                           |
+
+`openLink` is a function, `(url: string) => string`, that receives the address of the link.
 
 `searchResults` is a function: `(current: number, total: number, format: (value: number) => string) => string`, where `current` is 0 while no match is current.
 

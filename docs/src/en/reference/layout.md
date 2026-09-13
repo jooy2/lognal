@@ -21,12 +21,13 @@ A viewer creates its own layout, available as `viewer.layout`.
 
 `DEFAULT_LAYOUT_OPTIONS` holds the defaults.
 
-| Option           | Type             | Default  | Description                                                    |
-| ---------------- | ---------------- | -------- | -------------------------------------------------------------- |
-| `wrap`           | `WrapMode`       | `'word'` | How lines longer than the viewer are handled.                  |
-| `tabSize`        | `number`         | `8`      | Cells between tab stops.                                       |
-| `ambiguousWidth` | `AmbiguousWidth` | `1`      | Cells an East Asian Ambiguous character takes.                 |
-| `maxClusters`    | `number`         | `10000`  | The most clusters a line keeps. The rest is replaced with `…`. |
+| Option           | Type             | Default  | Description                                                                           |
+| ---------------- | ---------------- | -------- | ------------------------------------------------------------------------------------- |
+| `wrap`           | `WrapMode`       | `'word'` | How lines longer than the viewer are handled.                                         |
+| `tabSize`        | `number`         | `8`      | Cells between tab stops.                                                              |
+| `ambiguousWidth` | `AmbiguousWidth` | `1`      | Cells an East Asian Ambiguous character takes.                                        |
+| `maxClusters`    | `number`         | `10000`  | The most clusters a line keeps. The rest is replaced with `…`.                        |
+| `links`          | `boolean`        | `true`   | Whether `http` and `https` addresses in text become spans with an `open-link` action. |
 
 ```ts
 type WrapMode = 'word' | 'char' | 'none';
@@ -68,10 +69,11 @@ Call `sync()` before reading `rowCount` and `visibleCount`.
 | `expandAll(entryId: number)`                                                    | `void`                                          | Expands every value of an entry, and every value inside them, as far as they were captured.                                                                                                                           |
 | `collapseAll(entryId: number)`                                                  | `void`                                          | Collapses every value of an entry, including an error logged on its own.                                                                                                                                              |
 | `hasExpandableValues(entry: LogEntry)`                                          | `boolean`                                       | Returns whether an entry holds a value that can be expanded.                                                                                                                                                          |
+| `linksOf(entryId: number)`                                                      | `string[]`                                      | Returns the addresses of the links of an entry as shown, with the rows of open values, each address once and in order.                                                                                                |
 | `indexFrom(entryId: number)`                                                    | `number`                                        | Returns the visible position of the first visible entry whose id is at least `entryId`.                                                                                                                               |
 | `findInEntry(entry: LogEntry, pattern: RegExp, limit?: number)`                 | `TextMatch[]`                                   | Finds the matches of a global pattern in the lines of an entry as shown, compared in Unicode normalization form C. A `TextMatch` is `{ entryId, line, from, to }`, with `from` and `to` in cells of the logical line. |
 | `locatePosition(position: TextPosition)`                                        | `{ entryRow: number; indent: number } \| null`  | Returns the row within its entry that shows a text position, and the indent of that row.                                                                                                                              |
-| `runAction(entryId: number, action: LineAction)`                                | `void`                                          | Runs the action of a clicked span.                                                                                                                                                                                    |
+| `runAction(entryId: number, action: LineAction)`                                | `void`                                          | Runs the action of a clicked span. Opening a link is left to the viewer.                                                                                                                                              |
 | `positionAt(row: number, column: number)`                                       | `TextPosition \| null`                          | Returns the text position under a row and a column of the content area.                                                                                                                                               |
 | `wordAt(position: TextPosition)`                                                | `[TextPosition, TextPosition] \| null`          | Returns the start and end of the word at a position.                                                                                                                                                                  |
 | `getText(from: TextPosition, to: TextPosition)`                                 | `string`                                        | Returns the text between two positions, one line per logical line.                                                                                                                                                    |
@@ -201,10 +203,23 @@ A position in the text of an entry that stays the same when the rows wrap differ
 ### LineAction
 
 ```ts
-type LineAction = { type: 'toggle-value'; path: string } | { type: 'toggle-group' };
+type LineAction = { type: 'toggle-value'; path: string } | { type: 'toggle-group' } | { type: 'open-link'; url: string };
 ```
 
-What happens when a span is clicked. `toggle-value` opens or closes the value at `path`, and `toggle-group` collapses or expands the group the entry starts.
+What happens when a span is clicked. `toggle-value` opens or closes the value at `path`, and `toggle-group` collapses or expands the group the entry starts. `open-link` opens `url`, which the viewer does the way its `linkClick` option says.
+
+### findLinks
+
+```ts
+findLinks(text: string): TextLink[]
+```
+
+Finds the `http` and `https` addresses in a string, the way the layout finds them while `links` is on. A `TextLink` is `{ start, end, url }`: `start` and `end` are indexes of UTF-16 code units, and `url` is the text between them.
+
+```ts
+findLinks('Docs: https://lognal.cdget.com/guide/viewer.');
+// [{ start: 6, end: 43, url: 'https://lognal.cdget.com/guide/viewer' }]
+```
 
 ### Line spans
 
@@ -317,13 +332,13 @@ The content area starts at `paddingLeft + (timestampCells + markerCells) * cellW
 
 The colors a renderer draws with. `readTheme` builds it from the `--lognal-*` custom properties, and any CSS color works.
 
-| Field                                                                      | Type                                             | CSS property                                            |
-| -------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------- |
-| `background`, `foreground`, `muted`, `accent`                              | `string`                                         | `--lognal-background` and so on                         |
-| `selection`, `match`, `separator`, `hover`, `searchMatch`, `searchCurrent` | `string`                                         | `--lognal-selection` and so on                          |
-| `error`, `errorBackground`, `warn`, `warnBackground`, `info`, `debug`      | `string`                                         | `--lognal-error`, `--lognal-error-background` and so on |
-| `tokens`                                                                   | `Record<Exclude<StyleToken, 'default'>, string>` | `--lognal-token-*`                                      |
-| `ansi`                                                                     | `string[]`                                       | `--lognal-ansi-0` to `--lognal-ansi-15`                 |
+| Field                                                                              | Type                                             | CSS property                                            |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------- |
+| `background`, `foreground`, `muted`, `accent`                                      | `string`                                         | `--lognal-background` and so on                         |
+| `selection`, `match`, `separator`, `hover`, `searchMatch`, `searchCurrent`, `link` | `string`                                         | `--lognal-selection` and so on                          |
+| `error`, `errorBackground`, `warn`, `warnBackground`, `info`, `debug`              | `string`                                         | `--lognal-error`, `--lognal-error-background` and so on |
+| `tokens`                                                                           | `Record<Exclude<StyleToken, 'default'>, string>` | `--lognal-token-*`                                      |
+| `ansi`                                                                             | `string[]`                                       | `--lognal-ansi-0` to `--lognal-ansi-15`                 |
 
 `DEFAULT_RENDER_THEME` holds the colors used until a theme is read from CSS. They are the dark palette of `lognal.css`, and a unit test keeps the two equal.
 
