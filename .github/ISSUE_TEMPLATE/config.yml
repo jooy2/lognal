@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Contact the maintainers
+    url: https://cdget.com/contact
+    about: Reach CDGet for anything that does not belong in a public issue.
+  - name: Report a security vulnerability
+    url: https://github.com/jooy2/lognal/security/advisories/new
+    about: Open a draft security advisory. Do not report a vulnerability as a public issue.
