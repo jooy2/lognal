@@ -57,6 +57,8 @@ export const readTheme = (element: Element): RenderTheme => {
 		match: read('match', defaults.match),
 		separator: read('separator', defaults.separator),
 		hover: read('hover', defaults.hover),
+		searchMatch: read('search-match', defaults.searchMatch),
+		searchCurrent: read('search-current', defaults.searchCurrent),
 		error: read('error', defaults.error),
 		errorBackground: read('error-background', defaults.errorBackground),
 		warn: read('warn', defaults.warn),

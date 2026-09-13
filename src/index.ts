@@ -31,6 +31,7 @@ export {
 export { DEFAULT_LAYOUT_OPTIONS, LogLayout, type LayoutOptions } from './core/layout/layout.js';
 export type {
 	LineAction,
+	TextMatch,
 	LineIconSpan,
 	LineSpan,
 	LineTextSpan,

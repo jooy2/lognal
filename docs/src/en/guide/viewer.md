@@ -40,6 +40,7 @@ viewer.dispose();
 | `locale`     | `string`                                | None            | The language of the built-in labels and of number formatting, such as `'ko'`.                                 |
 | `labels`     | `Partial<ViewerLabels>`                 | Built-in labels | Labels that replace the built-in ones.                                                                        |
 | `entryMenu`  | `boolean \| EntryMenuOptions`           | `true`          | The menu of actions of the entry under the pointer, or `false` to turn it off. See [Entry menu](#entry-menu). |
+| `search`     | `boolean`                               | `true`          | Whether Ctrl+F or Cmd+F opens a search bar over the log. See [Search](#search).                               |
 | `renderer`   | `(ownerDocument: Document) => Renderer` | Canvas 2D       | Creates the renderer. See [Layout and renderers](/reference/layout#renderer).                                 |
 
 ### Core options
@@ -175,6 +176,26 @@ Levels go from least to most severe: `debug`, `log`, `info`, `warn`, `error`.
 - The entry text and the filter text are compared in Unicode normalization form C, so decomposed Hangul matches what the user types. See [Korean and CJK text](/guide/cjk#filtering-decomposed-hangul).
 
 Every change, from the toolbar or from `setFilter`, emits the `filter` event. `getFilter()` returns the current filter.
+
+To keep every entry on screen and highlight the matches instead, use [Search](#search).
+
+## Search
+
+Press Ctrl+F, or Cmd+F on macOS, while focus is anywhere in the viewer, to open a search bar over the top right corner of the log. Unlike the filter, a search hides nothing: every entry stays in place, every match is highlighted, and the current match has a stronger highlight. The bar shows the position of the current match, such as `3/12`.
+
+| Key                        | Result                                     |
+| -------------------------- | ------------------------------------------ |
+| Enter, F3, Ctrl+G or Cmd+G | Goes to the next match.                    |
+| Shift with any of them     | Goes to the previous match.                |
+| Escape in the search field | Closes the bar and removes the highlights. |
+
+- The search ignores letter case and takes the text as typed, not as a pattern. It compares text in Unicode normalization form C, so decomposed Hangul matches too.
+- It searches what the log shows: the visible entries, with the rows of open values. Entries hidden by the filter or by a closed group are not searched.
+- When the bar opens with text selected on one line, the search starts with that text.
+- The first match at the top of the view or below it becomes current, and the view scrolls to the current match when it is off screen. Moving to a match pauses following.
+- A long log is searched in small steps between frames. New entries are searched as they arrive, and the count grows with them.
+
+The same actions are available as methods: `openSearch(query?)`, `closeSearch()`, `findNext()` and `findPrevious()`. `search: false` turns off the shortcut and the bar, and Ctrl+F reaches the browser again.
 
 ## Selection and copy
 
@@ -331,6 +352,7 @@ Every label is listed in [`ViewerLabels`](/reference/log-viewer#viewerlabels).
 | `getSelectionText()`, `selectAll()`, `clearSelection()`, `copySelection()` | Work with the selection.                                                                   |
 | `getEntryText(id, options?)`, `copyEntry(id, options?)`                    | Return or copy the text of an entry.                                                       |
 | `expandEntry(id)`, `collapseEntry(id)`                                     | Open or close every value of an entry.                                                     |
+| `openSearch(query?)`, `closeSearch()`, `findNext()`, `findPrevious()`      | Open or close the search bar and move between matches.                                     |
 | `focus()`                                                                  | Focuses the input line, or the log when there is no input line.                            |
 | `refresh()`                                                                | Reads the theme and the font from CSS again.                                               |
 | `on(name, listener)`                                                       | Adds a listener for `follow`, `filter` or `selection`. Returns a function that removes it. |
@@ -347,4 +369,5 @@ The full signatures are in the [LogViewer reference](/reference/log-viewer).
 - The entry menu button is named by the `entryActions` label. Shift+F10 or the context menu key opens the menu without a pointer, and a long press opens it on a touch screen.
 - A visually hidden list mirrors the entries on screen for screen readers. Warnings and errors start with `warn:` and `error:`.
 - The input line is a labeled `<textarea>`.
+- The search bar is a search landmark named by the `search` label. Its buttons are labeled, and the position of the current match is announced when it changes.
 - The log area, the input line and the filter field draw no focus outline, and the caret shows focus in the two text fields. To outline the focused log area, add a rule such as `.lognal-viewport:focus-visible { box-shadow: inset 0 0 0 2px var(--lognal-focus-ring); }`.

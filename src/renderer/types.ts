@@ -32,6 +32,10 @@ export interface RenderTheme {
 	separator: string;
 	/** The background of the rows of the entry under the pointer. */
 	hover: string;
+	/** The highlight of every match of a search. */
+	searchMatch: string;
+	/** The highlight of the current match of a search. */
+	searchCurrent: string;
 	error: string;
 	errorBackground: string;
 	warn: string;
@@ -49,6 +53,10 @@ export interface RowDecoration {
 	matches?: [number, number][];
 	/** Whether the row belongs to the entry under the pointer, or to the entry whose menu is open. */
 	hovered?: boolean;
+	/** The columns of the matches of a search, other than the current match. */
+	searchMatches?: [number, number][];
+	/** The columns of the current match of a search, on the rows that show it. */
+	searchCurrent?: [number, number];
 }
 
 /** Everything needed to draw one frame. */

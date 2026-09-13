@@ -252,6 +252,21 @@ export class CanvasRenderer implements Renderer {
 			}
 		}
 
+		if (decoration.searchMatches) {
+			context.fillStyle = this.theme.searchMatch;
+
+			for (const [from, to] of decoration.searchMatches) {
+				context.fillRect(left + from * cellWidth, top, (to - from) * cellWidth, rowHeight);
+			}
+		}
+
+		if (decoration.searchCurrent) {
+			const [from, to] = decoration.searchCurrent;
+
+			context.fillStyle = this.theme.searchCurrent;
+			context.fillRect(left + from * cellWidth, top, (to - from) * cellWidth, rowHeight);
+		}
+
 		if (decoration.selection) {
 			const [from, to] = decoration.selection;
 

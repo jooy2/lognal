@@ -20,7 +20,7 @@ export function Logs() {
 
 ## Props {#props}
 
-[뷰어 옵션](/ko/guide/viewer#options)은 모두 prop으로도 넘길 수 있습니다. `store`, `core`, `theme`, `font`, `timestamps`, `follow`, `toolbar`, `statusBar`, `input`, `locale`, `labels`, `entryMenu`, `renderer`가 여기에 해당합니다. 컴포넌트에만 있는 prop은 다음과 같습니다.
+[뷰어 옵션](/ko/guide/viewer#options)은 모두 prop으로도 넘길 수 있습니다. `store`, `core`, `theme`, `font`, `timestamps`, `follow`, `toolbar`, `statusBar`, `input`, `locale`, `labels`, `entryMenu`, `search`, `renderer`가 여기에 해당합니다. 컴포넌트에만 있는 prop은 다음과 같습니다.
 
 | Prop                | 타입                                  | 설명                                                                 |
 | ------------------- | ------------------------------------- | -------------------------------------------------------------------- |
@@ -37,17 +37,17 @@ export function Logs() {
 - 옵션 prop은 데이터로 비교합니다. 렌더링할 때마다 `toolbar` 객체를 새로 만들어 넘겨도 내용이 같으면 아무 비용이 들지 않습니다.
 - 데이터가 바뀐 prop만 `viewer.setOptions`에 넘기고, `core`는 키마다 따로 비교합니다. 새 뷰어는 만들지 않습니다.
 - prop 하나가 바뀌어도 다른 prop은 다시 적용하지 않습니다. `theme`이 바뀔 때 `follow`, `core.filter`, `core.wrap`은 적용하지 않으므로, 사용자가 도구 모음에서 바꾼 따라가기, 필터, 줄 바꿈이 그대로 남습니다. prop이 사용자의 선택을 덮어쓰는 것은 그 prop의 데이터가 바뀔 때뿐입니다.
-- `input.onSubmit`, `timestamps` 함수, `labels.entries`, `entryMenu.items`처럼 옵션 안에 있는 함수는 늘 가장 최근 렌더링의 함수를 호출합니다. 새 함수를 넘겨도 바뀐 것으로 보지 않습니다.
+- `input.onSubmit`, `timestamps` 함수, `labels.entries`, `labels.searchResults`, `entryMenu.items`처럼 옵션 안에 있는 함수는 늘 가장 최근 렌더링의 함수를 호출합니다. 새 함수를 넘겨도 바뀐 것으로 보지 않습니다.
 - `store`나 `renderer`를 바꾸면 뷰어를 정리하고 새로 만듭니다.
 
 prop을 빼면 그 옵션은 기본값으로 돌아갑니다.
 
-| 뺀 prop                                                            | 적용하는 값                                                                           |
-| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| `theme`, `font`, `timestamps`, `toolbar`, `statusBar`, `entryMenu` | `'auto'`, `{}`, `true`, `true`, `true`, `true`                                        |
-| `input`, `labels`, `locale`                                        | `null`, `{}`, `undefined`이며, `locale`이 없으면 영어 레이블을 보여 줍니다.           |
-| `core`의 키나 `core` 전체                                          | `DEFAULT_STORE_OPTIONS`나 `DEFAULT_LAYOUT_OPTIONS`의 값이고, `filter`는 `null`입니다. |
-| `follow`                                                           | 아무것도 적용하지 않습니다. 따라가는 중이든 멈춘 상태든 지금 상태가 그대로 남습니다.  |
+| 뺀 prop                                                                      | 적용하는 값                                                                           |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `theme`, `font`, `timestamps`, `toolbar`, `statusBar`, `entryMenu`, `search` | `'auto'`, `{}`, `true`, `true`, `true`, `true`, `true`                                |
+| `input`, `labels`, `locale`                                                  | `null`, `{}`, `undefined`이며, `locale`이 없으면 영어 레이블을 보여 줍니다.           |
+| `core`의 키나 `core` 전체                                                    | `DEFAULT_STORE_OPTIONS`나 `DEFAULT_LAYOUT_OPTIONS`의 값이고, `filter`는 `null`입니다. |
+| `follow`                                                                     | 아무것도 적용하지 않습니다. 따라가는 중이든 멈춘 상태든 지금 상태가 그대로 남습니다.  |
 
 ## 로그 쓰기 {#write-logs}
 

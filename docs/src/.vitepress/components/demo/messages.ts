@@ -94,6 +94,7 @@ const EN = {
 		'timestamps-elapsed': 'Seconds since the page opened',
 		'status-bar': 'Status bar',
 		'entry-menu': 'Menu on each entry',
+		search: 'Search with Ctrl+F',
 		'second-viewer': 'Second viewer on the same store',
 		toolbar: 'Show the toolbar',
 		'toolbar-controls': 'Toolbar controls',
@@ -140,6 +141,7 @@ const EN = {
 		copy: 'Copy the selection',
 		'clear-selection': 'Clear the selection',
 		focus: 'Focus',
+		'open-search': 'Open search',
 		clear: 'Clear the log',
 		'clear-events': 'Clear the events'
 	},
@@ -285,6 +287,7 @@ const KO: Messages = {
 		'timestamps-elapsed': '페이지를 연 뒤 지난 초',
 		'status-bar': '상태 표시줄',
 		'entry-menu': '항목마다 메뉴',
+		search: 'Ctrl+F로 검색',
 		'second-viewer': '같은 스토어를 쓰는 두 번째 뷰어',
 		toolbar: '도구 모음 표시',
 		'toolbar-controls': '도구 모음 컨트롤',
@@ -331,6 +334,7 @@ const KO: Messages = {
 		copy: '선택 영역 복사',
 		'clear-selection': '선택 해제',
 		focus: '포커스',
+		'open-search': '검색 열기',
 		clear: '로그 지우기',
 		'clear-events': '이벤트 지우기'
 	},

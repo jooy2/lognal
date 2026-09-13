@@ -38,6 +38,16 @@ export interface ViewerLabels {
 	expandAll: string;
 	/** The menu item that collapses every value of an entry. */
 	collapseAll: string;
+	/** Accessible name of the search bar, and the placeholder of its field. */
+	search: string;
+	searchPrevious: string;
+	searchNext: string;
+	searchClose: string;
+	/**
+	 * The position of the current match among all matches, such as `3/12`. `current` is 0 while
+	 * no match is current. `format` formats a number for the locale.
+	 */
+	searchResults: (current: number, total: number, format: (value: number) => string) => string;
 	following: string;
 	paused: string;
 	/** The entry count in the status bar. `format` formats a number for the locale. */
@@ -71,6 +81,13 @@ export const EN_LABELS: ViewerLabels = {
 	copyEntryData: 'Copy as data',
 	expandAll: 'Expand all',
 	collapseAll: 'Collapse all',
+	search: 'Find in log',
+	searchPrevious: 'Previous match',
+	searchNext: 'Next match',
+	searchClose: 'Close search',
+	searchResults: (current, total, format) => {
+		return total === 0 ? 'No results' : `${format(current)}/${format(total)}`;
+	},
 	following: 'Following',
 	paused: 'Paused',
 	entries: (shown, total, format) => {
@@ -109,6 +126,13 @@ export const KO_LABELS: ViewerLabels = {
 	copyEntryData: '데이터로 복사',
 	expandAll: '모두 펼치기',
 	collapseAll: '모두 접기',
+	search: '로그에서 찾기',
+	searchPrevious: '이전 결과',
+	searchNext: '다음 결과',
+	searchClose: '검색 닫기',
+	searchResults: (current, total, format) => {
+		return total === 0 ? '결과 없음' : `${format(current)}/${format(total)}`;
+	},
 	following: '따라가는 중',
 	paused: '멈춤',
 	entries: (shown, total, format) => {

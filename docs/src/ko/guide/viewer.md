@@ -40,6 +40,7 @@ viewer.dispose();
 | `locale`     | `string`                                | 없음         | 내장 레이블과 숫자 서식의 언어입니다. 예를 들면 `'ko'`입니다.                                      |
 | `labels`     | `Partial<ViewerLabels>`                 | 내장 레이블  | 내장 레이블 대신 쓸 레이블입니다.                                                                  |
 | `entryMenu`  | `boolean \| EntryMenuOptions`           | `true`       | 포인터가 올라간 항목의 작업 메뉴입니다. `false`이면 끕니다. [항목 메뉴](#entry-menu)를 참고하세요. |
+| `search`     | `boolean`                               | `true`       | Ctrl+F나 Cmd+F로 로그 위에 검색 창을 열지 정합니다. [검색](#search)을 참고하세요.                  |
 | `renderer`   | `(ownerDocument: Document) => Renderer` | Canvas 2D    | 렌더러를 만듭니다. [레이아웃과 렌더러](/ko/reference/layout#renderer)를 참고하세요.                |
 
 ### 코어 옵션 {#core-options}
@@ -175,6 +176,26 @@ viewer.setFilter(null);
 - 항목 텍스트와 필터 텍스트를 유니코드 정규화 형식 C로 맞춰 비교하므로, 풀어쓴 한글도 사용자가 입력한 글자와 일치합니다. [한국어와 CJK 문자](/ko/guide/cjk#filtering-decomposed-hangul)를 참고하세요.
 
 도구 모음에서 바꾸든 `setFilter`로 바꾸든, 필터가 바뀔 때마다 `filter` 이벤트가 발생합니다. 현재 필터는 `getFilter()`로 얻습니다.
+
+항목을 모두 화면에 둔 채 일치하는 곳만 강조하려면 [검색](#search)을 쓰세요.
+
+## 검색 {#search}
+
+뷰어 안 어디에든 포커스가 있을 때 Ctrl+F나 macOS의 Cmd+F를 누르면 로그 오른쪽 위에 검색 창이 열립니다. 필터와 달리 검색은 아무것도 숨기지 않습니다. 모든 항목은 제자리에 남고, 일치하는 곳이 모두 강조되며, 현재 결과는 더 진하게 강조됩니다. 검색 창에는 `3/12`처럼 현재 결과의 순서가 나옵니다.
+
+| 키                       | 동작                            |
+| ------------------------ | ------------------------------- |
+| Enter, F3, Ctrl+G, Cmd+G | 다음 결과로 이동합니다.         |
+| 위 키와 함께 Shift       | 이전 결과로 이동합니다.         |
+| 검색 입력란에서 Escape   | 검색 창을 닫고 강조를 없앱니다. |
+
+- 검색은 대소문자를 구분하지 않고, 입력한 텍스트를 패턴이 아닌 글자 그대로 찾습니다. 텍스트를 유니코드 정규화 형식 C로 비교하므로 풀어쓴 한글도 찾습니다.
+- 로그에 보이는 내용을 검색합니다. 보이는 항목과 펼친 값의 행이 대상이고, 필터나 접힌 그룹에 가려진 항목은 찾지 않습니다.
+- 한 줄 안의 텍스트를 선택한 채로 검색 창을 열면 그 텍스트로 검색을 시작합니다.
+- 화면 맨 위나 그 아래에서 처음 나오는 결과가 현재 결과가 되고, 현재 결과가 화면 밖에 있으면 그 위치로 스크롤합니다. 결과로 이동하면 따라가기가 멈춥니다.
+- 긴 로그는 프레임 사이에 조금씩 나눠 검색합니다. 새 항목도 들어오는 대로 검색해서 결과 수가 함께 늘어납니다.
+
+같은 동작을 메서드로도 쓸 수 있습니다. `openSearch(query?)`, `closeSearch()`, `findNext()`, `findPrevious()`가 있습니다. `search: false`를 넘기면 단축키와 검색 창이 꺼지고, Ctrl+F는 다시 브라우저의 찾기로 갑니다.
 
 ## 선택과 복사 {#selection-and-copy}
 
@@ -330,6 +351,7 @@ new LogViewer(container, {
 | `getSelectionText()`, `selectAll()`, `clearSelection()`, `copySelection()` | 선택을 다룹니다.                                                                           |
 | `getEntryText(id, options?)`, `copyEntry(id, options?)`                    | 항목의 텍스트를 반환하거나 복사합니다.                                                     |
 | `expandEntry(id)`, `collapseEntry(id)`                                     | 항목의 값을 모두 펼치거나 접습니다.                                                        |
+| `openSearch(query?)`, `closeSearch()`, `findNext()`, `findPrevious()`      | 검색 창을 열거나 닫고, 결과 사이를 이동합니다.                                             |
 | `focus()`                                                                  | 입력 줄에, 입력 줄이 없으면 로그 영역에 포커스를 줍니다.                                   |
 | `refresh()`                                                                | CSS에서 테마와 글꼴을 다시 읽습니다.                                                       |
 | `on(name, listener)`                                                       | `follow`, `filter`, `selection` 이벤트에 리스너를 답니다. 리스너를 떼는 함수를 반환합니다. |
@@ -346,4 +368,5 @@ new LogViewer(container, {
 - 항목 메뉴 버튼의 이름은 `entryActions` 레이블입니다. 포인터가 없어도 Shift+F10이나 컨텍스트 메뉴 키로 메뉴를 열 수 있고, 터치 화면에서는 길게 눌러 엽니다.
 - 화면에 보이지 않는 목록이 화면의 항목을 스크린 리더에 전달합니다. 경고와 오류는 `warn:`, `error:`로 시작합니다.
 - 입력 줄은 이름이 붙은 `<textarea>`입니다.
+- 검색 창은 `search` 레이블을 이름으로 쓰는 search 랜드마크입니다. 버튼마다 이름이 붙어 있고, 현재 결과의 순서가 바뀌면 스크린 리더가 읽어 줍니다.
 - 로그 영역, 입력 줄, 필터 입력란에는 포커스 윤곽선을 그리지 않고, 두 입력란에서는 캐럿이 포커스를 보여 줍니다. 포커스를 받은 로그 영역에 윤곽선이 필요하면 `.lognal-viewport:focus-visible { box-shadow: inset 0 0 0 2px var(--lognal-focus-ring); }` 같은 규칙을 추가하세요.

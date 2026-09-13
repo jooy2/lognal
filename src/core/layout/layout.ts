@@ -12,7 +12,15 @@ import type { LogEntry, ValueNode } from '../types.js';
 import { isExpandable } from '../value/preview.js';
 import { buildEntryLines, INDENT_CELLS, isExpandedByDefault } from './entry-lines.js';
 import { RowIndex } from './row-index.js';
-import type { LineAction, RowRun, ShapedLine, TextPosition, VisualRow, WrapMode } from './types.js';
+import type {
+	LineAction,
+	RowRun,
+	ShapedLine,
+	TextMatch,
+	TextPosition,
+	VisualRow,
+	WrapMode
+} from './types.js';
 
 export interface LayoutOptions extends ShapeOptions {
 	/** How lines longer than the viewer are handled. */
@@ -26,6 +34,35 @@ export const DEFAULT_LAYOUT_OPTIONS: LayoutOptions = {
 
 /** The fewest columns a line wraps into, however deeply it is indented. */
 const MIN_WRAP_COLUMNS = 16;
+
+/** The text of a shaped line as a search sees it, with the cell where every character starts. */
+const searchableText = (line: ShapedLine): { text: string; cells: number[] } => {
+	if (!line.clusters || !line.widths) {
+		const cells = Array.from({ length: line.text.length + 1 }, (_, index) => index);
+
+		return { text: line.text, cells };
+	}
+
+	const cells: number[] = [];
+	let text = '';
+	let cell = 0;
+
+	for (let index = 0; index < line.clusters.length; index++) {
+		// Icons, such as the expander triangle, take cells but have no text.
+		const composed = line.clusters[index].normalize('NFC');
+
+		for (let unit = 0; unit < composed.length; unit++) {
+			cells.push(cell);
+		}
+
+		text += composed;
+		cell += line.widths[index];
+	}
+
+	cells.push(cell);
+
+	return { text, cells };
+};
 
 /** How many entries keep their shaped lines in memory. */
 const LAYOUT_CACHE_SIZE = 4000;
@@ -128,6 +165,7 @@ export class LogLayout {
 	private needsRebuild = true;
 	private dirty = true;
 	private widest = 0;
+	private version = 0;
 	private readonly unsubscribe: () => void;
 
 	constructor(
@@ -156,6 +194,15 @@ export class LogLayout {
 	/** The number of visible entries whose row count is an estimate. See `measurePending`. */
 	get pendingCount(): number {
 		return this.staleCount;
+	}
+
+	/**
+	 * Changes whenever the text of the visible entries changes in another way than entries added
+	 * at the end or dropped from the front: a new filter, a collapsed group, an expanded value,
+	 * a cleared store, or options that change how text is shaped.
+	 */
+	get textVersion(): number {
+		return this.version;
 	}
 
 	/**
@@ -192,6 +239,7 @@ export class LogLayout {
 
 		if (shapeChanged) {
 			this.optionsVersion++;
+			this.version++;
 			this.layouts.clear();
 		}
 
@@ -216,6 +264,7 @@ export class LogLayout {
 	/** Sets which entries are visible. Returns the compiled filter, which reports a bad pattern. */
 	setFilter(filter: LogFilter | null): CompiledFilter {
 		this.filter = compileFilter(filter);
+		this.version++;
 		this.needsRebuild = true;
 		this.dirty = true;
 
@@ -549,6 +598,8 @@ export class LogLayout {
 	private onExpansionChange(entry: LogEntry): void {
 		const index = this.indexOf(entry.id);
 
+		this.version++;
+
 		if (index >= 0) {
 			const position = this.visibleStart + index;
 			const rows = this.countRows(entry);
@@ -561,6 +612,85 @@ export class LogLayout {
 				this.positions++;
 			}
 		}
+	}
+
+	/** Returns the visible position of the first visible entry whose id is at least `entryId`. */
+	indexFrom(entryId: number): number {
+		return this.firstIndexFrom(entryId);
+	}
+
+	/**
+	 * Finds the matches of a global pattern in the lines of an entry, as shown: with the rows of
+	 * open values, and with control characters and tabs replaced. The text is compared in
+	 * Unicode normalization form C, so decomposed Hangul matches what the user types. Returns at
+	 * most `limit` matches.
+	 */
+	findInEntry(entry: LogEntry, pattern: RegExp, limit = Number.POSITIVE_INFINITY): TextMatch[] {
+		const matches: TextMatch[] = [];
+		const lines = this.shapedLinesOf(entry);
+
+		for (let lineIndex = 0; lineIndex < lines.length && matches.length < limit; lineIndex++) {
+			const { text, cells } = searchableText(lines[lineIndex]);
+
+			pattern.lastIndex = 0;
+
+			for (let match = pattern.exec(text); match; match = pattern.exec(text)) {
+				if (match[0].length === 0) {
+					pattern.lastIndex++;
+					continue;
+				}
+
+				matches.push({
+					entryId: entry.id,
+					line: lineIndex,
+					from: cells[match.index],
+					to: cells[match.index + match[0].length]
+				});
+
+				if (matches.length >= limit) {
+					break;
+				}
+			}
+		}
+
+		return matches;
+	}
+
+	/**
+	 * Returns the row within its entry that shows a text position, and the indent of that row,
+	 * or `null` when the entry is not visible.
+	 */
+	locatePosition(position: TextPosition): { entryRow: number; indent: number } | null {
+		const entry = this.store.get(position.entryId);
+
+		if (!entry || this.indexOf(entry.id) < 0) {
+			return null;
+		}
+
+		const layout = this.layoutOf(entry);
+		const lineIndex = Math.min(Math.max(0, position.line), layout.lines.length - 1);
+		let entryRow = 0;
+
+		for (let index = 0; index < lineIndex; index++) {
+			entryRow += layout.wraps[index].length;
+		}
+
+		const line = layout.lines[lineIndex];
+		const wraps = layout.wraps[lineIndex];
+		let startCell = 0;
+
+		for (let lineRow = 0; lineRow < wraps.length; lineRow++) {
+			const to = lineRow + 1 < wraps.length ? wraps[lineRow + 1] : line.length;
+			const cells = cellsBetween(line, wraps[lineRow], to);
+
+			if (position.cell < startCell + cells || lineRow === wraps.length - 1) {
+				return { entryRow: entryRow + lineRow, indent: line.indent };
+			}
+
+			startCell += cells;
+		}
+
+		return { entryRow, indent: line.indent };
 	}
 
 	/**
@@ -738,11 +868,13 @@ export class LogLayout {
 		this.dirty = true;
 
 		if (change.type === 'clear') {
+			this.version++;
 			this.needsRebuild = true;
 			this.layouts.clear();
 			this.rowCounts.clear();
 			this.expansions.clear();
 		} else if (change.type === 'update' && change.entry.kind === 'group') {
+			this.version++;
 			this.needsRebuild = true;
 		}
 	}
@@ -909,6 +1041,23 @@ export class LogLayout {
 		this.widest = Math.max(this.widest, rows > 1 ? Math.min(line.cells, width) : line.cells);
 
 		return rows;
+	}
+
+	/** The shaped lines of an entry: the cached ones when it was laid out, new ones otherwise. */
+	private shapedLinesOf(entry: LogEntry): ShapedLine[] {
+		const cached = this.layouts.get(entry.id);
+
+		if (
+			cached &&
+			cached.stateKey === this.stateKeyOf(entry) &&
+			cached.optionsVersion === this.optionsVersion
+		) {
+			return cached.lines;
+		}
+
+		return buildEntryLines(entry, (path) => this.isExpanded(entry, path)).map((logical) =>
+			shapeLine(logical.spans, logical.indent, this.options)
+		);
 	}
 
 	private layoutOf(entry: LogEntry): EntryLayout {

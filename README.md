@@ -14,7 +14,7 @@
 - **Accepts commands.** Connect a handler, and the viewer shows an input line and prints the replies.
 - **Handles Korean and other CJK text.** Wide characters stay on the grid, Korean text wraps at spaces, and Enter waits for IME composition to finish.
 
-The viewer has a toolbar (follow new logs, clear, scroll to top and bottom, line wrapping, text filter and level filter), a status bar, timestamps, a menu on each entry for copying it, light and dark themes, and a custom scrollbar. Every part can be turned off or restyled with CSS custom properties.
+The viewer has a toolbar (follow new logs, clear, scroll to top and bottom, line wrapping, text filter and level filter), a status bar, a search bar (Ctrl+F) that highlights matches without hiding entries, timestamps, a menu on each entry for copying and expanding it, light and dark themes, and a custom scrollbar. Every part can be turned off or restyled with CSS custom properties.
 
 ## Quick start
 

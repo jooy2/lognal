@@ -110,6 +110,7 @@ const settings = reactive({
 	timestamps: 'time' as TimestampChoice,
 	statusBar: true,
 	entryMenu: true,
+	search: true,
 	secondViewer: false,
 	toolbar: true,
 	toolbarControls: {
@@ -256,6 +257,7 @@ const initialOptions = (): LogViewerOptions => ({
 	timestamps: viewerTimestamps(),
 	statusBar: settings.statusBar,
 	entryMenu: viewerEntryMenu(),
+	search: settings.search,
 	toolbar: viewerToolbar(),
 	input: viewerInput(),
 	core: {
@@ -581,6 +583,10 @@ watch(
 	(statusBar) => applyOptions({ statusBar })
 );
 watch(
+	() => settings.search,
+	(search) => applyOptions({ search })
+);
+watch(
 	() => settings.entryMenu,
 	() => applyOptions({ entryMenu: viewerEntryMenu() })
 );
@@ -848,6 +854,10 @@ onBeforeUnmount(() => {
 					</label>
 					<p class="demo-hint">{{ t('hint', 'entry-menu') }}</p>
 					<label class="demo-check">
+						<input v-model="settings.search" type="checkbox" />
+						{{ t('control', 'search') }}
+					</label>
+					<label class="demo-check">
 						<input v-model="settings.secondViewer" type="checkbox" :disabled="!ready" />
 						{{ t('control', 'second-viewer') }}
 					</label>
@@ -1078,6 +1088,9 @@ onBeforeUnmount(() => {
 						</button>
 						<button type="button" :disabled="!ready" @click="viewer?.focus()">
 							{{ t('control', 'focus') }}
+						</button>
+						<button type="button" :disabled="!ready" @click="viewer?.openSearch()">
+							{{ t('control', 'open-search') }}
 						</button>
 						<button type="button" :disabled="!ready" @click="viewer?.clear()">
 							{{ t('control', 'clear') }}

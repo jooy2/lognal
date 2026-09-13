@@ -140,6 +140,7 @@ export const LogViewer = forwardRef<Viewer | null, LogViewerProps>(function LogV
 			labels: {},
 			locale: undefined,
 			entryMenu: true,
+			search: true,
 			...current
 		};
 
@@ -169,12 +170,18 @@ export const LogViewer = forwardRef<Viewer | null, LogViewerProps>(function LogV
 			};
 		}
 
-		if (current.labels?.entries) {
-			result.labels = {
-				...current.labels,
-				entries: (...args: Parameters<ViewerLabels['entries']>) =>
-					latest.current.labels?.entries?.(...args) ?? ''
-			};
+		if (current.labels?.entries || current.labels?.searchResults) {
+			const labels: Partial<ViewerLabels> = { ...current.labels };
+
+			if (current.labels.entries) {
+				labels.entries = (...args) => latest.current.labels?.entries?.(...args) ?? '';
+			}
+
+			if (current.labels.searchResults) {
+				labels.searchResults = (...args) => latest.current.labels?.searchResults?.(...args) ?? '';
+			}
+
+			result.labels = labels;
 		}
 
 		return result;

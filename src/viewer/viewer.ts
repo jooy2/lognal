@@ -1,6 +1,13 @@
 import { entrySearchText, type LogFilter } from '../core/filter.js';
 import { DEFAULT_LAYOUT_OPTIONS, LogLayout, type LayoutOptions } from '../core/layout/layout.js';
-import type { LineAction, TextPosition, VisualRow, WrapMode } from '../core/layout/types.js';
+import { LogSearch } from '../core/layout/search.js';
+import type {
+	LineAction,
+	TextMatch,
+	TextPosition,
+	VisualRow,
+	WrapMode
+} from '../core/layout/types.js';
 import {
 	DEFAULT_STORE_OPTIONS,
 	LogStore,
@@ -28,6 +35,7 @@ import { InputLine } from './input-line.js';
 import { labelsFor, type ViewerLabels } from './labels.js';
 import { PopupMenu, type PopupAnchor, type PopupItem } from './popup-menu.js';
 import { Scrollbar } from './scrollbar.js';
+import { SearchBar } from './search-bar.js';
 import { readFont, readTheme, type ThemeMode } from './theme.js';
 
 /** Options that belong to the core: what is kept, how it is laid out, and what is shown. */
@@ -127,6 +135,11 @@ export interface LogViewerOptions {
 	 * `false` to turn the button off.
 	 */
 	entryMenu?: boolean | EntryMenuOptions;
+	/**
+	 * Whether Ctrl+F or Cmd+F, while focus is in the viewer, opens a bar that searches the log and
+	 * highlights every match without hiding any entry.
+	 */
+	search?: boolean;
 	/** Creates the renderer. Defaults to the Canvas 2D renderer. */
 	renderer?: (ownerDocument: Document) => Renderer;
 }
@@ -156,6 +169,7 @@ interface ResolvedOptions {
 	labelOverrides: Partial<ViewerLabels>;
 	/** The entry menu, or `null` when it is off or would have no items. */
 	entryMenu: EntryMenuOptions | null;
+	search: boolean;
 }
 
 interface Selection {
@@ -214,6 +228,11 @@ const MEASURE_MARGIN_ROWS = 50;
 const LONG_PRESS_DELAY = 500;
 /** How far a touch may move, in CSS pixels, and still count as a long press. */
 const LONG_PRESS_SLOP = 10;
+/** How long one slice of a search may run, and how many entries it takes at a time. */
+const SEARCH_SLICE_MS = 8;
+const SEARCH_BATCH = 200;
+/** The longest selected text that a new search starts with. */
+const SEARCH_SELECTION_LENGTH = 200;
 /** How long one slice of background layout may run, and how many entries it takes at a time. */
 const MEASURE_SLICE_MS = 8;
 const MEASURE_BATCH = 200;
@@ -282,6 +301,11 @@ export class LogViewer {
 	private readonly newLogsButton: HTMLButtonElement;
 	private readonly entryButton: HTMLButtonElement;
 	private readonly popup: PopupMenu;
+	private readonly search: LogSearch;
+	private readonly searchBar: SearchBar;
+	private searchTimer: ReturnType<typeof setTimeout> | undefined;
+	/** Whether the next results of the search should make a match current and show it. */
+	private revealOnResults = false;
 	/** A prefix for the ids of elements that refer to each other. */
 	private readonly id = `lognal-${++viewerCount}`;
 	private toolbarElement: HTMLDivElement | null = null;
@@ -350,6 +374,7 @@ export class LogViewer {
 		}
 
 		this.layout = new LogLayout(this.store, pick(core, LAYOUT_KEYS));
+		this.search = new LogSearch(this.layout);
 		this.options = this.resolveOptions(options);
 		this.following = options.follow ?? true;
 
@@ -383,6 +408,12 @@ export class LogViewer {
 		this.entryButton.setAttribute('aria-expanded', 'false');
 		this.entryButton.append(createIcon(doc, 'more'));
 		this.entryButton.addEventListener('click', this.onEntryButtonClick);
+		this.searchBar = new SearchBar(doc, {
+			onQuery: (query) => this.onSearchQuery(query),
+			onNext: () => this.findNext(),
+			onPrevious: () => this.findPrevious(),
+			onClose: () => this.closeSearch()
+		});
 		this.body.append(
 			this.renderer.element,
 			this.viewport,
@@ -390,7 +421,8 @@ export class LogViewer {
 			this.verticalScrollbar.element,
 			this.horizontalScrollbar.element,
 			this.newLogsButton,
-			this.entryButton
+			this.entryButton,
+			this.searchBar.element
 		);
 		this.element.append(this.body);
 		this.popup = new PopupMenu(doc, this.element);
@@ -465,6 +497,10 @@ export class LogViewer {
 
 		if (options.follow !== undefined) {
 			this.setFollowing(options.follow);
+		}
+
+		if (options.search === false) {
+			this.closeSearch();
 		}
 
 		if (options.entryMenu !== undefined && !this.options.entryMenu && this.menuEntryId !== null) {
@@ -764,6 +800,59 @@ export class LogViewer {
 		this.requestRender();
 	}
 
+	/**
+	 * Opens the search bar and searches for `query`, or for the text already in the bar. Without
+	 * `query`, a selection on one line becomes the text to search for. Does nothing when the
+	 * `search` option is off.
+	 */
+	openSearch(query?: string): void {
+		if (!this.options.search) {
+			return;
+		}
+
+		const selected = this.getSelectionText();
+		const text =
+			query ??
+			(selected && !selected.includes('\n') && selected.length <= SEARCH_SELECTION_LENGTH
+				? selected
+				: undefined);
+
+		this.popup.close(false);
+		this.searchBar.open(text);
+		this.revealOnResults = true;
+		this.onSearchQuery(this.searchBar.value);
+	}
+
+	/** Closes the search bar and removes the highlights of the search. */
+	closeSearch(): void {
+		if (!this.searchBar.isOpen) {
+			return;
+		}
+
+		const focused = this.searchBar.element.contains(this.ownerDocument.activeElement);
+
+		clearTimeout(this.searchTimer);
+		this.searchTimer = undefined;
+		this.searchBar.close();
+		this.search.setQuery('');
+
+		if (focused) {
+			this.viewport.focus({ preventScroll: true });
+		}
+
+		this.requestRender();
+	}
+
+	/** Makes the next match of the search current and scrolls to it. */
+	findNext(): void {
+		this.showMatch(this.search.next());
+	}
+
+	/** Makes the previous match of the search current and scrolls to it. */
+	findPrevious(): void {
+		this.showMatch(this.search.previous());
+	}
+
 	/** Moves keyboard focus to the input line, or to the log when there is no input line. */
 	focus(): void {
 		if (this.inputLine) {
@@ -815,6 +904,8 @@ export class LogViewer {
 		this.layout.dispose();
 		this.renderer.dispose();
 		this.popup.dispose();
+		clearTimeout(this.searchTimer);
+		this.searchBar.dispose();
 		this.verticalScrollbar.dispose();
 		this.horizontalScrollbar.dispose();
 		this.inputLine?.dispose();
@@ -853,7 +944,8 @@ export class LogViewer {
 			locale: options.locale,
 			labels,
 			labelOverrides,
-			entryMenu
+			entryMenu,
+			search: options.search ?? true
 		};
 	}
 
@@ -867,7 +959,8 @@ export class LogViewer {
 			input,
 			locale,
 			labelOverrides,
-			entryMenu
+			entryMenu,
+			search
 		} = this.options;
 
 		return {
@@ -879,7 +972,8 @@ export class LogViewer {
 			input,
 			locale,
 			labels: labelOverrides,
-			entryMenu: entryMenu ?? false
+			entryMenu: entryMenu ?? false,
+			search
 		};
 	}
 
@@ -912,6 +1006,7 @@ export class LogViewer {
 		this.listen(this.viewport, 'copy', this.onCopy);
 		this.listen(this.viewport, 'contextmenu', this.onContextMenu);
 		this.listen(this.body, 'pointerleave', this.onPointerLeave);
+		this.listen(this.element, 'keydown', this.onViewerKeyDown);
 		this.cleanups.push(this.store.subscribe(this.onStoreChange));
 		this.renderer.onFontsChanged(() => this.applyFont());
 
@@ -984,6 +1079,7 @@ export class LogViewer {
 		);
 		this.entryButton.title = labels.entryActions;
 		this.entryButton.setAttribute('aria-label', labels.entryActions);
+		this.searchBar.setLabels(labels);
 
 		if (toolbar) {
 			this.toolbarElement = this.buildToolbar(toolbar, labels);
@@ -1547,6 +1643,133 @@ export class LogViewer {
 		this.updateStatus();
 		this.scheduleAccessories();
 		this.scheduleMeasure();
+
+		if (this.search.pending) {
+			this.scheduleSearch();
+		}
+	}
+
+	/** Searches the log a slice at a time between frames. */
+	private scheduleSearch(): void {
+		if (this.searchTimer !== undefined || this.disposed) {
+			return;
+		}
+
+		this.searchTimer = setTimeout(() => {
+			this.searchTimer = undefined;
+			this.layout.sync(SYNC_BUDGET);
+
+			const started = performance.now();
+			let changed = false;
+
+			while (this.search.pending && performance.now() - started < SEARCH_SLICE_MS) {
+				changed = this.search.scan(SEARCH_BATCH) || changed;
+			}
+
+			if (this.revealOnResults) {
+				this.revealFirstMatch();
+			}
+
+			if (changed) {
+				this.requestRender();
+			}
+
+			this.updateSearchResults();
+
+			if (this.search.pending) {
+				this.scheduleSearch();
+			}
+		}, 0);
+	}
+
+	private readonly onSearchQuery = (query: string): void => {
+		if (this.search.setQuery(query)) {
+			this.revealOnResults = true;
+		}
+
+		this.updateSearchResults();
+		this.requestRender();
+	};
+
+	/** Makes the first match at the top of the view or below it current, once one is found. */
+	private revealFirstMatch(): void {
+		const topId = this.visibleRows[0]?.entry.id ?? 0;
+		let index = this.search.firstMatchFrom(topId);
+
+		if (index < 0 && !this.search.pending) {
+			index = this.search.count > 0 ? 0 : -1;
+		}
+
+		if (index >= 0 || !this.search.pending) {
+			this.revealOnResults = false;
+		}
+
+		if (index >= 0) {
+			this.showMatch(this.search.select(index));
+		}
+	}
+
+	private showMatch(match: TextMatch | null): void {
+		this.revealOnResults = false;
+
+		if (match) {
+			this.revealMatch(match);
+		}
+
+		this.updateSearchResults();
+		this.requestRender();
+	}
+
+	/** Scrolls so a match is on screen, in the middle of the view when it was not. */
+	private revealMatch(match: TextMatch): void {
+		this.layout.sync(SYNC_BUDGET);
+
+		const located = this.layout.locatePosition({
+			entryId: match.entryId,
+			line: match.line,
+			cell: match.from
+		});
+
+		if (!located) {
+			return;
+		}
+
+		const rowHeight = this.metrics.height;
+		const shown = this.visibleRows.findIndex(
+			(row) => row.entry.id === match.entryId && row.entryRow === located.entryRow
+		);
+		const rowTop = PADDING_TOP + (this.firstRow + shown) * rowHeight - this.topPixels;
+
+		if (shown < 0 || rowTop < 0 || rowTop + rowHeight > this.height) {
+			this.setFollowing(false);
+			this.anchor = {
+				entryId: match.entryId,
+				entryRow: located.entryRow,
+				offset: Math.max(0, Math.round((this.height - rowHeight) / 2))
+			};
+		}
+
+		const cellWidth = this.metrics.width;
+		const visibleWidth = this.viewport.clientWidth - this.contentLeft() - PADDING_RIGHT;
+		const from = (located.indent + match.from) * cellWidth;
+		const to = (located.indent + match.to) * cellWidth;
+		const scrollLeft = this.viewport.scrollLeft;
+
+		if (from < scrollLeft || to > scrollLeft + visibleWidth) {
+			this.viewport.scrollLeft = Math.max(0, from - visibleWidth / 3);
+		}
+	}
+
+	private updateSearchResults(): void {
+		const { labels, locale } = this.options;
+		const numberFormat = this.numberFormat(locale);
+		const { query, count, current, pending } = this.search;
+		const text =
+			!query || (pending && count === 0)
+				? ''
+				: labels.searchResults(current + 1, count, (value) => numberFormat.format(value));
+
+		this.searchBar.setResults(text);
 	}
 
 	/** Returns an anchor for the row at a pixel position of the whole log. */
@@ -1599,6 +1822,31 @@ export class LogViewer {
 
 		if (row.entry.id === (this.menuEntryId ?? this.hoverEntryId)) {
 			decoration.hovered = true;
+		}
+
+		const found = this.search.matchesOf(row.entry.id);
+
+		if (found) {
+			const current = this.search.getMatch(this.search.current);
+			const start = row.startCell;
+			const end = start + row.cells;
+
+			for (const match of found) {
+				if (match.line !== row.line || match.to <= start || match.from >= end) {
+					continue;
+				}
+
+				const range: [number, number] = [
+					row.indent + Math.max(match.from, start) - start,
+					row.indent + Math.min(match.to, end) - start
+				];
+
+				if (match === current) {
+					decoration.searchCurrent = range;
+				} else {
+					(decoration.searchMatches ??= []).push(range);
+				}
+			}
 		}
 
 		if (selection && comparePositions(selection.anchor, selection.head) !== 0) {
@@ -1820,7 +2068,9 @@ export class LogViewer {
 
 		if (this.expectedScrollTop !== null && Math.abs(top - this.expectedScrollTop) < 1) {
 			this.expectedScrollTop = null;
-		} else {
+		} else if (Math.abs(top - this.lastScrollTop) >= 1) {
+			// Only a vertical scroll moves the anchor and decides following. A sideways scroll,
+			// such as the one that shows a match of a search, leaves both as they are.
 			this.expectedScrollTop = null;
 			this.anchor = null;
 
@@ -2133,6 +2383,33 @@ export class LogViewer {
 
 		if (event.key === 'Escape') {
 			this.clearSelection();
+		}
+	};
+
+	/** Keys that work wherever focus is inside the viewer: the search shortcuts. */
+	private readonly onViewerKeyDown = (event: KeyboardEvent): void => {
+		if (!this.options.search) {
+			return;
+		}
+
+		const modifier = event.ctrlKey || event.metaKey;
+		const key = event.key.toLowerCase();
+
+		if (modifier && !event.altKey && key === 'f') {
+			event.preventDefault();
+			this.openSearch();
+
+			return;
+		}
+
+		if (this.searchBar.isOpen && (event.key === 'F3' || (modifier && key === 'g'))) {
+			event.preventDefault();
+
+			if (event.shiftKey) {
+				this.findPrevious();
+			} else {
+				this.findNext();
+			}
 		}
 	};
 

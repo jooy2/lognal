@@ -476,6 +476,105 @@ describe('LogViewer', () => {
 		viewer.dispose();
 	});
 
+	it('searches with Ctrl+F, highlights every match and moves to the next one', async () => {
+		const render = vi.spyOn(CanvasRenderer.prototype, 'render');
+		const viewer = new LogViewer(container, { timestamps: false, core: { mergeRepeats: false } });
+		const viewport = viewer.element.querySelector('.lognal-viewport') as HTMLDivElement;
+		const bar = viewer.element.querySelector('.lognal-search') as HTMLFormElement;
+		const input = bar.querySelector('input') as HTMLInputElement;
+		const results = bar.querySelector('.lognal-search-count') as HTMLSpanElement;
+		const lastFrame = () => render.mock.calls[render.mock.calls.length - 1][0];
+
+		for (let index = 0; index < 300; index++) {
+			viewer.write(index === 10 || index === 250 ? `line ${index} needle` : `line ${index}`);
+		}
+
+		await nextFrame();
+		viewport.focus();
+
+		const shortcut = new KeyboardEvent('keydown', {
+			key: 'f',
+			ctrlKey: true,
+			bubbles: true,
+			cancelable: true
+		});
+
+		viewport.dispatchEvent(shortcut);
+		expect(shortcut.defaultPrevented).toBe(true);
+		expect(bar.hidden).toBe(false);
+		expect(document.activeElement).toBe(input);
+
+		input.value = 'NEEDLE';
+		input.dispatchEvent(new Event('input'));
+		await waitFor(() => results.textContent === '1/2');
+
+		// No match is below the bottom of the log, so the first match becomes current and is shown.
+		await waitFor(() => lastFrame().rows.some((row) => row.entry.id === 11));
+
+		const shown = lastFrame();
+		const currentRow = shown.rows.findIndex((row) => row.entry.id === 11);
+
+		expect(viewer.isFollowing).toBe(false);
+		expect(shown.decorations[currentRow].searchCurrent).toEqual([8, 14]);
+
+		input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+		await waitFor(() => results.textContent === '2/2');
+		await waitFor(() => lastFrame().rows.some((row) => row.entry.id === 251));
+
+		input.dispatchEvent(
+			new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true, bubbles: true })
+		);
+		expect(results.textContent).toBe('1/2');
+
+		input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+		expect(bar.hidden).toBe(true);
+		expect(document.activeElement).toBe(viewport);
+		await nextFrame();
+		expect(lastFrame().decorations.some((decoration) => decoration.searchCurrent)).toBe(false);
+
+		render.mockRestore();
+		viewer.dispose();
+	});
+
+	it('keeps every entry visible while searching and searches new entries', async () => {
+		const viewer = new LogViewer(container, { core: { mergeRepeats: false } });
+		const results = viewer.element.querySelector('.lognal-search-count') as HTMLSpanElement;
+
+		viewer.write('alpha beta');
+		viewer.write('gamma');
+		await nextFrame();
+		viewer.openSearch('gamma');
+		await waitFor(() => results.textContent === '1/1');
+		expect(viewer.layout.visibleCount).toBe(2);
+
+		viewer.write('gamma again');
+		await waitFor(() => results.textContent === '1/2');
+		viewer.findNext();
+		expect(results.textContent).toBe('2/2');
+		viewer.findNext();
+		expect(results.textContent).toBe('1/2');
+
+		viewer.openSearch('missing');
+		await waitFor(() => results.textContent === 'No results');
+		viewer.dispose();
+	});
+
+	it('leaves Ctrl+F to the browser when search is off', () => {
+		const viewer = new LogViewer(container, { search: false });
+		const viewport = viewer.element.querySelector('.lognal-viewport') as HTMLDivElement;
+		const shortcut = new KeyboardEvent('keydown', {
+			key: 'f',
+			metaKey: true,
+			bubbles: true,
+			cancelable: true
+		});
+
+		viewport.dispatchEvent(shortcut);
+		expect(shortcut.defaultPrevented).toBe(false);
+		expect((viewer.element.querySelector('.lognal-search') as HTMLFormElement).hidden).toBe(true);
+		viewer.dispose();
+	});
+
 	it('escapes log text in the HTML of a formatted copy', async () => {
 		const viewer = new LogViewer(container);
 		const write = vi.spyOn(navigator.clipboard, 'write').mockResolvedValue(undefined);

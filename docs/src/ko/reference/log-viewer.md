@@ -54,6 +54,10 @@ new LogViewer(container: HTMLElement, options?: LogViewerOptions)
 | `copyEntry(entryId: number, options?: EntryTextOptions)`             | `Promise<boolean>`  | `getEntryText`가 반환하는 텍스트를 클립보드에 복사하고, `'formatted'`이면 테마 색을 입힌 HTML도 함께 넣습니다. 복사한 내용이 있는지를 이행 값으로 돌려줍니다.                     |
 | `expandEntry(entryId: number)`                                       | `void`              | 항목의 값과 그 안의 값을 캡처된 만큼 모두 펼칩니다.                                                                                                                               |
 | `collapseEntry(entryId: number)`                                     | `void`              | 따로 로그를 남긴 오류까지 포함해 항목의 값을 모두 접습니다.                                                                                                                       |
+| `openSearch(query?: string)`                                         | `void`              | 검색 창을 열고 `query`나 검색 창에 있던 텍스트, 또는 한 줄 안의 선택 영역으로 검색합니다. `search`가 꺼져 있으면 아무것도 하지 않습니다.                                          |
+| `closeSearch()`                                                      | `void`              | 검색 창을 닫고 강조를 없앱니다.                                                                                                                                                   |
+| `findNext()`                                                         | `void`              | 다음 결과를 현재 결과로 만들고 그 위치로 스크롤합니다. 마지막 결과 다음은 첫 결과입니다.                                                                                          |
+| `findPrevious()`                                                     | `void`              | 이전 결과를 현재 결과로 만들고 그 위치로 스크롤합니다.                                                                                                                            |
 | `focus()`                                                            | `void`              | 입력 줄에, 입력 줄이 없으면 로그 영역에 포커스를 줍니다.                                                                                                                          |
 | `refresh()`                                                          | `void`              | 페이지가 CSS를 바꾼 뒤처럼 필요할 때 CSS에서 테마와 글꼴을 다시 읽습니다.                                                                                                         |
 | `on(name, listener)`                                                 | `() => void`        | 이벤트가 일어나면 `listener`를 호출합니다. 리스너를 떼는 함수를 반환합니다.                                                                                                       |
@@ -81,21 +85,22 @@ off();
 
 ## LogViewerOptions {#logvieweroptions}
 
-| 옵션         | 타입                                    | 기본값           | 설명                                                                                  |
-| ------------ | --------------------------------------- | ---------------- | ------------------------------------------------------------------------------------- |
-| `store`      | `LogStore`                              | 새 스토어        | 보여 줄 스토어입니다. 여러 뷰어가 스토어 하나를 함께 쓸 수 있습니다.                  |
-| `core`       | `Partial<CoreOptions>`                  | `{}`             | 코어 옵션입니다. 스토어 옵션은 `store`로 넘긴 스토어에도 적용합니다.                  |
-| `theme`      | `ThemeMode`                             | `'auto'`         | 색 구성입니다. `'auto'`는 운영체제 설정을 따릅니다.                                   |
-| `font`       | `Partial<FontSettings>`                 | `{}`             | 글꼴입니다. 빠진 값은 `--lognal-font-*` CSS 속성에서 가져옵니다.                      |
-| `timestamps` | `boolean \| TimestampFormat`            | `true`           | 항목마다 시각을 보여 줄지, 어떤 형식으로 보여 줄지 정합니다. `true`는 `'time'`입니다. |
-| `follow`     | `boolean`                               | `true`           | 처음에 새 항목을 따라갈지 정합니다.                                                   |
-| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`           | 도구 모음입니다. `false`이면 숨기고, 객체를 넘기면 컨트롤을 하나씩 끌 수 있습니다.    |
-| `statusBar`  | `boolean`                               | `true`           | 상태 표시줄을 보여 줄지 정합니다.                                                     |
-| `input`      | `InputOptions \| null`                  | `null`           | 입력 줄입니다. 읽기 전용 뷰어라면 생략합니다.                                         |
-| `locale`     | `string`                                | `undefined`      | 내장 레이블과 숫자 서식의 언어입니다. 예를 들면 `'en'`, `'ko'`입니다.                 |
-| `labels`     | `Partial<ViewerLabels>`                 | `{}`             | 내장 레이블 대신 쓸 레이블입니다.                                                     |
-| `entryMenu`  | `boolean \| EntryMenuOptions`           | `true`           | 포인터가 올라간 항목의 작업 메뉴입니다. `false`이면 끕니다.                           |
-| `renderer`   | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | 렌더러를 만듭니다.                                                                    |
+| 옵션         | 타입                                    | 기본값           | 설명                                                                                                              |
+| ------------ | --------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `store`      | `LogStore`                              | 새 스토어        | 보여 줄 스토어입니다. 여러 뷰어가 스토어 하나를 함께 쓸 수 있습니다.                                              |
+| `core`       | `Partial<CoreOptions>`                  | `{}`             | 코어 옵션입니다. 스토어 옵션은 `store`로 넘긴 스토어에도 적용합니다.                                              |
+| `theme`      | `ThemeMode`                             | `'auto'`         | 색 구성입니다. `'auto'`는 운영체제 설정을 따릅니다.                                                               |
+| `font`       | `Partial<FontSettings>`                 | `{}`             | 글꼴입니다. 빠진 값은 `--lognal-font-*` CSS 속성에서 가져옵니다.                                                  |
+| `timestamps` | `boolean \| TimestampFormat`            | `true`           | 항목마다 시각을 보여 줄지, 어떤 형식으로 보여 줄지 정합니다. `true`는 `'time'`입니다.                             |
+| `follow`     | `boolean`                               | `true`           | 처음에 새 항목을 따라갈지 정합니다.                                                                               |
+| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`           | 도구 모음입니다. `false`이면 숨기고, 객체를 넘기면 컨트롤을 하나씩 끌 수 있습니다.                                |
+| `statusBar`  | `boolean`                               | `true`           | 상태 표시줄을 보여 줄지 정합니다.                                                                                 |
+| `input`      | `InputOptions \| null`                  | `null`           | 입력 줄입니다. 읽기 전용 뷰어라면 생략합니다.                                                                     |
+| `locale`     | `string`                                | `undefined`      | 내장 레이블과 숫자 서식의 언어입니다. 예를 들면 `'en'`, `'ko'`입니다.                                             |
+| `labels`     | `Partial<ViewerLabels>`                 | `{}`             | 내장 레이블 대신 쓸 레이블입니다.                                                                                 |
+| `entryMenu`  | `boolean \| EntryMenuOptions`           | `true`           | 포인터가 올라간 항목의 작업 메뉴입니다. `false`이면 끕니다.                                                       |
+| `search`     | `boolean`                               | `true`           | 뷰어에 포커스가 있을 때 Ctrl+F나 Cmd+F로, 항목을 숨기지 않고 일치하는 곳을 모두 강조하는 검색 창을 열지 정합니다. |
+| `renderer`   | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | 렌더러를 만듭니다.                                                                                                |
 
 ## CoreOptions {#coreoptions}
 
@@ -195,9 +200,16 @@ off();
 | `copyEntryData`      | Copy as data                      | 데이터로 복사                 |
 | `expandAll`          | Expand all                        | 모두 펼치기                   |
 | `collapseAll`        | Collapse all                      | 모두 접기                     |
+| `search`             | Find in log                       | 로그에서 찾기                 |
+| `searchPrevious`     | Previous match                    | 이전 결과                     |
+| `searchNext`         | Next match                        | 다음 결과                     |
+| `searchClose`        | Close search                      | 검색 닫기                     |
+| `searchResults`      | `3/12`, `No results`              | `3/12`, `결과 없음`           |
 | `following`          | Following                         | 따라가는 중                   |
 | `paused`             | Paused                            | 멈춤                          |
 | `entries`            | `3 entries`, `1 of 3 entries`     | `로그 3개`, `로그 3개 중 1개` |
+
+`searchResults`는 `(current: number, total: number, format: (value: number) => string) => string` 함수이고, 현재 결과가 없으면 `current`는 0입니다.
 
 `entries`는 `(shown: number, total: number, format: (value: number) => string) => string` 형태의 함수입니다. `format`은 숫자를 로케일에 맞게 서식화합니다.
 

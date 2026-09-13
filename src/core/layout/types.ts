@@ -126,6 +126,16 @@ export interface VisualRow {
 	runs: RowRun[];
 }
 
+/** A match of a search in an entry, as a range of cells of a logical line. */
+export interface TextMatch {
+	entryId: number;
+	line: number;
+	/** The first cell of the match, without indentation. */
+	from: number;
+	/** The cell after the match. */
+	to: number;
+}
+
 /** A position in the text of an entry, stable across wrapping. */
 export interface TextPosition {
 	entryId: number;

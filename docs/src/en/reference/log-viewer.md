@@ -54,6 +54,10 @@ Creates the viewer and appends its root element to `container`.
 | `copyEntry(entryId: number, options?: EntryTextOptions)`             | `Promise<boolean>`  | Copies the text `getEntryText` returns to the clipboard, together with HTML in the colors of the theme for `'formatted'`. Resolves to whether anything was copied.                                                                       |
 | `expandEntry(entryId: number)`                                       | `void`              | Expands every value of an entry, and every value inside them, as far as they were captured.                                                                                                                                              |
 | `collapseEntry(entryId: number)`                                     | `void`              | Collapses every value of an entry, including an error logged on its own.                                                                                                                                                                 |
+| `openSearch(query?: string)`                                         | `void`              | Opens the search bar and searches for `query`, for the text already in the bar, or for a selection on one line. Does nothing when `search` is off.                                                                                       |
+| `closeSearch()`                                                      | `void`              | Closes the search bar and removes the highlights.                                                                                                                                                                                        |
+| `findNext()`                                                         | `void`              | Makes the next match current and scrolls to it. After the last match comes the first.                                                                                                                                                    |
+| `findPrevious()`                                                     | `void`              | Makes the previous match current and scrolls to it.                                                                                                                                                                                      |
 | `focus()`                                                            | `void`              | Moves focus to the input line, or to the log when there is no input line.                                                                                                                                                                |
 | `refresh()`                                                          | `void`              | Reads the theme and the font from CSS again, for example after the page changed them.                                                                                                                                                    |
 | `on(name, listener)`                                                 | `() => void`        | Calls `listener` for an event. Returns a function that removes the listener.                                                                                                                                                             |
@@ -81,21 +85,22 @@ The events and their values are described by the `LogViewerEvents` type.
 
 ## LogViewerOptions
 
-| Option       | Type                                    | Default          | Description                                                                          |
-| ------------ | --------------------------------------- | ---------------- | ------------------------------------------------------------------------------------ |
-| `store`      | `LogStore`                              | A new store      | A store to show. Several viewers can share one store.                                |
-| `core`       | `Partial<CoreOptions>`                  | `{}`             | Core options. The store options also apply to a store passed in `store`.             |
-| `theme`      | `ThemeMode`                             | `'auto'`         | The color scheme. `'auto'` follows the operating system.                             |
-| `font`       | `Partial<FontSettings>`                 | `{}`             | The font. Values left out come from the `--lognal-font-*` CSS properties.            |
-| `timestamps` | `boolean \| TimestampFormat`            | `true`           | Whether each entry shows its time, and in which format. `true` is `'time'`.          |
-| `follow`     | `boolean`                               | `true`           | Whether the view follows new entries at the start.                                   |
-| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`           | The toolbar, or `false` to hide it. An object turns single controls off.             |
-| `statusBar`  | `boolean`                               | `true`           | Whether the status bar is shown.                                                     |
-| `input`      | `InputOptions \| null`                  | `null`           | The input line. Leave it out for a read-only viewer.                                 |
-| `locale`     | `string`                                | `undefined`      | The language of the built-in labels and number formatting, such as `'en'` or `'ko'`. |
-| `labels`     | `Partial<ViewerLabels>`                 | `{}`             | Labels that replace the built-in ones.                                               |
-| `entryMenu`  | `boolean \| EntryMenuOptions`           | `true`           | The menu of actions of the entry under the pointer, or `false` to turn it off.       |
-| `renderer`   | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | Creates the renderer.                                                                |
+| Option       | Type                                    | Default          | Description                                                                                                                   |
+| ------------ | --------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `store`      | `LogStore`                              | A new store      | A store to show. Several viewers can share one store.                                                                         |
+| `core`       | `Partial<CoreOptions>`                  | `{}`             | Core options. The store options also apply to a store passed in `store`.                                                      |
+| `theme`      | `ThemeMode`                             | `'auto'`         | The color scheme. `'auto'` follows the operating system.                                                                      |
+| `font`       | `Partial<FontSettings>`                 | `{}`             | The font. Values left out come from the `--lognal-font-*` CSS properties.                                                     |
+| `timestamps` | `boolean \| TimestampFormat`            | `true`           | Whether each entry shows its time, and in which format. `true` is `'time'`.                                                   |
+| `follow`     | `boolean`                               | `true`           | Whether the view follows new entries at the start.                                                                            |
+| `toolbar`    | `boolean \| Partial<ToolbarOptions>`    | `true`           | The toolbar, or `false` to hide it. An object turns single controls off.                                                      |
+| `statusBar`  | `boolean`                               | `true`           | Whether the status bar is shown.                                                                                              |
+| `input`      | `InputOptions \| null`                  | `null`           | The input line. Leave it out for a read-only viewer.                                                                          |
+| `locale`     | `string`                                | `undefined`      | The language of the built-in labels and number formatting, such as `'en'` or `'ko'`.                                          |
+| `labels`     | `Partial<ViewerLabels>`                 | `{}`             | Labels that replace the built-in ones.                                                                                        |
+| `entryMenu`  | `boolean \| EntryMenuOptions`           | `true`           | The menu of actions of the entry under the pointer, or `false` to turn it off.                                                |
+| `search`     | `boolean`                               | `true`           | Whether Ctrl+F or Cmd+F, while focus is in the viewer, opens a search bar that highlights every match without hiding entries. |
+| `renderer`   | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | Creates the renderer.                                                                                                         |
 
 ## CoreOptions
 
@@ -195,9 +200,16 @@ Every label is used as visible text or as an accessible name.
 | `copyEntryData`      | Copy as data                      | 데이터로 복사                 |
 | `expandAll`          | Expand all                        | 모두 펼치기                   |
 | `collapseAll`        | Collapse all                      | 모두 접기                     |
+| `search`             | Find in log                       | 로그에서 찾기                 |
+| `searchPrevious`     | Previous match                    | 이전 결과                     |
+| `searchNext`         | Next match                        | 다음 결과                     |
+| `searchClose`        | Close search                      | 검색 닫기                     |
+| `searchResults`      | `3/12`, `No results`              | `3/12`, `결과 없음`           |
 | `following`          | Following                         | 따라가는 중                   |
 | `paused`             | Paused                            | 멈춤                          |
 | `entries`            | `3 entries`, `1 of 3 entries`     | `로그 3개`, `로그 3개 중 1개` |
+
+`searchResults` is a function: `(current: number, total: number, format: (value: number) => string) => string`, where `current` is 0 while no match is current.
 
 `entries` is a function: `(shown: number, total: number, format: (value: number) => string) => string`. `format` formats a number for the locale.
 
