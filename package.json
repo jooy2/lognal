@@ -1,0 +1,92 @@
+{
+	"name": "lognal",
+	"version": "0.1.0",
+	"description": "A terminal-style log viewer for the browser, drawn on a canvas. Mirror the console, read log files, and inspect typed values that expand and collapse.",
+	"author": "CDGet (https://cdget.com)",
+	"license": "MIT",
+	"homepage": "https://lognal.cdget.com",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/jooy2/lognal.git"
+	},
+	"bugs": {
+		"url": "https://github.com/jooy2/lognal/issues"
+	},
+	"type": "module",
+	"sideEffects": [
+		"*.css"
+	],
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./react": {
+			"types": "./dist/react/index.d.ts",
+			"default": "./dist/react/index.js"
+		},
+		"./style.css": "./dist/lognal.css",
+		"./package.json": "./package.json"
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"dev": "vite playground",
+		"build": "node scripts/build.mjs",
+		"typecheck": "tsc --project tsconfig.json --noEmit",
+		"test": "vitest run",
+		"test:unit": "vitest run --project unit",
+		"test:browser": "vitest run --project browser",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix",
+		"format": "prettier . --write",
+		"format:check": "prettier . --check",
+		"generate:unicode": "node scripts/generate-unicode-width.mjs",
+		"prepack": "npm run build"
+	},
+	"engines": {
+		"node": ">=22.12.0"
+	},
+	"peerDependencies": {
+		"react": ">=18.0.0"
+	},
+	"peerDependenciesMeta": {
+		"react": {
+			"optional": true
+		}
+	},
+	"keywords": [
+		"log",
+		"logs",
+		"log-viewer",
+		"console",
+		"terminal",
+		"canvas",
+		"devtools",
+		"viewer",
+		"react",
+		"typescript"
+	],
+	"devDependencies": {
+		"@eslint/js": "^10.0.1",
+		"@types/node": "^24.13.4",
+		"@types/react": "^19.3.0",
+		"@types/react-dom": "^19.3.0",
+		"@vitest/browser-playwright": "^5.0.0",
+		"eslint": "^10.10.0",
+		"eslint-config-prettier": "^10.1.8",
+		"globals": "^17.12.0",
+		"jiti": "^2.7.0",
+		"playwright": "^1.63.0",
+		"prettier": "^3.9.6",
+		"react": "^19.3.0",
+		"react-dom": "^19.3.0",
+		"typescript": "6.0.3",
+		"typescript-eslint": "^8.70.0",
+		"vite": "^8.3.0",
+		"vitest": "^5.0.0"
+	}
+}

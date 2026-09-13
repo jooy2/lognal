@@ -63,3 +63,8 @@ $RECYCLE.BIN/
 
 # Project files
 **/dist/
+
+# Test output
+**/coverage/
+**/__screenshots__/
+**/.vitest-attachments/
