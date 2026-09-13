@@ -383,10 +383,6 @@
 	cursor: pointer;
 }
 
-.lognal-viewport:focus-visible {
-	box-shadow: inset 0 0 0 2px var(--lognal-focus-ring);
-}
-
 .lognal-spacer {
 	width: 1px;
 	pointer-events: none;
@@ -527,10 +523,6 @@
 
 .lognal-input-field::placeholder {
 	color: var(--lognal-muted);
-}
-
-.lognal-input:focus-within {
-	box-shadow: inset 0 2px 0 -1px var(--lognal-focus-ring);
 }
 
 /* Status bar */

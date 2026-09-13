@@ -284,3 +284,4 @@ new LogViewer(container, {
 - 로그 영역은 키보드 포커스를 받을 수 있고, 다른 스크롤 영역처럼 화살표 키와 Page Up, Page Down으로 스크롤합니다.
 - 화면에 보이지 않는 목록이 화면의 항목을 스크린 리더에 전달합니다. 경고와 오류는 `warn:`, `error:`로 시작합니다.
 - 입력 줄은 이름이 붙은 `<textarea>`입니다.
+- 로그 영역과 입력 줄에는 포커스 윤곽선을 그리지 않고, 입력 줄에서는 캐럿이 포커스를 보여 줍니다. 포커스를 받은 로그 영역에 윤곽선이 필요하면 `.lognal-viewport:focus-visible { box-shadow: inset 0 0 0 2px var(--lognal-focus-ring); }` 같은 규칙을 추가하세요.
