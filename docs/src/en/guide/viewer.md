@@ -95,7 +95,7 @@ viewer.write(['+-------+------+', '| build | pass |', '+-------+------+'].join('
 
 ## Status bar
 
-The status bar shows the number of entries on the left, such as `3 entries`, or `1 of 3 entries` while a filter or a collapsed group hides some of them. On the right it shows `Following` or `Paused`. It updates at most every 200 ms, and numbers are formatted for the `locale` option.
+The status bar shows the number of entries on the left, such as `3 entries`, or `1 of 3 entries` while a filter or a collapsed group hides some of them. On the right it shows `Following` or `Paused`. It updates with every frame the viewer draws, and numbers are formatted for the `locale` option.
 
 ## Timestamps
 
