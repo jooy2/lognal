@@ -342,4 +342,4 @@ The full signatures are in the [LogViewer reference](/reference/log-viewer).
 - The entry menu button is named by the `entryActions` label. Shift+F10 or the context menu key opens the menu without a pointer, and a long press opens it on a touch screen.
 - A visually hidden list mirrors the entries on screen for screen readers. Warnings and errors start with `warn:` and `error:`.
 - The input line is a labeled `<textarea>`.
-- The log area and the input line draw no focus outline, and the caret shows focus in the input line. To outline the focused log area, add a rule such as `.lognal-viewport:focus-visible { box-shadow: inset 0 0 0 2px var(--lognal-focus-ring); }`.
+- The log area, the input line and the filter field draw no focus outline, and the caret shows focus in the two text fields. To outline the focused log area, add a rule such as `.lognal-viewport:focus-visible { box-shadow: inset 0 0 0 2px var(--lognal-focus-ring); }`.
