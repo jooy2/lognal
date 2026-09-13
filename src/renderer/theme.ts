@@ -1,0 +1,54 @@
+import type { RenderTheme } from './types.js';
+
+/** The colors used until a theme is read from CSS: the dark palette of `lognal.css`. */
+export const DEFAULT_RENDER_THEME: RenderTheme = {
+	background: '#16181d',
+	foreground: '#e3e5ea',
+	muted: '#8f94a1',
+	accent: '#5aa2ff',
+	selection: 'rgba(90, 162, 255, 0.3)',
+	match: 'rgba(252, 191, 50, 0.3)',
+	separator: 'rgba(227, 229, 234, 0.05)',
+	error: '#ff8a8d',
+	errorBackground: 'rgba(252, 79, 83, 0.1)',
+	warn: '#fcc549',
+	warnBackground: 'rgba(252, 191, 50, 0.08)',
+	info: '#5aa2ff',
+	debug: '#8f94a1',
+	tokens: {
+		muted: '#8f94a1',
+		string: '#7fd6a4',
+		number: '#b9a8ff',
+		boolean: '#b9a8ff',
+		null: '#8f94a1',
+		key: '#82bdff',
+		symbol: '#f5a3d7',
+		function: '#82bdff',
+		regexp: '#ffa585',
+		date: '#7fd6a4',
+		tag: '#82bdff',
+		attribute: '#fcc549',
+		error: '#ff8a8d',
+		warn: '#fcc549',
+		info: '#5aa2ff',
+		accent: '#5aa2ff'
+	},
+	ansi: [
+		'#3b3f4a',
+		'#fc5c60',
+		'#43d786',
+		'#fcbf32',
+		'#5aa2ff',
+		'#c792ea',
+		'#56d4dd',
+		'#d0d3db',
+		'#6b7080',
+		'#ff8a8d',
+		'#7ee3a8',
+		'#ffd466',
+		'#82bdff',
+		'#ddb6f2',
+		'#8ae6ec',
+		'#ffffff'
+	]
+};
