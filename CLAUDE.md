@@ -32,6 +32,7 @@ These come from the project owner and define the scope of the library.
 - **Modern, simple design.** A toolbar at the top, the log in the middle, an optional input line and status bar at the bottom, and a custom overlay scrollbar. Lines wrap by default; wrapping can be turned off. Styles ship as a separate CSS file, and every color and size is a `--lognal-*` custom property that the canvas also reads.
 - **Toolchain.** TypeScript compiled with `tsc`, ESLint and Prettier, Vitest for unit tests in Node.js and Vitest Browser Mode with Playwright for Chromium, Firefox and WebKit, VitePress with `vitepress-sidebar` and `vitepress-i18n` for the English and Korean documentation, and GitHub Actions for tests and publishing the documentation.
 - **Name.** The project and the npm package are `lognal`.
+- **License.** MIT, with copyright CDGet, as in `LICENSE`. The owner confirmed it after 0.1.0 was published with it.
 - **First release.** 0.1.0 was published to npm on 2026-09-13. Later changes go under `vNext` in `CHANGELOG.md` until the owner names the next version.
 
 ## References
@@ -47,7 +48,6 @@ The [WHATWG Console Standard](https://console.spec.whatwg.org/) is the primary s
 
 Do not pick one of these on your own; ask the owner.
 
-- License. `LICENSE` is MIT with copyright CDGet, carried over from the owner's `qsu` skeleton, and 0.1.0 was published with it. Confirm that it stays.
 - Whether to add a WebGL2 renderer, and when.
 
 ## Repository layout
