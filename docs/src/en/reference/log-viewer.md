@@ -260,7 +260,7 @@ Every label is used as visible text or as an accessible name.
 
 `openLink` is a function, `(url: string) => string`, that receives the address of the link.
 
-`selectedEntries` is a function, `(count: number, format: (value: number) => string) => string`. It returns what a screen reader hears after the keyboard changes the selected entries.
+`selectedEntries` is a function, `(count: number, format: (value: number) => string) => string`. It returns the number of selected entries in entry mode, which the status bar shows and a screen reader hears after the keyboard changes the selection.
 
 `searchResults` is a function: `(current: number, total: number, format: (value: number) => string) => string`, where `current` is 0 while no match is current.
 

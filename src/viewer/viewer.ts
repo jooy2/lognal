@@ -406,6 +406,13 @@ export class LogViewer {
 	private anchorEntryId: number | null = null;
 	/** Whether the focused entry is outlined, which it is after the keyboard moved it. */
 	private showEntryFocus = false;
+	/** The last count of `selectedEntryCount`, and what it was counted for. */
+	private selectedCount: {
+		entries: ReadonlySet<number>;
+		textVersion: number;
+		firstId: number;
+		count: number;
+	} | null = null;
 	/** Whether Cmd, rather than Ctrl, adds an entry to the selection. */
 	private readonly applePlatform: boolean;
 	private drag: {
@@ -1334,11 +1341,14 @@ export class LogViewer {
 			this.statusElement.className = 'lognal-statusbar';
 
 			const count = doc.createElement('span');
+			const selection = doc.createElement('span');
 			const follow = doc.createElement('span');
 
 			count.className = 'lognal-status-count';
+			selection.className = 'lognal-status-selection';
+			selection.hidden = true;
 			follow.className = 'lognal-status-follow';
-			this.statusElement.append(count, follow);
+			this.statusElement.append(count, selection, follow);
 			this.element.append(this.statusElement);
 		} else {
 			this.statusElement = null;
@@ -2322,16 +2332,22 @@ export class LogViewer {
 			return;
 		}
 
-		const { labels, locale } = this.options;
-		const [count, follow] = Array.from(this.statusElement.children) as HTMLElement[];
+		const { labels, locale, selectionMode } = this.options;
+		const [count, selection, follow] = Array.from(this.statusElement.children) as HTMLElement[];
 		const numberFormat = this.numberFormat(locale);
-		const countText = labels.entries(this.layout.visibleCount, this.store.size, (value) =>
-			numberFormat.format(value)
-		);
+		const formatNumber = (value: number): string => numberFormat.format(value);
+		const countText = labels.entries(this.layout.visibleCount, this.store.size, formatNumber);
+		const selected = selectionMode === 'entry' ? this.selectedEntryCount() : 0;
+		const selectionText = selected > 0 ? labels.selectedEntries(selected, formatNumber) : '';
 		const followText = this.following ? labels.following : labels.paused;
 
 		if (count.textContent !== countText) {
 			count.textContent = countText;
+		}
+
+		if (selection.textContent !== selectionText) {
+			selection.textContent = selectionText;
+			selection.hidden = selectionText === '';
 		}
 
 		if (follow.textContent !== followText) {
@@ -3083,9 +3099,41 @@ export class LogViewer {
 		const { labels, locale } = this.options;
 		const numberFormat = this.numberFormat(locale);
 
-		return labels.selectedEntries(this.getSelectedEntryIds().length, (value) =>
-			numberFormat.format(value)
-		);
+		return labels.selectedEntries(this.selectedEntryCount(), (value) => numberFormat.format(value));
+	}
+
+	/**
+	 * Counts the selected entries that are visible. The status bar asks on every frame, so the
+	 * count is kept until the selection, the filter or the oldest entry of the store changes.
+	 */
+	private selectedEntryCount(): number {
+		const cached = this.selectedCount;
+		const textVersion = this.layout.textVersion;
+		const firstId = this.store.firstId;
+
+		if (
+			cached &&
+			cached.entries === this.selectedEntries &&
+			cached.textVersion === textVersion &&
+			cached.firstId === firstId
+		) {
+			return cached.count;
+		}
+
+		let count = 0;
+
+		for (const entryId of this.selectedEntries) {
+			if (this.layout.indexOf(entryId) >= 0) {
+				count++;
+			}
+		}
+
+		// Before `sync`, the visible entries may not match the filter yet.
+		this.selectedCount = this.layout.isDirty
+			? null
+			: { entries: this.selectedEntries, textVersion, firstId, count };
+
+		return count;
 	}
 
 	/** Emits `selection`, and builds the text of the selection only when something listens. */

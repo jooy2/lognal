@@ -260,7 +260,7 @@ type LinkClick = 'confirm' | 'open' | 'ignore';
 
 `openLink`는 링크 주소를 받는 `(url: string) => string` 함수입니다.
 
-`selectedEntries`는 `(count: number, format: (value: number) => string) => string` 함수이고, 키보드로 선택한 항목이 바뀐 뒤 스크린 리더가 읽을 텍스트를 반환합니다.
+`selectedEntries`는 `(count: number, format: (value: number) => string) => string` 함수이고, 항목 모드에서 선택한 항목 수를 적은 텍스트를 반환합니다. 이 텍스트는 상태 표시줄에 나오고, 키보드로 선택이 바뀌면 스크린 리더가 읽습니다.
 
 `searchResults`는 `(current: number, total: number, format: (value: number) => string) => string` 함수이고, 현재 결과가 없으면 `current`는 0입니다.
 

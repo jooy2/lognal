@@ -858,6 +858,12 @@
 	white-space: nowrap;
 }
 
+/* Sits next to the entry count, and leaves the following state at the right end. */
+.lognal-status-selection {
+	margin-right: auto;
+	color: var(--lognal-foreground);
+}
+
 .lognal-status-follow {
 	display: inline-flex;
 	align-items: center;

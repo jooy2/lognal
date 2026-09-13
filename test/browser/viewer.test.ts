@@ -1209,6 +1209,48 @@ describe('LogViewer', () => {
 		viewer.dispose();
 	});
 
+	it('counts the selected entries in the status bar in entry mode', async () => {
+		const viewer = new LogViewer(container, {
+			timestamps: false,
+			selectionMode: 'entry',
+			core: { mergeRepeats: false }
+		});
+		const selectionStatus = (): HTMLSpanElement => {
+			return viewer.element.querySelector('.lognal-status-selection') as HTMLSpanElement;
+		};
+
+		viewer.write('alpha');
+		viewer.write('beta', { level: 'error' });
+		viewer.write('gamma');
+		await nextFrame();
+		expect(selectionStatus().hidden).toBe(true);
+
+		viewer.selectAll();
+		await nextFrame();
+		expect(selectionStatus().hidden).toBe(false);
+		expect(selectionStatus().textContent).toBe('3 entries selected');
+
+		// Entries that the filter hides are not counted.
+		viewer.setFilter({ minLevel: 'error' });
+		await nextFrame();
+		expect(selectionStatus().textContent).toBe('1 entry selected');
+
+		viewer.setFilter(null);
+		viewer.setOptions({ locale: 'ko' });
+		await nextFrame();
+		expect(selectionStatus().textContent).toBe('항목 3개 선택됨');
+
+		viewer.clearSelection();
+		await nextFrame();
+		expect(selectionStatus().hidden).toBe(true);
+
+		viewer.setOptions({ selectionMode: 'text' });
+		viewer.selectAll();
+		await nextFrame();
+		expect(selectionStatus().hidden).toBe(true);
+		viewer.dispose();
+	});
+
 	it('opens a menu for the selected entries on a right click and switches modes from the toolbar', async () => {
 		const write = vi.spyOn(navigator.clipboard, 'write').mockResolvedValue(undefined);
 		const viewer = new LogViewer(container, {

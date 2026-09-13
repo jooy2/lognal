@@ -51,8 +51,8 @@ export interface ViewerLabels {
 	/** The toolbar button that switches between selecting text and selecting whole entries. */
 	selectEntries: string;
 	/**
-	 * What a screen reader hears about the selected entries after the keyboard changes them.
-	 * `format` formats a number for the locale.
+	 * The number of selected entries in entry mode, shown in the status bar and read to a screen
+	 * reader after the keyboard changes the selection. `format` formats a number for the locale.
 	 */
 	selectedEntries: (count: number, format: (value: number) => string) => string;
 	/** Accessible name of the search bar, and the placeholder of its field. */
