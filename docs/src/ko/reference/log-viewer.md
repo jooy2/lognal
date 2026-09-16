@@ -225,10 +225,12 @@ type LinkClick = 'confirm' | 'open' | 'ignore';
 | `invalidFilter`      | The filter is not a valid pattern                                  | 필터 패턴이 올바르지 않습니다                           |
 | `levels`             | Log levels                                                         | 로그 수준                                               |
 | `levelAll`           | All levels                                                         | 모든 수준                                               |
-| `levelLog`           | Log and above                                                      | 로그 이상                                               |
-| `levelInfo`          | Info and above                                                     | 정보 이상                                               |
-| `levelWarn`          | Warnings and errors                                                | 경고와 오류                                             |
-| `levelError`         | Errors only                                                        | 오류만                                                  |
+| `levelDebug`         | Debug                                                              | 디버그                                                  |
+| `levelLog`           | Log                                                                | 로그                                                    |
+| `levelInfo`          | Info                                                               | 정보                                                    |
+| `levelWarn`          | Warning                                                            | 경고                                                    |
+| `levelError`         | Error                                                              | 오류                                                    |
+| `levelSome`          | 3 levels                                                           | 수준 3개                                                |
 | `input`              | Command                                                            | 명령                                                    |
 | `inputPlaceholder`   | Type a command                                                     | 명령을 입력하세요                                       |
 | `newLogs`            | New logs                                                           | 새 로그                                                 |

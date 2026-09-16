@@ -83,7 +83,7 @@ Passing `toolbar`, `statusBar`, `input`, `labels` or `locale` builds the toolbar
 | Wrap long lines                 | `wrap`               | Turns wrapping off. Pressing it again restores the mode it turned off, `'word'` or `'char'`.                |
 | Select whole entries            | `selectionMode`      | Switches between selecting text and selecting whole entries. See [Selection and copy](#selection-and-copy). |
 | Filter                          | `filter`             | Shows the entries that contain the text. The filter applies 120 ms after typing stops.                      |
-| Log levels                      | `levels`             | Shows all levels, log and above, info and above, warnings and errors, or errors only. It sets `minLevel`.   |
+| Log levels                      | `levels`             | Chooses the levels the log shows. It sets `levels` on the filter.                                           |
 
 Each control shows its name in a small label as soon as the pointer reaches it, without the wait of the tooltip of the browser. The same label appears when the keyboard moves to the control. Pass `tooltips: false` to leave the tooltip to the browser, which then shows the name from the `title` attribute.
 
@@ -179,8 +179,12 @@ Levels go from least to most severe: `debug`, `log`, `info`, `warn`, `error`.
 - Matches are highlighted in the visible rows.
 - A regular expression that does not compile hides every entry and marks the filter field as invalid.
 - The level filter never hides commands typed into the input line or notices from the viewer, such as `Console was cleared`. Group headers stay visible unless there is a text filter.
-- The filter field in the toolbar changes only `text`, so a `regex` set with `setFilter` stays on while the user types. The level menu sets `minLevel` and removes `levels`, so it also works after `setFilter({ levels })`.
+- The filter field in the toolbar changes only `text`, so a `regex` set with `setFilter` stays on while the user types. The level menu sets `levels` and removes `minLevel`, and it reads a `minLevel` you set as the levels from that level up.
 - The entry text and the filter text are compared in Unicode normalization form C, so decomposed Hangul matches what the user types. See [Korean and CJK text](/guide/cjk#filtering-decomposed-hangul).
+
+### The level menu
+
+The menu lists every level with a mark next to the ones the log shows, and it stays open while you choose, so several levels take one visit. While every level is shown, choosing one shows that level alone. From there, choosing a level adds it or takes it away, and **All levels** goes back to showing them all. The button says which levels are shown: the name of the only level, the number of levels, or **All levels**.
 
 Every change, from the toolbar or from `setFilter`, emits the `filter` event. `getFilter()` returns the current filter.
 

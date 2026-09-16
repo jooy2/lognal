@@ -11,6 +11,7 @@ Changes to `lognal` that affect its users, newest first.
 - `ToolbarOptions` has the new key `selectionMode`, and the toolbar shows its button by default. A complete `ToolbarOptions` object of your own needs the key.
 - `LineAction` has a new type, `{ type: 'open-link'; url: string }`, on the spans of links. Code that handles every type of action, such as a custom renderer, needs to handle it too.
 - The level menu in the toolbar is a `<button class="lognal-levels">` that opens a list box, instead of a `<select>`. Styles or tests written for the `<select>` need to target the button and its menu.
+- The level menu chooses any set of levels and writes them to `levels` on the filter, where it wrote `minLevel` before. `levelLog`, `levelInfo`, `levelWarn` and `levelError` are now the names of the levels, such as **Warning** instead of **Warnings and errors**, and `ViewerLabels` has the new labels `levelDebug` and `levelSome`. Code that read `minLevel` after a user chose a level reads `levels` instead. `setFilter({ minLevel })` still works.
 
 ### Changes
 
@@ -28,6 +29,7 @@ Changes to `lognal` that affect its users, newest first.
 - `selectionMode: 'entry'` selects whole entries the way a file manager selects files. A click selects an entry, Ctrl or Cmd adds or removes one, Shift selects a range, and a drag selects the entries it passes over. The arrow keys, Home, End, Page Up and Page Down move from entry to entry and outline the entry in `--lognal-focus-ring`, Space selects the entry the keyboard is on, and Ctrl+A, Ctrl+C and Escape select every entry, copy the selection and clear it. A right click, Shift+F10 or the context menu key opens a menu that copies the selected entries in the formats of the entry menu, or opens and closes their values. The **Select whole entries** button in the toolbar switches modes, `--lognal-entry-selection` colors the selected entries, and the status bar counts them.
 - `getSelectionText` and `copySelection` take the options of `getEntryText` in entry mode, and `getSelectedEntryIds` returns the ids of the selected entries.
 - In entry mode, a drag that starts on the empty space around the entries selects the entries it reaches, starting from the entry nearest the press. Before, such a drag selected nothing.
+- The level menu lists every level, `debug` included, with a mark next to the ones the log shows, and it stays open while levels are chosen. While every level is shown, choosing one shows that level alone; after that, choosing a level adds it or takes it away, and **All levels** shows them all again. The button names the only level shown, the number of levels, or **All levels**.
 - A toolbar control shows its name in a small label as soon as the pointer reaches it, instead of waiting for the tooltip of the browser. The label also appears when the keyboard moves to the control, and `tooltips: false` leaves the tooltip to the browser.
 
 ## 0.1.0 (2026-09-13)

@@ -38,9 +38,10 @@ const paintedPixels = (viewer: LogViewer): number => {
 	return painted;
 };
 
-/** Opens the level menu and chooses the option with the given label. */
+/** Opens the level menu, chooses the option with the given label and closes the menu. */
 const chooseLevel = (viewer: LogViewer, label: string): void => {
 	const trigger = viewer.element.querySelector('.lognal-levels') as HTMLButtonElement;
+	const popup = viewer.element.querySelector('.lognal-popup') as HTMLDivElement;
 
 	trigger.click();
 
@@ -49,6 +50,9 @@ const chooseLevel = (viewer: LogViewer, label: string): void => {
 	) as HTMLElement;
 
 	option.click();
+	popup.dispatchEvent(
+		new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })
+	);
 };
 
 /** Moves a mouse pointer over the log, at a point relative to the top left of the log area. */
@@ -204,11 +208,11 @@ describe('LogViewer', () => {
 			() => viewer.element.querySelector('.lognal-status-count')?.textContent === '1 of 3 entries'
 		);
 
-		chooseLevel(viewer, 'Errors only');
+		chooseLevel(viewer, 'Error');
 		await nextFrame();
 
-		expect(viewer.getFilter()).toEqual({ text: 'disk', minLevel: 'error' });
-		expect(viewer.element.querySelector('.lognal-levels-value')?.textContent).toBe('Errors only');
+		expect(viewer.getFilter()).toEqual({ text: 'disk', levels: ['error'] });
+		expect(viewer.element.querySelector('.lognal-levels-value')?.textContent).toBe('Error');
 		expect(viewer.layout.visibleCount).toBe(0);
 		viewer.dispose();
 	});
@@ -238,7 +242,7 @@ describe('LogViewer', () => {
 		viewer.dispose();
 	});
 
-	it('restores the previous wrapping mode and lets the level menu replace a level list', async () => {
+	it('restores the previous wrapping mode and adds a level from the level menu', async () => {
 		const viewer = new LogViewer(container, { core: { wrap: 'char' } });
 		const wrap = viewer.element.querySelector(
 			'[aria-label="Wrap long lines"]'
@@ -249,8 +253,16 @@ describe('LogViewer', () => {
 		expect(viewer.layout.getOptions().wrap).toBe('char');
 
 		viewer.setFilter({ levels: ['debug'] });
-		chooseLevel(viewer, 'Warnings and errors');
-		expect(viewer.getFilter()).toEqual({ levels: undefined, minLevel: 'warn' });
+		chooseLevel(viewer, 'Warning');
+		expect(viewer.getFilter()).toEqual({ levels: ['debug', 'warn'] });
+		expect(viewer.element.querySelector('.lognal-levels-value')?.textContent).toBe('2 levels');
+
+		chooseLevel(viewer, 'Debug');
+		expect(viewer.getFilter()).toEqual({ levels: ['warn'] });
+
+		chooseLevel(viewer, 'All levels');
+		expect(viewer.getFilter()).toEqual({ levels: undefined });
+		expect(viewer.element.querySelector('.lognal-levels-value')?.textContent).toBe('All levels');
 		viewer.dispose();
 	});
 
@@ -274,19 +286,25 @@ describe('LogViewer', () => {
 		key(popup, 'ArrowDown');
 		key(popup, 'ArrowDown');
 		key(popup, 'Enter');
-		expect(viewer.getFilter()).toEqual({ levels: undefined, minLevel: 'info' });
-		expect(trigger.getAttribute('aria-expanded')).toBe('false');
-		expect(document.activeElement).toBe(trigger);
+		expect(viewer.getFilter()).toEqual({ levels: ['log'] });
 
-		key(trigger, 'ArrowDown');
-		expect(popup.querySelector('[aria-selected="true"]')?.textContent).toBe('Info and above');
+		// The menu takes several levels, so it stays open after a choice.
+		expect(trigger.getAttribute('aria-expanded')).toBe('true');
+		expect(document.activeElement).toBe(popup);
+		expect(popup.querySelector('[aria-selected="true"]')?.textContent).toBe('Log');
+
+		key(popup, 'ArrowDown');
+		key(popup, 'Enter');
+		expect(viewer.getFilter()).toEqual({ levels: ['log', 'info'] });
+		expect(popup.querySelectorAll('[aria-selected="true"]').length).toBe(2);
+
 		key(popup, 'Escape');
 		expect(trigger.getAttribute('aria-expanded')).toBe('false');
 		expect(document.activeElement).toBe(trigger);
-		expect(viewer.getFilter()).toEqual({ levels: undefined, minLevel: 'info' });
+		expect(viewer.getFilter()).toEqual({ levels: ['log', 'info'] });
 
 		viewer.setFilter({ minLevel: 'error' });
-		expect(viewer.element.querySelector('.lognal-levels-value')?.textContent).toBe('Errors only');
+		expect(viewer.element.querySelector('.lognal-levels-value')?.textContent).toBe('Error');
 		viewer.dispose();
 	});
 

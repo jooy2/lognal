@@ -17,7 +17,7 @@ import {
 } from '../core/store.js';
 import { measureCells } from '../core/text/measure.js';
 import { formatTimestamp, type TimestampFormat } from '../core/time.js';
-import type { LogEntry, LogLevel, LogPart } from '../core/types.js';
+import { LOG_LEVELS, type LogEntry, type LogLevel, type LogPart } from '../core/types.js';
 import { formatEntriesData, formatEntryData } from '../core/value/data.js';
 import { formatEntrySpans, formatEntryText } from '../core/value/text.js';
 import { CanvasRenderer } from '../renderer/canvas/canvas-renderer.js';
@@ -286,13 +286,14 @@ const MAX_MENU_LINKS = 5;
 /** The most characters of an entry a screen reader hears when the keyboard moves to it. */
 const ANNOUNCEMENT_LENGTH = 200;
 
-const LEVEL_OPTIONS: { value: LogLevel | ''; label: keyof ViewerLabels }[] = [
-	{ value: '', label: 'levelAll' },
-	{ value: 'log', label: 'levelLog' },
-	{ value: 'info', label: 'levelInfo' },
-	{ value: 'warn', label: 'levelWarn' },
-	{ value: 'error', label: 'levelError' }
-];
+/** The label of every level, in the order the level menu lists them. */
+const LEVEL_LABELS: Record<LogLevel, keyof ViewerLabels> = {
+	debug: 'levelDebug',
+	log: 'levelLog',
+	info: 'levelInfo',
+	warn: 'levelWarn',
+	error: 'levelError'
+};
 
 /** Captures a pointer, ignoring the error a pointer that is no longer active throws. */
 const capturePointer = (element: Element, pointerId: number): void => {
@@ -1556,38 +1557,101 @@ export class LogViewer {
 		}
 	}
 
-	/** Shows the chosen minimum level on the level menu button. */
+	/**
+	 * The levels the filter lets through, in the order of `LOG_LEVELS`. A filter that names no
+	 * level shows them all.
+	 */
+	private shownLevels(): LogLevel[] {
+		const { levels, minLevel } = this.filter ?? {};
+
+		if (levels) {
+			return LOG_LEVELS.filter((level) => levels.includes(level));
+		}
+
+		if (minLevel) {
+			return LOG_LEVELS.slice(LOG_LEVELS.indexOf(minLevel));
+		}
+
+		return [...LOG_LEVELS];
+	}
+
+	/** Shows only the levels given, or every level when the list holds them all. */
+	private setLevels(levels: readonly LogLevel[]): void {
+		this.setFilter({
+			...this.filter,
+			minLevel: undefined,
+			levels: levels.length === LOG_LEVELS.length ? undefined : [...levels]
+		});
+		this.popup.refresh(this.levelItems());
+	}
+
+	/** Shows which levels the log shows on the level menu button. */
 	private syncLevels(): void {
 		const value = this.controls.get('levels')?.querySelector('.lognal-levels-value');
-		const minLevel = this.filter?.minLevel ?? '';
-		const option = LEVEL_OPTIONS.find((item) => item.value === minLevel) ?? LEVEL_OPTIONS[0];
+		const { labels, locale } = this.options;
+		const levels = this.shownLevels();
 
-		if (value) {
-			value.textContent = this.options.labels[option.label] as string;
+		if (!value) {
+			return;
 		}
+
+		value.textContent =
+			levels.length === LOG_LEVELS.length
+				? labels.levelAll
+				: levels.length === 1
+					? (labels[LEVEL_LABELS[levels[0]]] as string)
+					: labels.levelSome(levels.length, (count) => this.numberFormat(locale).format(count));
+	}
+
+	/**
+	 * The items of the level menu: one for every level, and one above them that shows them all.
+	 * A level is switched on or off without closing the menu.
+	 */
+	private levelItems(): PopupItem[] {
+		const { labels } = this.options;
+		const shown = new Set(this.shownLevels());
+
+		return [
+			{
+				label: labels.levelAll,
+				selected: shown.size === LOG_LEVELS.length,
+				onSelect: () => this.setLevels(LOG_LEVELS)
+			},
+			...LOG_LEVELS.map((level, index) => ({
+				label: labels[LEVEL_LABELS[level]] as string,
+				selected: shown.has(level),
+				startsGroup: index === 0,
+				onSelect: () => {
+					// While every level is shown, choosing one shows that level alone. From there a
+					// choice adds a level or takes it away, so any set of levels is a few presses off.
+					if (shown.size === LOG_LEVELS.length) {
+						this.setLevels([level]);
+
+						return;
+					}
+
+					const next = new Set(shown);
+
+					if (next.has(level)) {
+						next.delete(level);
+					} else {
+						next.add(level);
+					}
+
+					this.setLevels(LOG_LEVELS.filter((item) => next.has(item)));
+				}
+			}))
+		];
 	}
 
 	private openLevelMenu(trigger: HTMLButtonElement): void {
-		const { labels } = this.options;
-		const minLevel = this.filter?.minLevel ?? '';
-
 		this.popup.close(false);
 		trigger.setAttribute('aria-expanded', 'true');
 		this.popup.open({
 			role: 'listbox',
-			label: labels.levels,
-			items: LEVEL_OPTIONS.map((option) => ({
-				label: labels[option.label] as string,
-				selected: option.value === minLevel,
-				onSelect: () => {
-					// The menu sets a minimum level, which replaces a list of levels set through code.
-					this.setFilter({
-						...this.filter,
-						levels: undefined,
-						minLevel: option.value || undefined
-					});
-				}
-			})),
+			multiple: true,
+			label: this.options.labels.levels,
+			items: this.levelItems(),
 			anchor: trigger.getBoundingClientRect(),
 			align: 'end',
 			trigger,

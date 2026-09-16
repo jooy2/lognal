@@ -12,11 +12,18 @@ export interface ViewerLabels {
 	filter: string;
 	invalidFilter: string;
 	levels: string;
+	/** The menu item that shows every level, and the button while every level is shown. */
 	levelAll: string;
+	levelDebug: string;
 	levelLog: string;
 	levelInfo: string;
 	levelWarn: string;
 	levelError: string;
+	/**
+	 * The level button while some levels are shown and others are not. `format` formats a number
+	 * for the locale.
+	 */
+	levelSome: (count: number, format: (value: number) => string) => string;
 	/** Accessible name of the input line. */
 	input: string;
 	inputPlaceholder: string;
@@ -89,10 +96,12 @@ export const EN_LABELS: ViewerLabels = {
 	invalidFilter: 'The filter is not a valid pattern',
 	levels: 'Log levels',
 	levelAll: 'All levels',
-	levelLog: 'Log and above',
-	levelInfo: 'Info and above',
-	levelWarn: 'Warnings and errors',
-	levelError: 'Errors only',
+	levelDebug: 'Debug',
+	levelLog: 'Log',
+	levelInfo: 'Info',
+	levelWarn: 'Warning',
+	levelError: 'Error',
+	levelSome: (count, format) => `${format(count)} levels`,
 	input: 'Command',
 	inputPlaceholder: 'Type a command',
 	newLogs: 'New logs',
@@ -146,10 +155,12 @@ export const KO_LABELS: ViewerLabels = {
 	invalidFilter: '필터 패턴이 올바르지 않습니다',
 	levels: '로그 수준',
 	levelAll: '모든 수준',
-	levelLog: '로그 이상',
-	levelInfo: '정보 이상',
-	levelWarn: '경고와 오류',
-	levelError: '오류만',
+	levelDebug: '디버그',
+	levelLog: '로그',
+	levelInfo: '정보',
+	levelWarn: '경고',
+	levelError: '오류',
+	levelSome: (count, format) => `수준 ${format(count)}개`,
 	input: '명령',
 	inputPlaceholder: '명령을 입력하세요',
 	newLogs: '새 로그',

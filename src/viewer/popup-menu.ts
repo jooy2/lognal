@@ -29,6 +29,11 @@ export interface PopupAnchor {
 export interface PopupOpenOptions {
 	/** `listbox` for a choice of one value, `menu` for a list of actions. */
 	role: 'listbox' | 'menu';
+	/**
+	 * Whether a list box takes several values. Choosing an item then leaves the popup open, so
+	 * the caller passes the new state of the items to `refresh`.
+	 */
+	multiple?: boolean;
 	/** The accessible name of the popup. */
 	label: string;
 	items: PopupItem[];
@@ -106,6 +111,13 @@ export class PopupMenu {
 		this.current = options;
 		this.element.setAttribute('role', options.role);
 		this.element.setAttribute('aria-label', options.label);
+
+		if (options.multiple) {
+			this.element.setAttribute('aria-multiselectable', 'true');
+		} else {
+			this.element.removeAttribute('aria-multiselectable');
+		}
+
 		this.itemElements = options.items.map((item, index) => {
 			const element = doc.createElement('div');
 			const label = doc.createElement('span');
@@ -174,6 +186,30 @@ export class PopupMenu {
 		doc.addEventListener('pointerdown', this.onDocumentPointerDown, true);
 		doc.addEventListener('scroll', this.onDocumentScroll, true);
 		view?.addEventListener('resize', this.onWindowResize);
+	}
+
+	/**
+	 * Shows the new labels and marks of the items of an open popup, in the same order. It is how
+	 * a list box that takes several values follows a choice that left the popup open.
+	 */
+	refresh(items: PopupItem[]): void {
+		if (!this.current || items.length !== this.itemElements.length) {
+			return;
+		}
+
+		this.current = { ...this.current, items };
+		items.forEach((item, index) => {
+			const element = this.itemElements[index];
+			const label = element.querySelector('.lognal-popup-label');
+
+			if (label) {
+				label.textContent = item.label;
+			}
+
+			if (this.current?.role === 'listbox') {
+				element.setAttribute('aria-selected', String(Boolean(item.selected)));
+			}
+		});
 	}
 
 	/** Closes the popup. With `restoreFocus`, focus goes back to where `open` was told. */
@@ -263,6 +299,13 @@ export class PopupMenu {
 		const item = this.current?.items[index];
 
 		if (!item) {
+			return;
+		}
+
+		// A list box that takes several values stays open, so the next item is one press away.
+		if (this.current?.multiple) {
+			item.onSelect();
+
 			return;
 		}
 
