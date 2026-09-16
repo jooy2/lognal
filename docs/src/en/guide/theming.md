@@ -1,28 +1,45 @@
 ---
 order: 5
-description: Switch lognal between light, dark and automatic themes, restyle it with --lognal-* CSS custom properties, and pick a monospace font that suits Korean text.
+description: Switch lognal between its built-in palettes, write a theme of your own with --lognal-* CSS custom properties, and pick a monospace font that suits Korean text.
 ---
 
 # Themes and fonts
 
-## Theme modes
+## Themes
 
-| `theme`   | Colors                                                                                                      |
-| --------- | ----------------------------------------------------------------------------------------------------------- |
-| `'auto'`  | Follows `prefers-color-scheme`, and changes when the operating system setting changes. This is the default. |
-| `'light'` | Always light.                                                                                               |
-| `'dark'`  | Always dark.                                                                                                |
+`theme` takes `'auto'`, the name of a palette that ships with lognal, or a name of your own. `BUILT_IN_THEMES` lists the palettes in the order the theme menu shows them.
+
+| `theme`      | Colors                                                                |
+| ------------ | --------------------------------------------------------------------- |
+| `'auto'`     | The operating system setting: `light` or `dark`. This is the default. |
+| `'light'`    | A plain light palette.                                                |
+| `'paper'`    | A warm light palette on an off-white background.                      |
+| `'dark'`     | A plain dark palette.                                                 |
+| `'midnight'` | A dark palette on deep blue, with cool colors.                        |
+| `'ember'`    | A dark palette on warm brown, with an amber accent.                   |
+| `'moss'`     | A dark palette on deep green.                                         |
 
 ```ts
 const viewer = new LogViewer(container, { theme: 'auto' });
 const darkModeSwitch = document.querySelector<HTMLInputElement>('#dark-mode')!;
 
 darkModeSwitch.addEventListener('change', () => {
-	viewer.setOptions({ theme: darkModeSwitch.checked ? 'dark' : 'light' });
+	viewer.setOptions({ theme: darkModeSwitch.checked ? 'midnight' : 'paper' });
 });
 ```
 
-The viewer writes the mode to the `data-theme` attribute of its root element, `.lognal`, and the stylesheet picks the colors from it.
+The **Theme** button in the toolbar opens a menu of the same themes, and choosing one is the same as calling `setOptions({ theme })`. `themes` decides which ones the menu offers, and gives a theme a label of its own:
+
+```ts
+new LogViewer(container, {
+	theme: 'brand',
+	themes: ['auto', 'light', 'dark', { name: 'brand', label: 'Our colors' }]
+});
+```
+
+`toolbar: { theme: false }` hides the button, and the option still works from code.
+
+The viewer writes the palette to the `data-theme` attribute of its root element, `.lognal`, and the stylesheet picks the colors from it. `'auto'` is resolved before it is written, so `data-theme` is always the name of a palette.
 
 ## How colors reach the canvas
 
@@ -30,7 +47,7 @@ Every color and size of the viewer is a `--lognal-*` CSS custom property on `.lo
 
 If you change the properties at another time, for example by toggling a class on a parent element, call `viewer.refresh()` so the canvas picks up the new values.
 
-The dark colors are set for `.lognal[data-theme='dark']`, and again for `.lognal[data-theme='auto']` inside a `prefers-color-scheme: dark` media query. To change a color in both themes, override it in all three places:
+The light colors are set on `.lognal` itself, and every other palette overrides them under its own `data-theme`. To change a color in the light and the dark theme, override it in both places:
 
 ```css
 .build-log .lognal {
@@ -42,16 +59,27 @@ The dark colors are set for `.lognal[data-theme='dark']`, and again for `.lognal
 	--lognal-background: #0d1117;
 	--lognal-accent: #b18cff;
 }
-
-@media (prefers-color-scheme: dark) {
-	.build-log .lognal[data-theme='auto'] {
-		--lognal-background: #0d1117;
-		--lognal-accent: #b18cff;
-	}
-}
 ```
 
 Any color the canvas accepts works, including `rgb()`, `hsl()` and `oklch()`.
+
+### A theme of your own
+
+A theme is one block of CSS and the name you pass to `theme`. Nothing else is registered, and the viewer reads the colors from the computed style as it does for the built-in palettes.
+
+```css
+.lognal[data-theme='brand'] {
+	--lognal-background: #101417;
+	--lognal-foreground: #e6edf3;
+	--lognal-accent: #ffb454;
+	--lognal-ansi-2: #8ddb8c;
+	--lognal-token-string: var(--lognal-ansi-2);
+
+	color-scheme: dark;
+}
+```
+
+Set the colors that differ from the light palette of `.lognal`, since every color that is not overridden keeps its light value. `paper`, `midnight`, `ember` and `moss` in `lognal.css` are written this way and are a good starting point: each one sets its base colors, its accent and its sixteen ANSI colors, and its token colors follow the ANSI colors through `var()`.
 
 ## Custom properties
 

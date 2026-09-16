@@ -1,28 +1,45 @@
 ---
 order: 5
-description: lognal의 밝은 테마, 어두운 테마, 자동 모드를 전환하고, --lognal-* CSS 사용자 지정 속성으로 모양을 바꾸고, 한국어에 맞는 고정폭 글꼴을 고르는 방법을 설명합니다.
+description: lognal의 기본 팔레트를 전환하고, --lognal-* CSS 사용자 지정 속성으로 테마를 직접 만들고, 한국어에 맞는 고정폭 글꼴을 고르는 방법을 설명합니다.
 ---
 
 # 테마와 글꼴
 
-## 테마 모드 {#theme-modes}
+## 테마 {#theme-modes}
 
-| `theme`   | 색                                                                                   |
-| --------- | ------------------------------------------------------------------------------------ |
-| `'auto'`  | `prefers-color-scheme`를 따르고, 운영체제 설정이 바뀌면 함께 바뀝니다. 기본값입니다. |
-| `'light'` | 항상 밝은 테마입니다.                                                                |
-| `'dark'`  | 항상 어두운 테마입니다.                                                              |
+`theme`에는 `'auto'`, lognal이 기본으로 제공하는 팔레트 이름, 직접 만든 이름을 넘길 수 있습니다. 기본 팔레트는 테마 메뉴에 나오는 순서대로 `BUILT_IN_THEMES`에 들어 있습니다.
+
+| `theme`      | 색                                                            |
+| ------------ | ------------------------------------------------------------- |
+| `'auto'`     | 운영체제 설정에 따라 `light`나 `dark`를 씁니다. 기본값입니다. |
+| `'light'`    | 기본 밝은 팔레트입니다.                                       |
+| `'paper'`    | 미색 배경의 따뜻한 밝은 팔레트입니다.                         |
+| `'dark'`     | 기본 어두운 팔레트입니다.                                     |
+| `'midnight'` | 짙은 남색 바탕에 차가운 색을 쓰는 어두운 팔레트입니다.        |
+| `'ember'`    | 따뜻한 갈색 바탕에 호박색을 강조색으로 쓰는 팔레트입니다.     |
+| `'moss'`     | 짙은 녹색 바탕의 어두운 팔레트입니다.                         |
 
 ```ts
 const viewer = new LogViewer(container, { theme: 'auto' });
 const darkModeSwitch = document.querySelector<HTMLInputElement>('#dark-mode')!;
 
 darkModeSwitch.addEventListener('change', () => {
-	viewer.setOptions({ theme: darkModeSwitch.checked ? 'dark' : 'light' });
+	viewer.setOptions({ theme: darkModeSwitch.checked ? 'midnight' : 'paper' });
 });
 ```
 
-뷰어는 루트 요소인 `.lognal`의 `data-theme` 속성에 모드를 쓰고, 스타일시트는 이 속성을 보고 색을 고릅니다.
+도구 모음의 **테마** 버튼을 누르면 같은 테마가 메뉴로 나오고, 메뉴에서 고르는 것은 `setOptions({ theme })`를 호출하는 것과 같습니다. 메뉴에 어떤 테마를 넣을지는 `themes`로 정하고, 테마에 원하는 이름을 붙일 수도 있습니다.
+
+```ts
+new LogViewer(container, {
+	theme: 'brand',
+	themes: ['auto', 'light', 'dark', { name: 'brand', label: '우리 색' }]
+});
+```
+
+`toolbar: { theme: false }`를 넘기면 버튼이 사라지고, 옵션은 코드에서 그대로 쓸 수 있습니다.
+
+뷰어는 루트 요소인 `.lognal`의 `data-theme` 속성에 팔레트 이름을 쓰고, 스타일시트는 이 속성을 보고 색을 고릅니다. `'auto'`는 쓰기 전에 실제 팔레트로 바뀌므로, `data-theme`에는 항상 팔레트 이름이 들어갑니다.
 
 ## 색이 캔버스에 전달되는 과정 {#how-colors-reach-the-canvas}
 
@@ -30,7 +47,7 @@ darkModeSwitch.addEventListener('change', () => {
 
 부모 요소의 클래스를 바꾸는 식으로 그 밖의 시점에 속성을 바꿨다면 `viewer.refresh()`를 호출하세요. 그래야 캔버스가 새 값을 반영합니다.
 
-어두운 색은 `.lognal[data-theme='dark']`에 한 번, `prefers-color-scheme: dark` 미디어 쿼리 안의 `.lognal[data-theme='auto']`에 한 번 더 정의되어 있습니다. 두 테마의 색을 모두 바꾸려면 세 곳을 모두 덮어써야 합니다.
+밝은 색은 `.lognal`에 직접 정의하고, 나머지 팔레트는 각자의 `data-theme` 아래에서 그 값을 덮어씁니다. 밝은 테마와 어두운 테마의 색을 모두 바꾸려면 두 곳을 덮어쓰세요.
 
 ```css
 .build-log .lognal {
@@ -42,16 +59,27 @@ darkModeSwitch.addEventListener('change', () => {
 	--lognal-background: #0d1117;
 	--lognal-accent: #b18cff;
 }
-
-@media (prefers-color-scheme: dark) {
-	.build-log .lognal[data-theme='auto'] {
-		--lognal-background: #0d1117;
-		--lognal-accent: #b18cff;
-	}
-}
 ```
 
 `rgb()`, `hsl()`, `oklch()`를 비롯해 캔버스가 받는 색이면 무엇이든 쓸 수 있습니다.
+
+### 직접 만드는 테마 {#a-theme-of-your-own}
+
+테마는 CSS 블록 하나와 `theme`에 넘길 이름이 전부입니다. 따로 등록할 것은 없고, 뷰어는 기본 팔레트와 똑같이 계산된 스타일에서 색을 읽습니다.
+
+```css
+.lognal[data-theme='brand'] {
+	--lognal-background: #101417;
+	--lognal-foreground: #e6edf3;
+	--lognal-accent: #ffb454;
+	--lognal-ansi-2: #8ddb8c;
+	--lognal-token-string: var(--lognal-ansi-2);
+
+	color-scheme: dark;
+}
+```
+
+`.lognal`의 밝은 팔레트와 다른 색만 지정하면 됩니다. 덮어쓰지 않은 색은 밝은 팔레트 값을 그대로 씁니다. `lognal.css`의 `paper`, `midnight`, `ember`, `moss`가 이 방식으로 쓰여 있으니 출발점으로 삼기 좋습니다. 각 팔레트는 바탕색과 강조색, ANSI 16색을 정하고, 토큰 색은 `var()`로 ANSI 색을 따라갑니다.
 
 ## 사용자 지정 속성 {#custom-properties}
 

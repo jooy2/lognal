@@ -38,7 +38,7 @@ import { PopupMenu, type PopupAnchor, type PopupItem } from './popup-menu.js';
 import { Scrollbar } from './scrollbar.js';
 import { SearchBar } from './search-bar.js';
 import { Tooltip } from './tooltip.js';
-import { readFont, readTheme, type ThemeMode } from './theme.js';
+import { BUILT_IN_THEMES, readFont, readTheme, resolveTheme, type ThemeMode } from './theme.js';
 
 /** Options that belong to the core: what is kept, how it is laid out, and what is shown. */
 export interface CoreOptions extends LogStoreOptions, LayoutOptions {
@@ -53,8 +53,18 @@ export interface ToolbarOptions {
 	wrap: boolean;
 	/** The button that switches between selecting text and selecting whole entries. */
 	selectionMode: boolean;
+	/** The button that opens the theme menu. */
+	theme: boolean;
 	filter: boolean;
 	levels: boolean;
+}
+
+/** A theme the toolbar menu offers. */
+export interface ThemeChoice {
+	/** What `theme` is set to, such as `dark`, `auto`, or a palette of your own. */
+	name: ThemeMode;
+	/** The text of the menu item. A built-in palette falls back to its built-in label. */
+	label?: string;
 }
 
 /** The input line, shown when something can answer the commands typed into it. */
@@ -134,8 +144,16 @@ export interface LogViewerOptions {
 	store?: LogStore;
 	/** Core options. Store options also apply to a store passed in `store`. */
 	core?: Partial<CoreOptions>;
-	/** The color scheme. `auto` follows the operating system. */
+	/**
+	 * The color scheme: `auto`, a palette that ships with lognal, or a name of your own that a
+	 * `.lognal[data-theme='…']` rule in your CSS defines. See `BUILT_IN_THEMES`.
+	 */
 	theme?: ThemeMode;
+	/**
+	 * The themes the menu in the toolbar offers. A string is the name of a theme, and an object
+	 * gives that name a label of its own. Defaults to `auto` and every built-in palette.
+	 */
+	themes?: readonly (ThemeMode | ThemeChoice)[];
 	/** The font. Values left out come from the `--lognal-font-*` CSS properties. */
 	font?: Partial<FontSettings>;
 	/** Whether each entry shows its time, and in which format. */
@@ -193,6 +211,7 @@ type Listener<Value> = (value: Value) => void;
 
 interface ResolvedOptions {
 	theme: ThemeMode;
+	themes: readonly ThemeChoice[];
 	font: Partial<FontSettings>;
 	timestamps: TimestampFormat | null;
 	toolbar: ToolbarOptions | null;
@@ -243,8 +262,23 @@ const DEFAULT_TOOLBAR: ToolbarOptions = {
 	scroll: true,
 	wrap: true,
 	selectionMode: true,
+	theme: true,
 	filter: true,
 	levels: true
+};
+
+/** The themes the toolbar menu offers unless `themes` names others. */
+const DEFAULT_THEMES: readonly ThemeMode[] = ['auto', ...BUILT_IN_THEMES];
+
+/** The built-in label of every theme the library ships. */
+const THEME_LABELS: Record<string, keyof ViewerLabels> = {
+	auto: 'themeAuto',
+	light: 'themeLight',
+	paper: 'themePaper',
+	dark: 'themeDark',
+	midnight: 'themeMidnight',
+	ember: 'themeEmber',
+	moss: 'themeMoss'
 };
 
 /** Padding around the text, in CSS pixels. */
@@ -1167,6 +1201,9 @@ export class LogViewer {
 
 		return {
 			theme: options.theme ?? 'auto',
+			themes: (options.themes ?? DEFAULT_THEMES).map((item) =>
+				typeof item === 'string' ? { name: item } : item
+			),
 			font: options.font ?? {},
 			timestamps,
 			toolbar,
@@ -1186,6 +1223,7 @@ export class LogViewer {
 	private unresolvedOptions(): LogViewerOptions {
 		const {
 			theme,
+			themes,
 			font,
 			timestamps,
 			toolbar,
@@ -1202,6 +1240,7 @@ export class LogViewer {
 
 		return {
 			theme,
+			themes,
 			font,
 			timestamps: timestamps ?? false,
 			toolbar: toolbar ?? false,
@@ -1482,6 +1521,30 @@ export class LogViewer {
 			);
 		}
 
+		if (toolbar.theme) {
+			separator();
+			button('theme', 'theme', labels.theme, () => {
+				const trigger = this.controls.get('theme') as HTMLButtonElement;
+
+				if (this.popup.isOpen && this.popup.trigger === trigger) {
+					this.popup.close();
+				} else {
+					this.openThemeMenu(trigger);
+				}
+			});
+
+			const trigger = this.controls.get('theme') as HTMLButtonElement;
+
+			trigger.setAttribute('aria-haspopup', 'listbox');
+			trigger.setAttribute('aria-expanded', 'false');
+			trigger.addEventListener('keydown', (event) => {
+				if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+					event.preventDefault();
+					this.openThemeMenu(trigger);
+				}
+			});
+		}
+
 		if (toolbar.filter) {
 			const field = doc.createElement('label');
 			const input = doc.createElement('input');
@@ -1555,6 +1618,35 @@ export class LogViewer {
 		} else {
 			control.title = label;
 		}
+	}
+
+	/** The text of a theme in the menu: the label it was given, or its built-in one. */
+	private themeLabel(choice: ThemeChoice): string {
+		const key = THEME_LABELS[String(choice.name)];
+
+		return choice.label ?? (key ? (this.options.labels[key] as string) : String(choice.name));
+	}
+
+	private openThemeMenu(trigger: HTMLButtonElement): void {
+		const { themes, theme } = this.options;
+
+		this.popup.close(false);
+		trigger.setAttribute('aria-expanded', 'true');
+		this.popup.open({
+			role: 'listbox',
+			label: this.options.labels.theme,
+			items: themes.map((choice, index) => ({
+				label: this.themeLabel(choice),
+				selected: choice.name === theme,
+				startsGroup: index > 0 && themes[index - 1].name === 'auto',
+				onSelect: () => this.setOptions({ theme: choice.name })
+			})),
+			anchor: trigger.getBoundingClientRect(),
+			align: 'start',
+			trigger,
+			returnFocus: trigger,
+			onClose: () => trigger.setAttribute('aria-expanded', 'false')
+		});
 	}
 
 	/**
@@ -1918,7 +2010,12 @@ export class LogViewer {
 	}
 
 	private applyTheme(): void {
-		this.element.dataset.theme = this.options.theme;
+		const view = this.ownerDocument.defaultView;
+		const prefersDark = view?.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+
+		// The palette is resolved here rather than in a media query, so every theme is one block
+		// of CSS and a theme of your own needs nothing but that block.
+		this.element.dataset.theme = resolveTheme(this.options.theme, prefersDark);
 		this.renderer.setTheme(readTheme(this.element));
 		this.requestRender();
 	}

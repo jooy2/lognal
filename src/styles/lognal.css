@@ -34,6 +34,7 @@
 	--lognal-control-hover: rgba(29, 33, 41, 0.07);
 	--lognal-control-active: rgba(31, 111, 214, 0.12);
 	--lognal-focus-ring: #1f6fd6;
+	--lognal-on-accent: #ffffff;
 	--lognal-selection: rgba(31, 111, 214, 0.22);
 	--lognal-match: rgba(240, 173, 0, 0.3);
 	--lognal-separator: rgba(29, 33, 41, 0.06);
@@ -113,6 +114,7 @@
 	--lognal-control-hover: rgba(227, 229, 234, 0.08);
 	--lognal-control-active: rgba(90, 162, 255, 0.18);
 	--lognal-focus-ring: #5aa2ff;
+	--lognal-on-accent: #0b1220;
 	--lognal-selection: rgba(90, 162, 255, 0.3);
 	--lognal-match: rgba(252, 191, 50, 0.3);
 	--lognal-separator: rgba(227, 229, 234, 0.05);
@@ -166,69 +168,192 @@
 	color-scheme: dark;
 }
 
-@media (prefers-color-scheme: dark) {
-	.lognal[data-theme='auto'] {
-		--lognal-background: #16181d;
-		--lognal-foreground: #e3e5ea;
-		--lognal-muted: #8f94a1;
-		--lognal-accent: #5aa2ff;
-		--lognal-border: #2a2e37;
-		--lognal-surface: #1c1f25;
-		--lognal-control-hover: rgba(227, 229, 234, 0.08);
-		--lognal-control-active: rgba(90, 162, 255, 0.18);
-		--lognal-focus-ring: #5aa2ff;
-		--lognal-selection: rgba(90, 162, 255, 0.3);
-		--lognal-match: rgba(252, 191, 50, 0.3);
-		--lognal-separator: rgba(227, 229, 234, 0.05);
-		--lognal-hover: rgba(227, 229, 234, 0.06);
-		--lognal-search-match: rgba(255, 200, 0, 0.28);
-		--lognal-search-current: rgba(255, 140, 0, 0.6);
-		--lognal-link: #5aa2ff;
-		--lognal-entry-selection: rgba(90, 162, 255, 0.14);
-		--lognal-error: #ff8a8d;
-		--lognal-error-background: rgba(252, 79, 83, 0.1);
-		--lognal-warn: #fcc549;
-		--lognal-warn-background: rgba(252, 191, 50, 0.08);
-		--lognal-info: #5aa2ff;
-		--lognal-debug: #8f94a1;
-		--lognal-scrollbar-thumb: rgba(227, 229, 234, 0.25);
-		--lognal-scrollbar-thumb-hover: rgba(227, 229, 234, 0.42);
-		--lognal-popup-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.3);
-		--lognal-token-muted: #8f94a1;
-		--lognal-token-string: #7fd6a4;
-		--lognal-token-number: #b9a8ff;
-		--lognal-token-boolean: #b9a8ff;
-		--lognal-token-null: #8f94a1;
-		--lognal-token-key: #82bdff;
-		--lognal-token-symbol: #f5a3d7;
-		--lognal-token-function: #82bdff;
-		--lognal-token-regexp: #ffa585;
-		--lognal-token-date: #7fd6a4;
-		--lognal-token-tag: #82bdff;
-		--lognal-token-attribute: #fcc549;
-		--lognal-token-error: #ff8a8d;
-		--lognal-token-warn: #fcc549;
-		--lognal-token-info: #5aa2ff;
-		--lognal-token-accent: #5aa2ff;
-		--lognal-ansi-0: #3b3f4a;
-		--lognal-ansi-1: #fc5c60;
-		--lognal-ansi-2: #43d786;
-		--lognal-ansi-3: #fcbf32;
-		--lognal-ansi-4: #5aa2ff;
-		--lognal-ansi-5: #c792ea;
-		--lognal-ansi-6: #56d4dd;
-		--lognal-ansi-7: #d0d3db;
-		--lognal-ansi-8: #6b7080;
-		--lognal-ansi-9: #ff8a8d;
-		--lognal-ansi-10: #7ee3a8;
-		--lognal-ansi-11: #ffd466;
-		--lognal-ansi-12: #82bdff;
-		--lognal-ansi-13: #ddb6f2;
-		--lognal-ansi-14: #8ae6ec;
-		--lognal-ansi-15: #ffffff;
+/*
+ * The palettes below are built from a base color, an accent and a 16-color ramp. The blocks that
+ * follow them turn those into the rest of the properties, so a palette of your own only has to
+ * set what these set. Add one with a selector such as `.lognal[data-theme='mine']`.
+ */
 
-		color-scheme: dark;
-	}
+/* Paper: a warm light palette */
+.lognal[data-theme='paper'] {
+	--lognal-background: #fbf7ef;
+	--lognal-foreground: #3a332a;
+	--lognal-muted: #7b7061;
+	--lognal-accent: #a8571a;
+	--lognal-border: #e6dccb;
+	--lognal-surface: #f3ecdf;
+	--lognal-selection: rgba(168, 87, 26, 0.2);
+	--lognal-entry-selection: rgba(168, 87, 26, 0.1);
+	--lognal-control-active: rgba(168, 87, 26, 0.14);
+	--lognal-ansi-0: #3a332a;
+	--lognal-ansi-1: #b3372c;
+	--lognal-ansi-2: #4c7a2e;
+	--lognal-ansi-3: #96660b;
+	--lognal-ansi-4: #2f6ca8;
+	--lognal-ansi-5: #8b4a95;
+	--lognal-ansi-6: #2c7b7b;
+	--lognal-ansi-7: #7b7061;
+	--lognal-ansi-8: #5b5245;
+	--lognal-ansi-9: #c8503f;
+	--lognal-ansi-10: #5c8f38;
+	--lognal-ansi-11: #ab7a12;
+	--lognal-ansi-12: #3b7fbd;
+	--lognal-ansi-13: #a05ba8;
+	--lognal-ansi-14: #35908e;
+	--lognal-ansi-15: #3a332a;
+}
+
+/* Midnight: a cool dark palette */
+.lognal[data-theme='midnight'] {
+	--lognal-background: #0f1226;
+	--lognal-foreground: #dcdff5;
+	--lognal-muted: #8b90b8;
+	--lognal-accent: #7aa2ff;
+	--lognal-border: #232744;
+	--lognal-surface: #171b33;
+	--lognal-selection: rgba(122, 162, 255, 0.3);
+	--lognal-entry-selection: rgba(122, 162, 255, 0.14);
+	--lognal-control-active: rgba(122, 162, 255, 0.2);
+	--lognal-ansi-0: #2a2f52;
+	--lognal-ansi-1: #ff6b7f;
+	--lognal-ansi-2: #57d6a0;
+	--lognal-ansi-3: #ffc46b;
+	--lognal-ansi-4: #7aa2ff;
+	--lognal-ansi-5: #c39bff;
+	--lognal-ansi-6: #63d6e0;
+	--lognal-ansi-7: #c7cbe8;
+	--lognal-ansi-8: #4a5080;
+	--lognal-ansi-9: #ff97a6;
+	--lognal-ansi-10: #86e6bd;
+	--lognal-ansi-11: #ffd694;
+	--lognal-ansi-12: #a3c0ff;
+	--lognal-ansi-13: #d9bcff;
+	--lognal-ansi-14: #93e6ec;
+	--lognal-ansi-15: #ffffff;
+}
+
+/* Ember: a warm dark palette */
+.lognal[data-theme='ember'] {
+	--lognal-background: #1b1512;
+	--lognal-foreground: #f0e3d8;
+	--lognal-muted: #a3907f;
+	--lognal-accent: #ff9d4d;
+	--lognal-border: #332720;
+	--lognal-surface: #221a16;
+	--lognal-selection: rgba(255, 157, 77, 0.28);
+	--lognal-entry-selection: rgba(255, 157, 77, 0.12);
+	--lognal-control-active: rgba(255, 157, 77, 0.2);
+	--lognal-ansi-0: #3a2c24;
+	--lognal-ansi-1: #f4645f;
+	--lognal-ansi-2: #b5c95f;
+	--lognal-ansi-3: #ffb545;
+	--lognal-ansi-4: #6fb3c8;
+	--lognal-ansi-5: #d98ab0;
+	--lognal-ansi-6: #77c9b4;
+	--lognal-ansi-7: #e0d0c2;
+	--lognal-ansi-8: #5c483c;
+	--lognal-ansi-9: #ff8a85;
+	--lognal-ansi-10: #cfe07a;
+	--lognal-ansi-11: #ffcd78;
+	--lognal-ansi-12: #93cbdd;
+	--lognal-ansi-13: #eaa9c8;
+	--lognal-ansi-14: #9adccb;
+	--lognal-ansi-15: #fff6ec;
+}
+
+/* Moss: a green dark palette */
+.lognal[data-theme='moss'] {
+	--lognal-background: #121914;
+	--lognal-foreground: #dbe7dc;
+	--lognal-muted: #8aa08d;
+	--lognal-accent: #7fd08a;
+	--lognal-border: #223024;
+	--lognal-surface: #18211a;
+	--lognal-selection: rgba(127, 208, 138, 0.26);
+	--lognal-entry-selection: rgba(127, 208, 138, 0.12);
+	--lognal-control-active: rgba(127, 208, 138, 0.18);
+	--lognal-ansi-0: #243126;
+	--lognal-ansi-1: #e8746b;
+	--lognal-ansi-2: #7fd08a;
+	--lognal-ansi-3: #d9be63;
+	--lognal-ansi-4: #6fb6c4;
+	--lognal-ansi-5: #b79ad6;
+	--lognal-ansi-6: #74cbb8;
+	--lognal-ansi-7: #c6d4c7;
+	--lognal-ansi-8: #465a49;
+	--lognal-ansi-9: #f2958c;
+	--lognal-ansi-10: #a1e0a8;
+	--lognal-ansi-11: #e8d189;
+	--lognal-ansi-12: #95cdd8;
+	--lognal-ansi-13: #cdb6e6;
+	--lognal-ansi-14: #99dccd;
+	--lognal-ansi-15: #f2f7f2;
+}
+
+/* What every palette above takes from its base color, its accent and its ramp */
+.lognal[data-theme='paper'],
+.lognal[data-theme='midnight'],
+.lognal[data-theme='ember'],
+.lognal[data-theme='moss'] {
+	--lognal-focus-ring: var(--lognal-accent);
+	--lognal-link: var(--lognal-accent);
+	--lognal-info: var(--lognal-accent);
+	--lognal-debug: var(--lognal-muted);
+	--lognal-token-muted: var(--lognal-muted);
+	--lognal-token-null: var(--lognal-muted);
+	--lognal-token-string: var(--lognal-ansi-2);
+	--lognal-token-date: var(--lognal-ansi-2);
+	--lognal-token-number: var(--lognal-ansi-5);
+	--lognal-token-boolean: var(--lognal-ansi-5);
+	--lognal-token-symbol: var(--lognal-ansi-13);
+	--lognal-token-key: var(--lognal-ansi-4);
+	--lognal-token-function: var(--lognal-ansi-4);
+	--lognal-token-tag: var(--lognal-ansi-4);
+	--lognal-token-regexp: var(--lognal-ansi-1);
+	--lognal-token-attribute: var(--lognal-ansi-3);
+	--lognal-token-error: var(--lognal-error);
+	--lognal-token-warn: var(--lognal-warn);
+	--lognal-token-info: var(--lognal-info);
+	--lognal-token-accent: var(--lognal-accent);
+	--lognal-match: rgba(240, 173, 0, 0.32);
+	--lognal-search-match: rgba(255, 200, 0, 0.34);
+	--lognal-search-current: rgba(255, 140, 0, 0.65);
+}
+
+/* What a light palette adds */
+.lognal[data-theme='paper'] {
+	--lognal-error: var(--lognal-ansi-1);
+	--lognal-warn: var(--lognal-ansi-3);
+	--lognal-error-background: rgba(200, 60, 50, 0.08);
+	--lognal-warn-background: rgba(200, 150, 0, 0.12);
+	--lognal-control-hover: rgba(0, 0, 0, 0.06);
+	--lognal-separator: rgba(0, 0, 0, 0.06);
+	--lognal-hover: rgba(0, 0, 0, 0.04);
+	--lognal-scrollbar-thumb: rgba(0, 0, 0, 0.25);
+	--lognal-scrollbar-thumb-hover: rgba(0, 0, 0, 0.42);
+	--lognal-popup-shadow: 0 8px 24px rgba(40, 30, 20, 0.16), 0 1px 3px rgba(40, 30, 20, 0.1);
+	--lognal-on-accent: #ffffff;
+
+	color-scheme: light;
+}
+
+/* What a dark palette adds */
+.lognal[data-theme='midnight'],
+.lognal[data-theme='ember'],
+.lognal[data-theme='moss'] {
+	--lognal-error: var(--lognal-ansi-9);
+	--lognal-warn: var(--lognal-ansi-11);
+	--lognal-error-background: rgba(255, 90, 90, 0.1);
+	--lognal-warn-background: rgba(255, 190, 60, 0.08);
+	--lognal-control-hover: rgba(255, 255, 255, 0.08);
+	--lognal-separator: rgba(255, 255, 255, 0.06);
+	--lognal-hover: rgba(255, 255, 255, 0.05);
+	--lognal-scrollbar-thumb: rgba(255, 255, 255, 0.24);
+	--lognal-scrollbar-thumb-hover: rgba(255, 255, 255, 0.4);
+	--lognal-popup-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.3);
+	--lognal-on-accent: #0b1220;
+
+	color-scheme: dark;
 }
 
 .lognal *,
@@ -562,7 +687,7 @@
 }
 
 .lognal-dialog-button.is-primary {
-	color: #ffffff;
+	color: var(--lognal-on-accent);
 	background-color: var(--lognal-accent);
 	border-color: var(--lognal-accent);
 }
@@ -698,7 +823,7 @@
 	gap: 4px;
 	height: 28px;
 	padding: 0 12px 0 10px;
-	color: #ffffff;
+	color: var(--lognal-on-accent);
 	background: var(--lognal-accent);
 	border: 0;
 	border-radius: 999px;
@@ -706,18 +831,6 @@
 	font: inherit;
 	font-weight: 600;
 	cursor: pointer;
-}
-
-.lognal[data-theme='dark'] .lognal-new-logs,
-.lognal[data-theme='dark'] .lognal-dialog-button.is-primary {
-	color: #0b1220;
-}
-
-@media (prefers-color-scheme: dark) {
-	.lognal[data-theme='auto'] .lognal-new-logs,
-	.lognal[data-theme='auto'] .lognal-dialog-button.is-primary {
-		color: #0b1220;
-	}
 }
 
 /* The button that opens the menu of the entry under the pointer */

@@ -26,25 +26,26 @@ viewer.dispose();
 
 ## Options
 
-| Option          | Type                                    | Default         | Description                                                                                                       |
-| --------------- | --------------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `store`         | `LogStore`                              | A new store     | The store to show. Several viewers can share one store.                                                           |
-| `core`          | `Partial<CoreOptions>`                  | See below       | What is kept, how lines are laid out, and which entries are shown.                                                |
-| `theme`         | `'auto' \| 'light' \| 'dark'`           | `'auto'`        | The color scheme. `'auto'` follows the operating system.                                                          |
-| `font`          | `Partial<FontSettings>`                 | From CSS        | The font of the log. Values left out come from the `--lognal-font-*` properties.                                  |
-| `timestamps`    | `boolean \| TimestampFormat`            | `true`          | Whether each entry shows its time, and in which format. `true` means `'time'`.                                    |
-| `follow`        | `boolean`                               | `true`          | Whether the view follows new entries at the start.                                                                |
-| `toolbar`       | `boolean \| Partial<ToolbarOptions>`    | `true`          | The toolbar controls, or `false` to hide the toolbar.                                                             |
-| `statusBar`     | `boolean`                               | `true`          | Whether the status bar is shown.                                                                                  |
-| `input`         | `InputOptions \| null`                  | `null`          | The input line. Leave it out for a read-only viewer.                                                              |
-| `locale`        | `string`                                | None            | The language of the built-in labels and of number formatting, such as `'ko'`.                                     |
-| `labels`        | `Partial<ViewerLabels>`                 | Built-in labels | Labels that replace the built-in ones.                                                                            |
-| `entryMenu`     | `boolean \| EntryMenuOptions`           | `true`          | The menu of actions of the entry under the pointer, or `false` to turn it off. See [Entry menu](#entry-menu).     |
-| `search`        | `boolean`                               | `true`          | Whether Ctrl+F or Cmd+F opens a search bar over the log. See [Search](#search).                                   |
-| `linkClick`     | `'confirm' \| 'open' \| 'ignore'`       | `'confirm'`     | What a click or a tap on a link does. See [Links](#links).                                                        |
-| `selectionMode` | `'text' \| 'entry'`                     | `'text'`        | Whether the pointer and the keyboard select text or whole entries. See [Selection and copy](#selection-and-copy). |
-| `tooltips`      | `boolean`                               | `true`          | Whether a toolbar control shows its name as soon as the pointer reaches it. See [Toolbar](#toolbar).              |
-| `renderer`      | `(ownerDocument: Document) => Renderer` | Canvas 2D       | Creates the renderer. See [Layout and renderers](/reference/layout#renderer).                                     |
+| Option          | Type                                    | Default                | Description                                                                                                       |
+| --------------- | --------------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `store`         | `LogStore`                              | A new store            | The store to show. Several viewers can share one store.                                                           |
+| `core`          | `Partial<CoreOptions>`                  | See below              | What is kept, how lines are laid out, and which entries are shown.                                                |
+| `theme`         | `ThemeMode`                             | `'auto'`               | The palette. `'auto'` follows the operating system. See [Themes](/guide/theming#themes).                          |
+| `themes`        | `(ThemeMode \| ThemeChoice)[]`          | Every built-in palette | The themes the toolbar menu offers.                                                                               |
+| `font`          | `Partial<FontSettings>`                 | From CSS               | The font of the log. Values left out come from the `--lognal-font-*` properties.                                  |
+| `timestamps`    | `boolean \| TimestampFormat`            | `true`                 | Whether each entry shows its time, and in which format. `true` means `'time'`.                                    |
+| `follow`        | `boolean`                               | `true`                 | Whether the view follows new entries at the start.                                                                |
+| `toolbar`       | `boolean \| Partial<ToolbarOptions>`    | `true`                 | The toolbar controls, or `false` to hide the toolbar.                                                             |
+| `statusBar`     | `boolean`                               | `true`                 | Whether the status bar is shown.                                                                                  |
+| `input`         | `InputOptions \| null`                  | `null`                 | The input line. Leave it out for a read-only viewer.                                                              |
+| `locale`        | `string`                                | None                   | The language of the built-in labels and of number formatting, such as `'ko'`.                                     |
+| `labels`        | `Partial<ViewerLabels>`                 | Built-in labels        | Labels that replace the built-in ones.                                                                            |
+| `entryMenu`     | `boolean \| EntryMenuOptions`           | `true`                 | The menu of actions of the entry under the pointer, or `false` to turn it off. See [Entry menu](#entry-menu).     |
+| `search`        | `boolean`                               | `true`                 | Whether Ctrl+F or Cmd+F opens a search bar over the log. See [Search](#search).                                   |
+| `linkClick`     | `'confirm' \| 'open' \| 'ignore'`       | `'confirm'`            | What a click or a tap on a link does. See [Links](#links).                                                        |
+| `selectionMode` | `'text' \| 'entry'`                     | `'text'`               | Whether the pointer and the keyboard select text or whole entries. See [Selection and copy](#selection-and-copy). |
+| `tooltips`      | `boolean`                               | `true`                 | Whether a toolbar control shows its name as soon as the pointer reaches it. See [Toolbar](#toolbar).              |
+| `renderer`      | `(ownerDocument: Document) => Renderer` | Canvas 2D              | Creates the renderer. See [Layout and renderers](/reference/layout#renderer).                                     |
 
 ### Core options
 
@@ -82,6 +83,7 @@ Passing `toolbar`, `statusBar`, `input`, `labels` or `locale` builds the toolbar
 | Scroll to top, Scroll to bottom | `scroll`             | Jumps to the oldest or the newest entry. Scrolling to the bottom turns following on.                        |
 | Wrap long lines                 | `wrap`               | Turns wrapping off. Pressing it again restores the mode it turned off, `'word'` or `'char'`.                |
 | Select whole entries            | `selectionMode`      | Switches between selecting text and selecting whole entries. See [Selection and copy](#selection-and-copy). |
+| Theme                           | `theme`              | Opens a menu of the themes in `themes`. See [Themes](/guide/theming#themes).                                |
 | Filter                          | `filter`             | Shows the entries that contain the text. The filter applies 120 ms after typing stops.                      |
 | Log levels                      | `levels`             | Chooses the levels the log shows. It sets `levels` on the filter.                                           |
 

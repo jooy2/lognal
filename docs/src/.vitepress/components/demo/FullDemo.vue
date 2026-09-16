@@ -45,7 +45,7 @@ import {
 } from './samples';
 
 type Lognal = typeof import('lognal');
-type ThemeChoice = 'site' | ThemeMode;
+type DemoTheme = 'site' | ThemeMode;
 type LocaleChoice = 'site' | 'en' | 'ko' | 'de';
 type TimestampChoice = 'off' | 'time' | 'datetime' | 'iso' | 'elapsed';
 type ViewerSettings = Omit<LogViewerOptions, 'store' | 'renderer'>;
@@ -106,7 +106,7 @@ const notice: Notice = (key, values) => t('notice', key, values);
 const formatNumber = (value: number): string => numberFormat.value.format(value);
 
 const settings = reactive({
-	theme: 'site' as ThemeChoice,
+	theme: 'site' as DemoTheme,
 	locale: 'site' as LocaleChoice,
 	customLabels: false,
 	timestamps: 'time' as TimestampChoice,
@@ -124,6 +124,7 @@ const settings = reactive({
 		scroll: true,
 		wrap: true,
 		selectionMode: true,
+		theme: true,
 		filter: true,
 		levels: true
 	} as ToolbarOptions,
@@ -842,7 +843,11 @@ onBeforeUnmount(() => {
 								<option value="site">{{ t('common', 'same-as-site') }}</option>
 								<option value="auto">{{ t('control', 'theme-auto') }}</option>
 								<option value="light">{{ t('control', 'theme-light') }}</option>
+								<option value="paper">{{ t('control', 'theme-paper') }}</option>
 								<option value="dark">{{ t('control', 'theme-dark') }}</option>
+								<option value="midnight">{{ t('control', 'theme-midnight') }}</option>
+								<option value="ember">{{ t('control', 'theme-ember') }}</option>
+								<option value="moss">{{ t('control', 'theme-moss') }}</option>
 							</select>
 						</label>
 						<label class="demo-field">
@@ -938,6 +943,10 @@ onBeforeUnmount(() => {
 						<label class="demo-check">
 							<input v-model="settings.toolbarControls.filter" type="checkbox" />
 							{{ t('control', 'toolbar-filter') }}
+						</label>
+						<label class="demo-check">
+							<input v-model="settings.toolbarControls.theme" type="checkbox" />
+							{{ t('control', 'toolbar-theme') }}
 						</label>
 						<label class="demo-check">
 							<input v-model="settings.toolbarControls.levels" type="checkbox" />

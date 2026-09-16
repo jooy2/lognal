@@ -116,7 +116,16 @@ export {
 	type LogViewerEvents,
 	type LogViewerOptions,
 	type SelectionMode,
+	type ThemeChoice,
 	type ToolbarOptions
 } from './viewer/viewer.js';
 export { EN_LABELS, KO_LABELS, labelsFor, type ViewerLabels } from './viewer/labels.js';
-export { DEFAULT_FONT, readFont, readTheme, type ThemeMode } from './viewer/theme.js';
+export {
+	BUILT_IN_THEMES,
+	DEFAULT_FONT,
+	readFont,
+	readTheme,
+	resolveTheme,
+	type BuiltInTheme,
+	type ThemeMode
+} from './viewer/theme.js';

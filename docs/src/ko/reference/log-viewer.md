@@ -86,25 +86,26 @@ off();
 
 ## LogViewerOptions {#logvieweroptions}
 
-| 옵션            | 타입                                    | 기본값           | 설명                                                                                                                  |
-| --------------- | --------------------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `store`         | `LogStore`                              | 새 스토어        | 보여 줄 스토어입니다. 여러 뷰어가 스토어 하나를 함께 쓸 수 있습니다.                                                  |
-| `core`          | `Partial<CoreOptions>`                  | `{}`             | 코어 옵션입니다. 스토어 옵션은 `store`로 넘긴 스토어에도 적용합니다.                                                  |
-| `theme`         | `ThemeMode`                             | `'auto'`         | 색 구성입니다. `'auto'`는 운영체제 설정을 따릅니다.                                                                   |
-| `font`          | `Partial<FontSettings>`                 | `{}`             | 글꼴입니다. 빠진 값은 `--lognal-font-*` CSS 속성에서 가져옵니다.                                                      |
-| `timestamps`    | `boolean \| TimestampFormat`            | `true`           | 항목마다 시각을 보여 줄지, 어떤 형식으로 보여 줄지 정합니다. `true`는 `'time'`입니다.                                 |
-| `follow`        | `boolean`                               | `true`           | 처음에 새 항목을 따라갈지 정합니다.                                                                                   |
-| `toolbar`       | `boolean \| Partial<ToolbarOptions>`    | `true`           | 도구 모음입니다. `false`이면 숨기고, 객체를 넘기면 컨트롤을 하나씩 끌 수 있습니다.                                    |
-| `statusBar`     | `boolean`                               | `true`           | 상태 표시줄을 보여 줄지 정합니다.                                                                                     |
-| `input`         | `InputOptions \| null`                  | `null`           | 입력 줄입니다. 읽기 전용 뷰어라면 생략합니다.                                                                         |
-| `locale`        | `string`                                | `undefined`      | 내장 레이블과 숫자 서식의 언어입니다. 예를 들면 `'en'`, `'ko'`입니다.                                                 |
-| `labels`        | `Partial<ViewerLabels>`                 | `{}`             | 내장 레이블 대신 쓸 레이블입니다.                                                                                     |
-| `entryMenu`     | `boolean \| EntryMenuOptions`           | `true`           | 포인터가 올라간 항목의 작업 메뉴입니다. `false`이면 끕니다.                                                           |
-| `search`        | `boolean`                               | `true`           | 뷰어에 포커스가 있을 때 Ctrl+F나 Cmd+F로, 항목을 숨기지 않고 일치하는 곳을 모두 강조하는 검색 창을 열지 정합니다.     |
-| `linkClick`     | `LinkClick`                             | `'confirm'`      | 링크를 클릭하거나 탭했을 때의 동작입니다. [`LinkClick`](#linkclick)을 참고하세요.                                     |
-| `selectionMode` | `SelectionMode`                         | `'text'`         | 포인터와 키보드로 텍스트를 선택할지, 항목을 통째로 선택할지 정합니다. [`SelectionMode`](#selectionmode)를 참고하세요. |
-| `tooltips`      | `boolean`                               | `true`           | 도구 모음 컨트롤에 포인터가 닿는 즉시 이름을 보여 줄지 정합니다.                                                      |
-| `renderer`      | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | 렌더러를 만듭니다.                                                                                                    |
+| 옵션            | 타입                                    | 기본값                         | 설명                                                                                                                  |
+| --------------- | --------------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| `store`         | `LogStore`                              | 새 스토어                      | 보여 줄 스토어입니다. 여러 뷰어가 스토어 하나를 함께 쓸 수 있습니다.                                                  |
+| `core`          | `Partial<CoreOptions>`                  | `{}`                           | 코어 옵션입니다. 스토어 옵션은 `store`로 넘긴 스토어에도 적용합니다.                                                  |
+| `theme`         | `ThemeMode`                             | `'auto'`                       | 팔레트입니다. `'auto'`는 운영체제 설정을 따르고, 그 밖의 이름은 `data-theme`에 그대로 들어갑니다.                     |
+| `themes`        | `(ThemeMode \| ThemeChoice)[]`          | `['auto', ...BUILT_IN_THEMES]` | 도구 모음 메뉴에 넣을 테마입니다. 문자열은 이름이고, 객체는 레이블까지 정합니다.                                      |
+| `font`          | `Partial<FontSettings>`                 | `{}`                           | 글꼴입니다. 빠진 값은 `--lognal-font-*` CSS 속성에서 가져옵니다.                                                      |
+| `timestamps`    | `boolean \| TimestampFormat`            | `true`                         | 항목마다 시각을 보여 줄지, 어떤 형식으로 보여 줄지 정합니다. `true`는 `'time'`입니다.                                 |
+| `follow`        | `boolean`                               | `true`                         | 처음에 새 항목을 따라갈지 정합니다.                                                                                   |
+| `toolbar`       | `boolean \| Partial<ToolbarOptions>`    | `true`                         | 도구 모음입니다. `false`이면 숨기고, 객체를 넘기면 컨트롤을 하나씩 끌 수 있습니다.                                    |
+| `statusBar`     | `boolean`                               | `true`                         | 상태 표시줄을 보여 줄지 정합니다.                                                                                     |
+| `input`         | `InputOptions \| null`                  | `null`                         | 입력 줄입니다. 읽기 전용 뷰어라면 생략합니다.                                                                         |
+| `locale`        | `string`                                | `undefined`                    | 내장 레이블과 숫자 서식의 언어입니다. 예를 들면 `'en'`, `'ko'`입니다.                                                 |
+| `labels`        | `Partial<ViewerLabels>`                 | `{}`                           | 내장 레이블 대신 쓸 레이블입니다.                                                                                     |
+| `entryMenu`     | `boolean \| EntryMenuOptions`           | `true`                         | 포인터가 올라간 항목의 작업 메뉴입니다. `false`이면 끕니다.                                                           |
+| `search`        | `boolean`                               | `true`                         | 뷰어에 포커스가 있을 때 Ctrl+F나 Cmd+F로, 항목을 숨기지 않고 일치하는 곳을 모두 강조하는 검색 창을 열지 정합니다.     |
+| `linkClick`     | `LinkClick`                             | `'confirm'`                    | 링크를 클릭하거나 탭했을 때의 동작입니다. [`LinkClick`](#linkclick)을 참고하세요.                                     |
+| `selectionMode` | `SelectionMode`                         | `'text'`                       | 포인터와 키보드로 텍스트를 선택할지, 항목을 통째로 선택할지 정합니다. [`SelectionMode`](#selectionmode)를 참고하세요. |
+| `tooltips`      | `boolean`                               | `true`                         | 도구 모음 컨트롤에 포인터가 닿는 즉시 이름을 보여 줄지 정합니다.                                                      |
+| `renderer`      | `(ownerDocument: Document) => Renderer` | `CanvasRenderer`               | 렌더러를 만듭니다.                                                                                                    |
 
 ## CoreOptions {#coreoptions}
 
@@ -132,6 +133,7 @@ off();
 | `scroll`        | `boolean` | 맨 위로 이동, 맨 아래로 이동 |
 | `wrap`          | `boolean` | 긴 줄 바꾸기                 |
 | `selectionMode` | `boolean` | 항목 단위로 선택             |
+| `theme`         | `boolean` | 테마 메뉴                    |
 | `filter`        | `boolean` | 필터 입력란                  |
 | `levels`        | `boolean` | 로그 수준 메뉴               |
 
@@ -231,6 +233,14 @@ type LinkClick = 'confirm' | 'open' | 'ignore';
 | `levelWarn`          | Warning                                                            | 경고                                                    |
 | `levelError`         | Error                                                              | 오류                                                    |
 | `levelSome`          | 3 levels                                                           | 수준 3개                                                |
+| `theme`              | Theme                                                              | 테마                                                    |
+| `themeAuto`          | System                                                             | 시스템                                                  |
+| `themeLight`         | Light                                                              | 라이트                                                  |
+| `themePaper`         | Paper                                                              | 페이퍼                                                  |
+| `themeDark`          | Dark                                                               | 다크                                                    |
+| `themeMidnight`      | Midnight                                                           | 미드나이트                                              |
+| `themeEmber`         | Ember                                                              | 엠버                                                    |
+| `themeMoss`          | Moss                                                               | 모스                                                    |
 | `input`              | Command                                                            | 명령                                                    |
 | `inputPlaceholder`   | Type a command                                                     | 명령을 입력하세요                                       |
 | `newLogs`            | New logs                                                           | 새 로그                                                 |
@@ -282,8 +292,32 @@ labelsFor(locale: string | undefined): ViewerLabels
 ### ThemeMode {#thememode}
 
 ```ts
-type ThemeMode = 'auto' | 'light' | 'dark';
+const BUILT_IN_THEMES = ['light', 'paper', 'dark', 'midnight', 'ember', 'moss'] as const;
+
+type BuiltInTheme = (typeof BUILT_IN_THEMES)[number];
+type ThemeMode = 'auto' | BuiltInTheme | (string & {});
 ```
+
+`'auto'`는 운영체제 설정을 따릅니다. 그 밖의 이름은 뷰어의 `data-theme` 속성에 그대로 들어가므로, 직접 CSS로 정의한 팔레트도 쓸 수 있습니다. [테마](/ko/guide/theming#theme-modes)를 참고하세요.
+
+### ThemeChoice {#themechoice}
+
+```ts
+interface ThemeChoice {
+	name: ThemeMode;
+	label?: string;
+}
+```
+
+테마 메뉴에 넣을 `themes`의 항목입니다. lognal이 제공하는 테마는 내장 레이블을 쓰고, 그 밖의 이름은 이름 자체가 레이블이 됩니다.
+
+### resolveTheme {#resolvetheme}
+
+```ts
+resolveTheme(theme: ThemeMode, prefersDark: boolean): string
+```
+
+모드가 실제로 쓰는 팔레트를 돌려줍니다. `'auto'`이면 `'light'`나 `'dark'`이고, 그 밖의 이름은 그대로입니다. 뷰어는 `matchMedia('(prefers-color-scheme: dark)')`의 결과를 넘겨 호출합니다.
 
 ### readTheme {#readtheme}
 

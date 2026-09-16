@@ -26,25 +26,26 @@ viewer.dispose();
 
 ## 옵션 {#options}
 
-| 옵션            | 타입                                    | 기본값       | 설명                                                                                                                   |
-| --------------- | --------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| `store`         | `LogStore`                              | 새 스토어    | 보여 줄 스토어입니다. 여러 뷰어가 스토어 하나를 함께 쓸 수 있습니다.                                                   |
-| `core`          | `Partial<CoreOptions>`                  | 아래 표 참고 | 보관할 양, 줄 배치 방식, 보여 줄 항목을 정합니다.                                                                      |
-| `theme`         | `'auto' \| 'light' \| 'dark'`           | `'auto'`     | 색 구성입니다. `'auto'`는 운영체제 설정을 따릅니다.                                                                    |
-| `font`          | `Partial<FontSettings>`                 | CSS 값       | 로그의 글꼴입니다. 빠진 값은 `--lognal-font-*` 속성에서 가져옵니다.                                                    |
-| `timestamps`    | `boolean \| TimestampFormat`            | `true`       | 항목마다 시각을 보여 줄지, 어떤 형식으로 보여 줄지 정합니다. `true`는 `'time'`입니다.                                  |
-| `follow`        | `boolean`                               | `true`       | 처음에 새 항목을 따라갈지 정합니다.                                                                                    |
-| `toolbar`       | `boolean \| Partial<ToolbarOptions>`    | `true`       | 도구 모음의 컨트롤입니다. `false`이면 도구 모음을 숨깁니다.                                                            |
-| `statusBar`     | `boolean`                               | `true`       | 상태 표시줄을 보여 줄지 정합니다.                                                                                      |
-| `input`         | `InputOptions \| null`                  | `null`       | 입력 줄입니다. 읽기 전용 뷰어라면 생략합니다.                                                                          |
-| `locale`        | `string`                                | 없음         | 내장 레이블과 숫자 서식의 언어입니다. 예를 들면 `'ko'`입니다.                                                          |
-| `labels`        | `Partial<ViewerLabels>`                 | 내장 레이블  | 내장 레이블 대신 쓸 레이블입니다.                                                                                      |
-| `entryMenu`     | `boolean \| EntryMenuOptions`           | `true`       | 포인터가 올라간 항목의 작업 메뉴입니다. `false`이면 끕니다. [항목 메뉴](#entry-menu)를 참고하세요.                     |
-| `search`        | `boolean`                               | `true`       | Ctrl+F나 Cmd+F로 로그 위에 검색 창을 열지 정합니다. [검색](#search)을 참고하세요.                                      |
-| `linkClick`     | `'confirm' \| 'open' \| 'ignore'`       | `'confirm'`  | 링크를 클릭하거나 탭했을 때의 동작입니다. [링크](#links)를 참고하세요.                                                 |
-| `selectionMode` | `'text' \| 'entry'`                     | `'text'`     | 포인터와 키보드로 텍스트를 선택할지, 항목을 통째로 선택할지 정합니다. [선택과 복사](#selection-and-copy)를 참고하세요. |
-| `tooltips`      | `boolean`                               | `true`       | 도구 모음 컨트롤에 포인터가 닿는 즉시 이름을 보여 줄지 정합니다. [도구 모음](#toolbar)을 참고하세요.                   |
-| `renderer`      | `(ownerDocument: Document) => Renderer` | Canvas 2D    | 렌더러를 만듭니다. [레이아웃과 렌더러](/ko/reference/layout#renderer)를 참고하세요.                                    |
+| 옵션            | 타입                                    | 기본값           | 설명                                                                                                                   |
+| --------------- | --------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `store`         | `LogStore`                              | 새 스토어        | 보여 줄 스토어입니다. 여러 뷰어가 스토어 하나를 함께 쓸 수 있습니다.                                                   |
+| `core`          | `Partial<CoreOptions>`                  | 아래 표 참고     | 보관할 양, 줄 배치 방식, 보여 줄 항목을 정합니다.                                                                      |
+| `theme`         | `ThemeMode`                             | `'auto'`         | 팔레트입니다. `'auto'`는 운영체제 설정을 따릅니다. [테마](/ko/guide/theming#theme-modes)를 참고하세요.                 |
+| `themes`        | `(ThemeMode \| ThemeChoice)[]`          | 모든 기본 팔레트 | 도구 모음 메뉴에 넣을 테마입니다.                                                                                      |
+| `font`          | `Partial<FontSettings>`                 | CSS 값           | 로그의 글꼴입니다. 빠진 값은 `--lognal-font-*` 속성에서 가져옵니다.                                                    |
+| `timestamps`    | `boolean \| TimestampFormat`            | `true`           | 항목마다 시각을 보여 줄지, 어떤 형식으로 보여 줄지 정합니다. `true`는 `'time'`입니다.                                  |
+| `follow`        | `boolean`                               | `true`           | 처음에 새 항목을 따라갈지 정합니다.                                                                                    |
+| `toolbar`       | `boolean \| Partial<ToolbarOptions>`    | `true`           | 도구 모음의 컨트롤입니다. `false`이면 도구 모음을 숨깁니다.                                                            |
+| `statusBar`     | `boolean`                               | `true`           | 상태 표시줄을 보여 줄지 정합니다.                                                                                      |
+| `input`         | `InputOptions \| null`                  | `null`           | 입력 줄입니다. 읽기 전용 뷰어라면 생략합니다.                                                                          |
+| `locale`        | `string`                                | 없음             | 내장 레이블과 숫자 서식의 언어입니다. 예를 들면 `'ko'`입니다.                                                          |
+| `labels`        | `Partial<ViewerLabels>`                 | 내장 레이블      | 내장 레이블 대신 쓸 레이블입니다.                                                                                      |
+| `entryMenu`     | `boolean \| EntryMenuOptions`           | `true`           | 포인터가 올라간 항목의 작업 메뉴입니다. `false`이면 끕니다. [항목 메뉴](#entry-menu)를 참고하세요.                     |
+| `search`        | `boolean`                               | `true`           | Ctrl+F나 Cmd+F로 로그 위에 검색 창을 열지 정합니다. [검색](#search)을 참고하세요.                                      |
+| `linkClick`     | `'confirm' \| 'open' \| 'ignore'`       | `'confirm'`      | 링크를 클릭하거나 탭했을 때의 동작입니다. [링크](#links)를 참고하세요.                                                 |
+| `selectionMode` | `'text' \| 'entry'`                     | `'text'`         | 포인터와 키보드로 텍스트를 선택할지, 항목을 통째로 선택할지 정합니다. [선택과 복사](#selection-and-copy)를 참고하세요. |
+| `tooltips`      | `boolean`                               | `true`           | 도구 모음 컨트롤에 포인터가 닿는 즉시 이름을 보여 줄지 정합니다. [도구 모음](#toolbar)을 참고하세요.                   |
+| `renderer`      | `(ownerDocument: Document) => Renderer` | Canvas 2D        | 렌더러를 만듭니다. [레이아웃과 렌더러](/ko/reference/layout#renderer)를 참고하세요.                                    |
 
 ### 코어 옵션 {#core-options}
 
@@ -82,6 +83,7 @@ viewer.setOptions({ locale: 'ko' });
 | 맨 위로 이동, 맨 아래로 이동 | `scroll`            | 가장 오래된 항목이나 가장 새 항목으로 이동합니다. 맨 아래로 이동하면 따라가기가 켜집니다.   |
 | 긴 줄 바꾸기                 | `wrap`              | 줄 바꿈을 끕니다. 한 번 더 누르면 버튼이 끄기 전의 모드인 `'word'`나 `'char'`로 돌아갑니다. |
 | 항목 단위로 선택             | `selectionMode`     | 텍스트 선택과 항목 선택을 오갑니다. [선택과 복사](#selection-and-copy)를 참고하세요.        |
+| 테마                         | `theme`             | `themes`에 있는 테마를 메뉴로 엽니다. [테마](/ko/guide/theming#theme-modes)를 참고하세요.   |
 | 필터                         | `filter`            | 입력한 텍스트가 들어 있는 항목만 보여 줍니다. 입력을 멈추고 120ms 뒤에 적용합니다.          |
 | 로그 수준                    | `levels`            | 로그에 보여 줄 수준을 고릅니다. 고른 값은 필터의 `levels`로 적용합니다.                     |
 

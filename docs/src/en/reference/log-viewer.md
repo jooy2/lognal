@@ -86,25 +86,26 @@ The events and their values are described by the `LogViewerEvents` type.
 
 ## LogViewerOptions
 
-| Option          | Type                                    | Default          | Description                                                                                                                   |
-| --------------- | --------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `store`         | `LogStore`                              | A new store      | A store to show. Several viewers can share one store.                                                                         |
-| `core`          | `Partial<CoreOptions>`                  | `{}`             | Core options. The store options also apply to a store passed in `store`.                                                      |
-| `theme`         | `ThemeMode`                             | `'auto'`         | The color scheme. `'auto'` follows the operating system.                                                                      |
-| `font`          | `Partial<FontSettings>`                 | `{}`             | The font. Values left out come from the `--lognal-font-*` CSS properties.                                                     |
-| `timestamps`    | `boolean \| TimestampFormat`            | `true`           | Whether each entry shows its time, and in which format. `true` is `'time'`.                                                   |
-| `follow`        | `boolean`                               | `true`           | Whether the view follows new entries at the start.                                                                            |
-| `toolbar`       | `boolean \| Partial<ToolbarOptions>`    | `true`           | The toolbar, or `false` to hide it. An object turns single controls off.                                                      |
-| `statusBar`     | `boolean`                               | `true`           | Whether the status bar is shown.                                                                                              |
-| `input`         | `InputOptions \| null`                  | `null`           | The input line. Leave it out for a read-only viewer.                                                                          |
-| `locale`        | `string`                                | `undefined`      | The language of the built-in labels and number formatting, such as `'en'` or `'ko'`.                                          |
-| `labels`        | `Partial<ViewerLabels>`                 | `{}`             | Labels that replace the built-in ones.                                                                                        |
-| `entryMenu`     | `boolean \| EntryMenuOptions`           | `true`           | The menu of actions of the entry under the pointer, or `false` to turn it off.                                                |
-| `search`        | `boolean`                               | `true`           | Whether Ctrl+F or Cmd+F, while focus is in the viewer, opens a search bar that highlights every match without hiding entries. |
-| `linkClick`     | `LinkClick`                             | `'confirm'`      | What a click or a tap on a link does. See [`LinkClick`](#linkclick).                                                          |
-| `selectionMode` | `SelectionMode`                         | `'text'`         | Whether the pointer and the keyboard select text or whole entries. See [`SelectionMode`](#selectionmode).                     |
-| `tooltips`      | `boolean`                               | `true`           | Whether a toolbar control shows its name as soon as the pointer reaches it.                                                   |
-| `renderer`      | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | Creates the renderer.                                                                                                         |
+| Option          | Type                                    | Default                        | Description                                                                                                                   |
+| --------------- | --------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `store`         | `LogStore`                              | A new store                    | A store to show. Several viewers can share one store.                                                                         |
+| `core`          | `Partial<CoreOptions>`                  | `{}`                           | Core options. The store options also apply to a store passed in `store`.                                                      |
+| `theme`         | `ThemeMode`                             | `'auto'`                       | The palette. `'auto'` follows the operating system, and any other name goes to `data-theme`.                                  |
+| `themes`        | `(ThemeMode \| ThemeChoice)[]`          | `['auto', ...BUILT_IN_THEMES]` | The themes the toolbar menu offers. A string is a name; an object gives it a label.                                           |
+| `font`          | `Partial<FontSettings>`                 | `{}`                           | The font. Values left out come from the `--lognal-font-*` CSS properties.                                                     |
+| `timestamps`    | `boolean \| TimestampFormat`            | `true`                         | Whether each entry shows its time, and in which format. `true` is `'time'`.                                                   |
+| `follow`        | `boolean`                               | `true`                         | Whether the view follows new entries at the start.                                                                            |
+| `toolbar`       | `boolean \| Partial<ToolbarOptions>`    | `true`                         | The toolbar, or `false` to hide it. An object turns single controls off.                                                      |
+| `statusBar`     | `boolean`                               | `true`                         | Whether the status bar is shown.                                                                                              |
+| `input`         | `InputOptions \| null`                  | `null`                         | The input line. Leave it out for a read-only viewer.                                                                          |
+| `locale`        | `string`                                | `undefined`                    | The language of the built-in labels and number formatting, such as `'en'` or `'ko'`.                                          |
+| `labels`        | `Partial<ViewerLabels>`                 | `{}`                           | Labels that replace the built-in ones.                                                                                        |
+| `entryMenu`     | `boolean \| EntryMenuOptions`           | `true`                         | The menu of actions of the entry under the pointer, or `false` to turn it off.                                                |
+| `search`        | `boolean`                               | `true`                         | Whether Ctrl+F or Cmd+F, while focus is in the viewer, opens a search bar that highlights every match without hiding entries. |
+| `linkClick`     | `LinkClick`                             | `'confirm'`                    | What a click or a tap on a link does. See [`LinkClick`](#linkclick).                                                          |
+| `selectionMode` | `SelectionMode`                         | `'text'`                       | Whether the pointer and the keyboard select text or whole entries. See [`SelectionMode`](#selectionmode).                     |
+| `tooltips`      | `boolean`                               | `true`                         | Whether a toolbar control shows its name as soon as the pointer reaches it.                                                   |
+| `renderer`      | `(ownerDocument: Document) => Renderer` | `CanvasRenderer`               | Creates the renderer.                                                                                                         |
 
 ## CoreOptions
 
@@ -132,6 +133,7 @@ Every control is `true` by default.
 | `scroll`        | `boolean` | Scroll to top and Scroll to bottom |
 | `wrap`          | `boolean` | Wrap long lines                    |
 | `selectionMode` | `boolean` | Select whole entries               |
+| `theme`         | `boolean` | The theme menu                     |
 | `filter`        | `boolean` | The filter field                   |
 | `levels`        | `boolean` | The log level menu                 |
 
@@ -231,6 +233,14 @@ Every label is used as visible text or as an accessible name.
 | `levelWarn`          | Warning                                                            | 경고                                                    |
 | `levelError`         | Error                                                              | 오류                                                    |
 | `levelSome`          | 3 levels                                                           | 수준 3개                                                |
+| `theme`              | Theme                                                              | 테마                                                    |
+| `themeAuto`          | System                                                             | 시스템                                                  |
+| `themeLight`         | Light                                                              | 라이트                                                  |
+| `themePaper`         | Paper                                                              | 페이퍼                                                  |
+| `themeDark`          | Dark                                                               | 다크                                                    |
+| `themeMidnight`      | Midnight                                                           | 미드나이트                                              |
+| `themeEmber`         | Ember                                                              | 엠버                                                    |
+| `themeMoss`          | Moss                                                               | 모스                                                    |
 | `input`              | Command                                                            | 명령                                                    |
 | `inputPlaceholder`   | Type a command                                                     | 명령을 입력하세요                                       |
 | `newLogs`            | New logs                                                           | 새 로그                                                 |
@@ -282,8 +292,32 @@ Returns `KO_LABELS` for `ko` and tags such as `ko-KR`, and `EN_LABELS` for every
 ### ThemeMode
 
 ```ts
-type ThemeMode = 'auto' | 'light' | 'dark';
+const BUILT_IN_THEMES = ['light', 'paper', 'dark', 'midnight', 'ember', 'moss'] as const;
+
+type BuiltInTheme = (typeof BUILT_IN_THEMES)[number];
+type ThemeMode = 'auto' | BuiltInTheme | (string & {});
 ```
+
+`'auto'` follows the operating system. Any other name is written to the `data-theme` attribute of the viewer, so a palette defined in your own CSS works as well. See [Themes](/guide/theming#themes).
+
+### ThemeChoice
+
+```ts
+interface ThemeChoice {
+	name: ThemeMode;
+	label?: string;
+}
+```
+
+One entry of `themes`, the list the theme menu offers. A theme that ships with lognal falls back to its built-in label; any other name is its own label.
+
+### resolveTheme
+
+```ts
+resolveTheme(theme: ThemeMode, prefersDark: boolean): string
+```
+
+The palette a mode ends up using: `'light'` or `'dark'` for `'auto'`, and the name itself for anything else. The viewer calls it with the result of `matchMedia('(prefers-color-scheme: dark)')`.
 
 ### readTheme
 

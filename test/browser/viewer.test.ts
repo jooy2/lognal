@@ -188,6 +188,64 @@ describe('LogViewer', () => {
 					.data.slice(0, 3)
 			)
 		).toEqual([255, 255, 255]);
+
+		viewer.setOptions({ theme: 'midnight' });
+		await nextFrame();
+
+		expect(
+			Array.from(
+				(canvas.getContext('2d') as CanvasRenderingContext2D)
+					.getImageData(1, 1, 1, 1)
+					.data.slice(0, 3)
+			)
+		).toEqual([0x0f, 0x12, 0x26]);
+		viewer.dispose();
+	});
+
+	it('chooses a theme from the toolbar and resolves the automatic one', async () => {
+		const viewer = new LogViewer(container);
+		const trigger = viewer.element.querySelector('[aria-label="Theme"]') as HTMLButtonElement;
+		const prefersDark = matchMedia('(prefers-color-scheme: dark)').matches;
+		const options = (): HTMLElement[] => {
+			return Array.from(viewer.element.querySelectorAll('.lognal-popup [role="option"]'));
+		};
+
+		// The automatic theme is resolved here, so the stylesheet holds one block per palette.
+		expect(viewer.element.dataset.theme).toBe(prefersDark ? 'dark' : 'light');
+
+		trigger.click();
+		expect(options().map((option) => option.textContent)).toEqual([
+			'System',
+			'Light',
+			'Paper',
+			'Dark',
+			'Midnight',
+			'Ember',
+			'Moss'
+		]);
+		expect(options()[0].getAttribute('aria-selected')).toBe('true');
+
+		options()[5].click();
+		await nextFrame();
+
+		expect(viewer.element.dataset.theme).toBe('ember');
+		expect(trigger.getAttribute('aria-expanded')).toBe('false');
+
+		trigger.click();
+		expect(options()[5].getAttribute('aria-selected')).toBe('true');
+
+		// A second press on the button closes the menu.
+		trigger.click();
+		expect(trigger.getAttribute('aria-expanded')).toBe('false');
+
+		viewer.setOptions({ themes: ['auto', { name: 'mine', label: 'Mine' }] });
+		trigger.click();
+		expect(options().map((option) => option.textContent)).toEqual(['System', 'Mine']);
+
+		options()[1].click();
+		await nextFrame();
+
+		expect(viewer.element.dataset.theme).toBe('mine');
 		viewer.dispose();
 	});
 

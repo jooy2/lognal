@@ -2,8 +2,25 @@ import type { StyleToken } from '../core/types.js';
 import { DEFAULT_RENDER_THEME } from '../renderer/theme.js';
 import type { FontSettings, RenderTheme } from '../renderer/types.js';
 
-/** Which color scheme the viewer uses. `auto` follows the operating system setting. */
-export type ThemeMode = 'auto' | 'light' | 'dark';
+/**
+ * The palettes `lognal/style.css` ships, in the order the theme menu lists them. `light` and
+ * `dark` are the ones `auto` picks between; the others are chosen by name.
+ */
+export const BUILT_IN_THEMES = ['light', 'paper', 'dark', 'midnight', 'ember', 'moss'] as const;
+
+/** The name of a palette that ships with lognal. */
+export type BuiltInTheme = (typeof BUILT_IN_THEMES)[number];
+
+/**
+ * Which color scheme the viewer uses. `auto` follows the operating system setting, and any
+ * other name is written to the `data-theme` attribute, so a palette of your own works as well.
+ */
+export type ThemeMode = 'auto' | BuiltInTheme | (string & {});
+
+/** The palette a mode ends up using. `auto` follows the operating system. */
+export const resolveTheme = (theme: ThemeMode, prefersDark: boolean): string => {
+	return theme === 'auto' ? (prefersDark ? 'dark' : 'light') : theme;
+};
 
 const TOKEN_NAMES: Exclude<StyleToken, 'default'>[] = [
 	'muted',

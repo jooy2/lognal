@@ -24,6 +24,16 @@ export interface ViewerLabels {
 	 * for the locale.
 	 */
 	levelSome: (count: number, format: (value: number) => string) => string;
+	/** The toolbar button that opens the theme menu, and the menu itself. */
+	theme: string;
+	/** The theme that follows the color scheme of the operating system. */
+	themeAuto: string;
+	themeLight: string;
+	themePaper: string;
+	themeDark: string;
+	themeMidnight: string;
+	themeEmber: string;
+	themeMoss: string;
 	/** Accessible name of the input line. */
 	input: string;
 	inputPlaceholder: string;
@@ -102,6 +112,14 @@ export const EN_LABELS: ViewerLabels = {
 	levelWarn: 'Warning',
 	levelError: 'Error',
 	levelSome: (count, format) => `${format(count)} levels`,
+	theme: 'Theme',
+	themeAuto: 'System',
+	themeLight: 'Light',
+	themePaper: 'Paper',
+	themeDark: 'Dark',
+	themeMidnight: 'Midnight',
+	themeEmber: 'Ember',
+	themeMoss: 'Moss',
 	input: 'Command',
 	inputPlaceholder: 'Type a command',
 	newLogs: 'New logs',
@@ -161,6 +179,14 @@ export const KO_LABELS: ViewerLabels = {
 	levelWarn: '경고',
 	levelError: '오류',
 	levelSome: (count, format) => `수준 ${format(count)}개`,
+	theme: '테마',
+	themeAuto: '시스템',
+	themeLight: '라이트',
+	themePaper: '페이퍼',
+	themeDark: '다크',
+	themeMidnight: '미드나이트',
+	themeEmber: '엠버',
+	themeMoss: '모스',
 	input: '명령',
 	inputPlaceholder: '명령을 입력하세요',
 	newLogs: '새 로그',
