@@ -132,6 +132,7 @@ export const LogViewer = forwardRef<Viewer | null, LogViewerProps>(function LogV
 		// Options that were removed go back to their defaults instead of keeping the old value.
 		const result: ViewerOptions = {
 			theme: 'auto',
+			themes: undefined,
 			font: {},
 			timestamps: true,
 			toolbar: true,
@@ -143,6 +144,7 @@ export const LogViewer = forwardRef<Viewer | null, LogViewerProps>(function LogV
 			search: true,
 			linkClick: 'confirm',
 			selectionMode: 'text',
+			tooltips: true,
 			...current
 		};
 
