@@ -4,6 +4,8 @@ import type { ViewerLabels } from './labels.js';
 
 /** How long the dialog waits after a keystroke before it reports a changed rule. */
 const TYPING_DELAY = 200;
+/** Key code browsers report for a key press that belongs to an IME composition. */
+const IME_KEY_CODE = 229;
 
 let muteDialogCount = 0;
 
@@ -15,6 +17,12 @@ export interface MuteDialogOpenOptions {
 	/** The element that gets focus back when the dialog closes. */
 	returnFocus: HTMLElement;
 }
+
+/**
+ * Gives a control the label that appears while the pointer rests on it. The viewer passes its
+ * own, so the dialog follows the `tooltips` option.
+ */
+export type DescribeControl = (control: HTMLElement, label: string) => void;
 
 /** Whether text compiles as a regular expression. Plain text always does. */
 const isValidRule = (rule: MuteRule): boolean => {
@@ -45,7 +53,6 @@ export class MuteDialog {
 	private readonly message: HTMLParagraphElement;
 	private readonly list: HTMLUListElement;
 	private readonly empty: HTMLParagraphElement;
-	private readonly form: HTMLFormElement;
 	private readonly field: HTMLInputElement;
 	private readonly addButton: HTMLButtonElement;
 	private readonly closeButton: HTMLButtonElement;
@@ -56,10 +63,16 @@ export class MuteDialog {
 	/** Whether the press that ends in a click started outside the box of the dialog. */
 	private pressedOutside = false;
 
-	constructor(ownerDocument: Document, container: HTMLElement) {
+	constructor(
+		ownerDocument: Document,
+		container: HTMLElement,
+		private readonly describe: DescribeControl
+	) {
 		const doc = ownerDocument;
 		const id = `lognal-mute-${++muteDialogCount}`;
 		const body = doc.createElement('div');
+		const area = doc.createElement('div');
+		const add = doc.createElement('div');
 		const actions = doc.createElement('div');
 
 		this.ownerDocument = doc;
@@ -75,25 +88,30 @@ export class MuteDialog {
 		this.list.className = 'lognal-mute-list';
 		this.empty = doc.createElement('p');
 		this.empty.className = 'lognal-mute-empty';
-		this.form = doc.createElement('form');
-		this.form.className = 'lognal-mute-add';
 		this.field = doc.createElement('input');
 		this.field.type = 'text';
 		this.field.className = 'lognal-mute-field';
 		this.field.spellcheck = false;
+		this.field.autocomplete = 'off';
+		this.field.addEventListener('keydown', this.onFieldKeyDown);
 		this.addButton = doc.createElement('button');
-		this.addButton.type = 'submit';
+		this.addButton.type = 'button';
 		this.addButton.className = 'lognal-dialog-button is-primary';
+		this.addButton.addEventListener('click', () => this.addRule());
 		this.closeButton = doc.createElement('button');
 		this.closeButton.type = 'button';
 		this.closeButton.className = 'lognal-dialog-button';
 		this.closeButton.addEventListener('click', () => this.close());
-		this.form.append(this.field, this.addButton);
-		this.form.addEventListener('submit', this.onSubmit);
+		// The rules sit in a box of their own height, so adding or removing one does not move the
+		// rest of the dialog.
+		area.className = 'lognal-mute-area';
+		area.append(this.list, this.empty);
+		add.className = 'lognal-mute-add';
+		add.append(this.field, this.addButton);
 		actions.className = 'lognal-dialog-actions';
 		actions.append(this.closeButton);
 		body.className = 'lognal-dialog-body';
-		body.append(this.heading, this.message, this.list, this.empty, this.form, actions);
+		body.append(this.heading, this.message, area, add, actions);
 		this.element.append(body);
 		this.element.setAttribute('aria-labelledby', this.heading.id);
 		this.element.setAttribute('aria-describedby', this.message.id);
@@ -168,6 +186,21 @@ export class MuteDialog {
 		this.element.remove();
 	}
 
+	/** Adds the rule in the field, if it holds anything. */
+	private addRule(): void {
+		const text = this.field.value.trim();
+
+		if (!text) {
+			return;
+		}
+
+		this.rules.push({ text });
+		this.field.value = '';
+		this.render();
+		this.report();
+		this.field.focus({ preventScroll: true });
+	}
+
 	/** Reports the rules, leaving out the ones whose text was emptied. */
 	private report(): void {
 		this.current?.onChange(
@@ -196,6 +229,7 @@ export class MuteDialog {
 				enabled.className = 'lognal-mute-enabled';
 				enabled.checked = rule.enabled !== false;
 				enabled.setAttribute('aria-label', labels.muteEnabled);
+				this.describe(enabled, labels.muteEnabled);
 				enabled.addEventListener('change', () => {
 					this.rules[index] = { ...rule, enabled: enabled.checked };
 					this.report();
@@ -232,6 +266,7 @@ export class MuteDialog {
 				remove.className = 'lognal-mute-remove';
 				remove.setAttribute('aria-label', labels.muteRemove);
 				remove.append(createIcon(doc, 'close'));
+				this.describe(remove, labels.muteRemove);
 				remove.addEventListener('click', () => {
 					this.rules.splice(index, 1);
 					this.render();
@@ -265,8 +300,8 @@ export class MuteDialog {
 		button.type = 'button';
 		button.className = 'lognal-mute-flag';
 		button.textContent = text;
-		button.title = label;
 		button.setAttribute('aria-label', label);
+		this.describe(button, label);
 		button.setAttribute('aria-pressed', String(pressed));
 		button.addEventListener('click', () => {
 			const next = button.getAttribute('aria-pressed') !== 'true';
@@ -278,20 +313,17 @@ export class MuteDialog {
 		return button;
 	}
 
-	private readonly onSubmit = (event: Event): void => {
-		event.preventDefault();
-
-		const text = this.field.value.trim();
-
-		if (!text) {
+	/**
+	 * Enter adds the rule in the field. A key press that belongs to an IME composition, such as the
+	 * Enter that confirms a Japanese candidate, is left to the input method.
+	 */
+	private readonly onFieldKeyDown = (event: KeyboardEvent): void => {
+		if (event.key !== 'Enter' || event.isComposing || event.keyCode === IME_KEY_CODE) {
 			return;
 		}
 
-		this.rules.push({ text });
-		this.field.value = '';
-		this.render();
-		this.report();
-		this.field.focus({ preventScroll: true });
+		event.preventDefault();
+		this.addRule();
 	};
 
 	/** The browser closed the dialog itself, for example for the back gesture of a phone. */

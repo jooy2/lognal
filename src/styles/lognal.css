@@ -501,19 +501,29 @@
 	display: none;
 }
 
+.lognal-mute-area {
+	height: min(200px, 40vh);
+	min-height: 96px;
+	margin: 0 0 12px;
+	padding: 6px;
+	overflow: auto;
+	background: var(--lognal-surface);
+	border: 1px solid var(--lognal-border);
+	border-radius: var(--lognal-control-radius);
+}
+
 .lognal-mute-list {
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
-	max-height: 240px;
-	margin: 0 0 12px;
+	margin: 0;
 	padding: 0;
-	overflow: auto;
 	list-style: none;
 }
 
 .lognal-mute-empty {
-	margin: 0 0 12px;
+	margin: 0;
+	padding: 6px 2px;
 	color: var(--lognal-muted);
 }
 
@@ -591,6 +601,10 @@
 	margin: 0 0 16px;
 }
 
+.lognal-mute-rule .lognal-mute-text {
+	background: var(--lognal-background);
+}
+
 .lognal-levels {
 	display: inline-flex;
 	flex: 0 1 auto;
@@ -635,7 +649,7 @@
 .lognal-tooltip {
 	position: fixed;
 	inset: auto;
-	z-index: 1001;
+	z-index: 1002;
 	max-width: min(280px, calc(100vw - 16px));
 	margin: 0;
 	padding: 4px 8px;

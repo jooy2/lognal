@@ -578,7 +578,9 @@ export class LogViewer {
 		this.popup = new PopupMenu(doc, this.element);
 		this.tooltip = new Tooltip(doc, this.element);
 		this.linkDialog = new LinkDialog(doc, this.element);
-		this.muteDialog = new MuteDialog(doc, this.element);
+		this.muteDialog = new MuteDialog(doc, this.element, (control, label) =>
+			this.describe(control, label)
+		);
 		container.append(this.element);
 
 		this.buildChrome();

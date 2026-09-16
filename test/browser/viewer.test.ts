@@ -293,10 +293,11 @@ describe('LogViewer', () => {
 		expect(dialog.open).toBe(true);
 
 		const field = dialog.querySelector('.lognal-mute-field') as HTMLInputElement;
-		const form = dialog.querySelector('.lognal-mute-add') as HTMLFormElement;
 
 		field.value = 'health';
-		form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+		field.dispatchEvent(
+			new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true })
+		);
 
 		expect(viewer.getMuteRules()).toEqual([{ text: 'health' }]);
 
@@ -312,7 +313,15 @@ describe('LogViewer', () => {
 		expect(viewer.getFilter()?.mute).toEqual([{ text: 'health' }]);
 
 		viewer.setFilter({ mute: viewer.getMuteRules() });
-		(dialog.querySelector('.lognal-mute-remove') as HTMLButtonElement).click();
+		// Every control without a visible name shows one while the pointer is on it.
+		const remove = dialog.querySelector('.lognal-mute-remove') as HTMLButtonElement;
+		const tooltip = viewer.element.querySelector('.lognal-tooltip') as HTMLDivElement;
+
+		remove.dispatchEvent(new PointerEvent('pointerenter', { pointerType: 'mouse' }));
+
+		expect(tooltip.textContent).toBe('Remove');
+
+		remove.click();
 
 		expect(viewer.getMuteRules()).toEqual([]);
 
