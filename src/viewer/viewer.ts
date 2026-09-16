@@ -38,8 +38,8 @@ import { MuteDialog } from './mute-dialog.js';
 import { PopupMenu, type PopupAnchor, type PopupItem } from './popup-menu.js';
 import { Scrollbar } from './scrollbar.js';
 import { SearchBar } from './search-bar.js';
-import { Tooltip } from './tooltip.js';
 import { BUILT_IN_THEMES, readFont, readTheme, resolveTheme, type ThemeMode } from './theme.js';
+import { Tooltip } from './tooltip.js';
 
 /** Options that belong to the core: what is kept, how it is laid out, and what is shown. */
 export interface CoreOptions extends LogStoreOptions, LayoutOptions {
@@ -732,6 +732,34 @@ export class LogViewer {
 
 	getFilter(): LogFilter | null {
 		return this.filter;
+	}
+
+	/** The rules that keep entries out of the log. See `MuteRule`. */
+	getMuteRules(): MuteRule[] {
+		return (this.filter?.mute ?? []).map((rule) => ({ ...rule }));
+	}
+
+	/** Replaces the rules that keep entries out of the log. */
+	setMuteRules(rules: readonly MuteRule[]): void {
+		this.setFilter({ ...this.filter, mute: rules.map((rule) => ({ ...rule })) });
+	}
+
+	/** How many of the entries the store holds the mute rules keep out of the log. */
+	getMutedCount(): number {
+		this.layout.sync();
+
+		return this.layout.mutedCount;
+	}
+
+	/** Opens the dialog that manages the rules which keep entries out of the log. */
+	openMuteDialog(): void {
+		const trigger = this.controls.get('mute') ?? this.viewport;
+
+		this.muteDialog.open({
+			rules: this.getMuteRules(),
+			onChange: (rules) => this.setMuteRules(rules),
+			returnFocus: trigger as HTMLElement
+		});
 	}
 
 	/** Turns following new entries on or off. Turning it on scrolls to the newest entry. */
@@ -1642,34 +1670,6 @@ export class LogViewer {
 		}
 	}
 
-	/** The rules that keep entries out of the log. See `MuteRule`. */
-	getMuteRules(): MuteRule[] {
-		return (this.filter?.mute ?? []).map((rule) => ({ ...rule }));
-	}
-
-	/** Replaces the rules that keep entries out of the log. */
-	setMuteRules(rules: readonly MuteRule[]): void {
-		this.setFilter({ ...this.filter, mute: rules.map((rule) => ({ ...rule })) });
-	}
-
-	/** How many of the entries the store holds the mute rules keep out of the log. */
-	getMutedCount(): number {
-		this.layout.sync();
-
-		return this.layout.mutedCount;
-	}
-
-	/** Opens the dialog that manages the rules which keep entries out of the log. */
-	openMuteDialog(): void {
-		const trigger = this.controls.get('mute') ?? this.viewport;
-
-		this.muteDialog.open({
-			rules: this.getMuteRules(),
-			onChange: (rules) => this.setMuteRules(rules),
-			returnFocus: trigger as HTMLElement
-		});
-	}
-
 	/** Shows how many entries the mute rules hide on the toolbar button. */
 	private syncMute(): void {
 		const control = this.controls.get('mute');
@@ -1682,7 +1682,6 @@ export class LogViewer {
 		const { labels, locale } = this.options;
 		const hidden = this.layout.mutedCount;
 		const format = (value: number): string => this.numberFormat(locale).format(value);
-
 		const text = hidden > 99 ? '99+' : hidden > 0 ? format(hidden) : '';
 
 		if (count.textContent === text) {

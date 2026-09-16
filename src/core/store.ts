@@ -177,7 +177,6 @@ export class LogStore {
 	append(init: LogEntryInit | readonly LogEntryInit[]): LogEntry[] {
 		const inits = Array.isArray(init) ? init : [init as LogEntryInit];
 		const created: LogEntry[] = [];
-
 		const collapse = this.options.mergeRepeats === 'collapse';
 
 		for (const item of inits) {
@@ -208,20 +207,24 @@ export class LogStore {
 				version: 0
 			};
 
-			if (repeats) {
-				// A run starts collapsed, so a burst of the same message stays one row until it is
-				// opened. Opening it while the message repeats keeps it open.
-				head.collapsed = head.repeat === 1 || head.collapsed;
-				head.repeat++;
-				head.version++;
-				this.emit({ type: 'update', entry: head, visibility: true });
-			} else {
-				this.runHead = signature === null ? null : entry;
-			}
-
 			this.items.push(entry);
 			this.lastSignature = signature;
 			created.push(entry);
+
+			if (!repeats) {
+				this.runHead = signature === null ? null : entry;
+				continue;
+			}
+
+			// A run starts collapsed, so a burst of the same message stays one row until it is
+			// opened. A run that was opened while the message repeats stays open.
+			if (head.repeat === 1) {
+				head.collapsed = true;
+			}
+
+			head.repeat++;
+			head.version++;
+			this.emit({ type: 'update', entry: head, visibility: true });
 		}
 
 		if (created.length > 0) {
