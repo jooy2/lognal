@@ -1683,8 +1683,13 @@ export class LogViewer {
 		const hidden = this.layout.mutedCount;
 		const format = (value: number): string => this.numberFormat(locale).format(value);
 
-		count.textContent = hidden > 99 ? '99+' : hidden > 0 ? format(hidden) : '';
-		control.classList.toggle('has-count', hidden > 0);
+		const text = hidden > 99 ? '99+' : hidden > 0 ? format(hidden) : '';
+
+		if (count.textContent === text) {
+			return;
+		}
+
+		count.textContent = text;
 		control.setAttribute(
 			'aria-label',
 			hidden > 0 ? `${labels.mute}, ${labels.muteCount(hidden, format)}` : labels.mute
@@ -2675,7 +2680,8 @@ export class LogViewer {
 		const x = event.clientX - rect.left;
 		const y = event.clientY - rect.top;
 		const row = Math.floor((y + this.topPixels - PADDING_TOP) / this.metrics.height);
-		const exactColumn = (x + this.viewport.scrollLeft - this.contentLeft()) / this.metrics.width;
+		const contentLeft = this.contentLeft();
+		const exactColumn = (x + this.viewport.scrollLeft - contentLeft) / this.metrics.width;
 		const visualRow = this.visibleRows[row - this.firstRow];
 		const cellColumn = Math.floor(exactColumn);
 		const run = visualRow?.runs.find(
@@ -2684,8 +2690,8 @@ export class LogViewer {
 		// The marker column does not scroll sideways, so the badge is found with the raw position.
 		const onBadge =
 			visualRow?.first &&
-			x >= PADDING_LEFT + this.timestampCells() * this.metrics.width &&
-			x < this.contentLeft() &&
+			x >= contentLeft - MARKER_CELLS * this.metrics.width &&
+			x < contentLeft &&
 			this.store.isRunHead(visualRow.entry);
 		// With `linkClick: 'ignore'`, a link is text like any other.
 		const action = onBadge
