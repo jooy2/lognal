@@ -109,6 +109,41 @@ describe('LogViewer', () => {
 		viewer.dispose();
 	});
 
+	it('shows the name of a toolbar control as soon as the pointer reaches it', () => {
+		const viewer = new LogViewer(container);
+		const follow = viewer.element.querySelector('.lognal-button') as HTMLButtonElement;
+		const tooltip = viewer.element.querySelector('.lognal-tooltip') as HTMLDivElement;
+		const isOpen = (): boolean => {
+			return tooltip.hasAttribute('popover') ? tooltip.matches(':popover-open') : !tooltip.hidden;
+		};
+
+		expect(follow.title).toBe('');
+		expect(isOpen()).toBe(false);
+
+		follow.dispatchEvent(new PointerEvent('pointerenter', { pointerType: 'mouse' }));
+
+		expect(tooltip.textContent).toBe('Follow new logs');
+		expect(isOpen()).toBe(true);
+
+		follow.dispatchEvent(new PointerEvent('pointerleave', { pointerType: 'mouse' }));
+
+		expect(isOpen()).toBe(false);
+		viewer.dispose();
+	});
+
+	it('leaves the tooltip to the browser when tooltips are off', () => {
+		const viewer = new LogViewer(container, { tooltips: false });
+		const follow = viewer.element.querySelector('.lognal-button') as HTMLButtonElement;
+		const tooltip = viewer.element.querySelector('.lognal-tooltip') as HTMLDivElement;
+
+		expect(follow.title).toBe('Follow new logs');
+
+		follow.dispatchEvent(new PointerEvent('pointerenter', { pointerType: 'mouse' }));
+
+		expect(tooltip.textContent).toBe('');
+		viewer.dispose();
+	});
+
 	it('draws entries on the canvas', async () => {
 		const viewer = new LogViewer(container, { theme: 'dark' });
 

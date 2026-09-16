@@ -391,6 +391,24 @@
 
 /* Menus: the level menu and the entry menu */
 
+.lognal-tooltip {
+	position: fixed;
+	inset: auto;
+	z-index: 1001;
+	max-width: min(280px, calc(100vw - 16px));
+	margin: 0;
+	padding: 4px 8px;
+	color: var(--lognal-background);
+	background: var(--lognal-foreground);
+	border: 0;
+	border-radius: var(--lognal-control-radius);
+	font-family: var(--lognal-ui-font-family);
+	font-size: calc(var(--lognal-ui-font-size) - 1px);
+	line-height: 1.4;
+	white-space: nowrap;
+	pointer-events: none;
+}
+
 .lognal-popup {
 	position: fixed;
 	inset: auto;

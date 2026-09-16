@@ -43,6 +43,7 @@ viewer.dispose();
 | `search`        | `boolean`                               | `true`          | Whether Ctrl+F or Cmd+F opens a search bar over the log. See [Search](#search).                                   |
 | `linkClick`     | `'confirm' \| 'open' \| 'ignore'`       | `'confirm'`     | What a click or a tap on a link does. See [Links](#links).                                                        |
 | `selectionMode` | `'text' \| 'entry'`                     | `'text'`        | Whether the pointer and the keyboard select text or whole entries. See [Selection and copy](#selection-and-copy). |
+| `tooltips`      | `boolean`                               | `true`          | Whether a toolbar control shows its name as soon as the pointer reaches it. See [Toolbar](#toolbar).              |
 | `renderer`      | `(ownerDocument: Document) => Renderer` | Canvas 2D       | Creates the renderer. See [Layout and renderers](/reference/layout#renderer).                                     |
 
 ### Core options
@@ -83,6 +84,8 @@ Passing `toolbar`, `statusBar`, `input`, `labels` or `locale` builds the toolbar
 | Select whole entries            | `selectionMode`      | Switches between selecting text and selecting whole entries. See [Selection and copy](#selection-and-copy). |
 | Filter                          | `filter`             | Shows the entries that contain the text. The filter applies 120 ms after typing stops.                      |
 | Log levels                      | `levels`             | Shows all levels, log and above, info and above, warnings and errors, or errors only. It sets `minLevel`.   |
+
+Each control shows its name in a small label as soon as the pointer reaches it, without the wait of the tooltip of the browser. The same label appears when the keyboard moves to the control. Pass `tooltips: false` to leave the tooltip to the browser, which then shows the name from the `title` attribute.
 
 Every control is shown by default. Pass an object to hide some of them, or `false` to hide the toolbar:
 

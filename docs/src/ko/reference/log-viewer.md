@@ -103,6 +103,7 @@ off();
 | `search`        | `boolean`                               | `true`           | 뷰어에 포커스가 있을 때 Ctrl+F나 Cmd+F로, 항목을 숨기지 않고 일치하는 곳을 모두 강조하는 검색 창을 열지 정합니다.     |
 | `linkClick`     | `LinkClick`                             | `'confirm'`      | 링크를 클릭하거나 탭했을 때의 동작입니다. [`LinkClick`](#linkclick)을 참고하세요.                                     |
 | `selectionMode` | `SelectionMode`                         | `'text'`         | 포인터와 키보드로 텍스트를 선택할지, 항목을 통째로 선택할지 정합니다. [`SelectionMode`](#selectionmode)를 참고하세요. |
+| `tooltips`      | `boolean`                               | `true`           | 도구 모음 컨트롤에 포인터가 닿는 즉시 이름을 보여 줄지 정합니다.                                                      |
 | `renderer`      | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | 렌더러를 만듭니다.                                                                                                    |
 
 ## CoreOptions {#coreoptions}

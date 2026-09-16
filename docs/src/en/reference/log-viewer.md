@@ -103,6 +103,7 @@ The events and their values are described by the `LogViewerEvents` type.
 | `search`        | `boolean`                               | `true`           | Whether Ctrl+F or Cmd+F, while focus is in the viewer, opens a search bar that highlights every match without hiding entries. |
 | `linkClick`     | `LinkClick`                             | `'confirm'`      | What a click or a tap on a link does. See [`LinkClick`](#linkclick).                                                          |
 | `selectionMode` | `SelectionMode`                         | `'text'`         | Whether the pointer and the keyboard select text or whole entries. See [`SelectionMode`](#selectionmode).                     |
+| `tooltips`      | `boolean`                               | `true`           | Whether a toolbar control shows its name as soon as the pointer reaches it.                                                   |
 | `renderer`      | `(ownerDocument: Document) => Renderer` | `CanvasRenderer` | Creates the renderer.                                                                                                         |
 
 ## CoreOptions

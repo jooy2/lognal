@@ -43,6 +43,7 @@ viewer.dispose();
 | `search`        | `boolean`                               | `true`       | Ctrl+F나 Cmd+F로 로그 위에 검색 창을 열지 정합니다. [검색](#search)을 참고하세요.                                      |
 | `linkClick`     | `'confirm' \| 'open' \| 'ignore'`       | `'confirm'`  | 링크를 클릭하거나 탭했을 때의 동작입니다. [링크](#links)를 참고하세요.                                                 |
 | `selectionMode` | `'text' \| 'entry'`                     | `'text'`     | 포인터와 키보드로 텍스트를 선택할지, 항목을 통째로 선택할지 정합니다. [선택과 복사](#selection-and-copy)를 참고하세요. |
+| `tooltips`      | `boolean`                               | `true`       | 도구 모음 컨트롤에 포인터가 닿는 즉시 이름을 보여 줄지 정합니다. [도구 모음](#toolbar)을 참고하세요.                   |
 | `renderer`      | `(ownerDocument: Document) => Renderer` | Canvas 2D    | 렌더러를 만듭니다. [레이아웃과 렌더러](/ko/reference/layout#renderer)를 참고하세요.                                    |
 
 ### 코어 옵션 {#core-options}
@@ -83,6 +84,8 @@ viewer.setOptions({ locale: 'ko' });
 | 항목 단위로 선택             | `selectionMode`     | 텍스트 선택과 항목 선택을 오갑니다. [선택과 복사](#selection-and-copy)를 참고하세요.                               |
 | 필터                         | `filter`            | 입력한 텍스트가 들어 있는 항목만 보여 줍니다. 입력을 멈추고 120ms 뒤에 적용합니다.                                 |
 | 로그 수준                    | `levels`            | 모든 수준, 로그 이상, 정보 이상, 경고와 오류, 오류만 가운데 하나를 보여 줍니다. 고른 값은 `minLevel`로 적용합니다. |
+
+컨트롤에 포인터가 닿으면 브라우저 도구 설명처럼 기다리지 않고 바로 작은 레이블로 이름이 뜹니다. 키보드로 컨트롤에 이동해도 같은 레이블이 뜹니다. `tooltips: false`를 넘기면 브라우저가 `title` 속성의 이름을 대신 보여 줍니다.
 
 기본으로 모든 컨트롤이 보입니다. 일부만 숨기려면 객체를, 도구 모음 전체를 숨기려면 `false`를 넘깁니다.
 

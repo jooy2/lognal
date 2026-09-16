@@ -117,6 +117,7 @@ const settings = reactive({
 	selectionMode: 'text' as SelectionMode,
 	secondViewer: false,
 	toolbar: true,
+	tooltips: true,
 	toolbarControls: {
 		follow: true,
 		clear: true,
@@ -267,6 +268,7 @@ const initialOptions = (): LogViewerOptions => ({
 	linkClick: settings.linkClick,
 	selectionMode: settings.selectionMode,
 	toolbar: viewerToolbar(),
+	tooltips: settings.tooltips,
 	input: viewerInput(),
 	core: {
 		wrap: settings.wrap,
@@ -613,6 +615,10 @@ watch(
 	{ deep: true }
 );
 watch(
+	() => settings.tooltips,
+	(tooltips) => applyOptions({ tooltips })
+);
+watch(
 	() => settings.wrap,
 	(wrap) => applyOptions({ core: { wrap } })
 );
@@ -938,6 +944,10 @@ onBeforeUnmount(() => {
 							{{ t('control', 'toolbar-levels') }}
 						</label>
 					</fieldset>
+					<label class="demo-check">
+						<input v-model="settings.tooltips" type="checkbox" />
+						{{ t('control', 'tooltips') }}
+					</label>
 				</details>
 
 				<details class="demo-panel">

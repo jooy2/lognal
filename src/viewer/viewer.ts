@@ -37,6 +37,7 @@ import { LinkDialog } from './link-dialog.js';
 import { PopupMenu, type PopupAnchor, type PopupItem } from './popup-menu.js';
 import { Scrollbar } from './scrollbar.js';
 import { SearchBar } from './search-bar.js';
+import { Tooltip } from './tooltip.js';
 import { readFont, readTheme, type ThemeMode } from './theme.js';
 
 /** Options that belong to the core: what is kept, how it is laid out, and what is shown. */
@@ -168,6 +169,12 @@ export interface LogViewerOptions {
 	linkClick?: LinkClick;
 	/** How the pointer and the keyboard select: text, or whole entries. Defaults to `text`. */
 	selectionMode?: SelectionMode;
+	/**
+	 * Whether a toolbar control shows its name in a label as soon as the pointer reaches it.
+	 * With `false`, the tooltip of the browser takes over, which waits before it appears.
+	 * Defaults to `true`.
+	 */
+	tooltips?: boolean;
 	/** Creates the renderer. Defaults to the Canvas 2D renderer. */
 	renderer?: (ownerDocument: Document) => Renderer;
 }
@@ -200,6 +207,7 @@ interface ResolvedOptions {
 	search: boolean;
 	linkClick: LinkClick;
 	selectionMode: SelectionMode;
+	tooltips: boolean;
 }
 
 interface Selection {
@@ -372,6 +380,7 @@ export class LogViewer {
 	private readonly newLogsButton: HTMLButtonElement;
 	private readonly entryButton: HTMLButtonElement;
 	private readonly popup: PopupMenu;
+	private readonly tooltip: Tooltip;
 	private readonly linkDialog: LinkDialog;
 	private readonly search: LogSearch;
 	private readonly searchBar: SearchBar;
@@ -527,6 +536,7 @@ export class LogViewer {
 		);
 		this.element.append(this.body);
 		this.popup = new PopupMenu(doc, this.element);
+		this.tooltip = new Tooltip(doc, this.element);
 		this.linkDialog = new LinkDialog(doc, this.element);
 		container.append(this.element);
 
@@ -584,6 +594,7 @@ export class LogViewer {
 			options.statusBar !== undefined ||
 			options.input !== undefined ||
 			options.labels !== undefined ||
+			options.tooltips !== undefined ||
 			'locale' in options
 		) {
 			this.buildChrome();
@@ -1121,6 +1132,7 @@ export class LogViewer {
 		this.layout.dispose();
 		this.renderer.dispose();
 		this.popup.dispose();
+		this.tooltip.dispose();
 		this.linkDialog.dispose();
 		clearTimeout(this.searchTimer);
 		this.searchBar.dispose();
@@ -1165,7 +1177,8 @@ export class LogViewer {
 			entryMenu,
 			search: options.search ?? true,
 			linkClick: options.linkClick ?? 'confirm',
-			selectionMode: options.selectionMode ?? 'text'
+			selectionMode: options.selectionMode ?? 'text',
+			tooltips: options.tooltips ?? true
 		};
 	}
 
@@ -1182,7 +1195,8 @@ export class LogViewer {
 			entryMenu,
 			search,
 			linkClick,
-			selectionMode
+			selectionMode,
+			tooltips
 		} = this.options;
 
 		return {
@@ -1197,7 +1211,8 @@ export class LogViewer {
 			entryMenu: entryMenu ?? false,
 			search,
 			linkClick,
-			selectionMode
+			selectionMode,
+			tooltips
 		};
 	}
 
@@ -1292,6 +1307,7 @@ export class LogViewer {
 		const { labels, toolbar, statusBar, input } = this.options;
 
 		this.popup.close(false);
+		this.tooltip.close();
 		this.toolbarElement?.remove();
 		this.statusElement?.remove();
 		this.controls.clear();
@@ -1380,9 +1396,9 @@ export class LogViewer {
 
 			control.type = 'button';
 			control.className = 'lognal-button';
-			control.title = label;
 			control.setAttribute('aria-label', label);
 			control.append(createIcon(doc, icon));
+			this.describe(control, label);
 
 			if (pressed !== undefined) {
 				control.setAttribute('aria-pressed', String(pressed));
@@ -1495,7 +1511,6 @@ export class LogViewer {
 
 			trigger.type = 'button';
 			trigger.className = 'lognal-levels';
-			trigger.title = labels.levels;
 			trigger.setAttribute('aria-haspopup', 'listbox');
 			trigger.setAttribute('aria-expanded', 'false');
 			trigger.setAttribute('aria-labelledby', `${this.id}-levels-label ${this.id}-levels-value`);
@@ -1518,6 +1533,7 @@ export class LogViewer {
 					this.openLevelMenu(trigger);
 				}
 			});
+			this.describe(trigger, labels.levels);
 			end.append(trigger);
 			this.controls.set('levels', trigger);
 			this.syncLevels();
@@ -1526,6 +1542,18 @@ export class LogViewer {
 		element.append(start, end);
 
 		return element;
+	}
+
+	/**
+	 * Gives a toolbar control the label that appears while the pointer rests on it: the tooltip
+	 * of the viewer, or the one of the browser when `tooltips` is off.
+	 */
+	private describe(control: HTMLElement, label: string): void {
+		if (this.options.tooltips) {
+			this.tooltip.attach(control, label);
+		} else {
+			control.title = label;
+		}
 	}
 
 	/** Shows the chosen minimum level on the level menu button. */
