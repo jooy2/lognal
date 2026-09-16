@@ -2873,11 +2873,18 @@ export class LogViewer {
 			return;
 		}
 
+		// A press on the empty space around the entries starts a drag from the entry nearest to it,
+		// the way a file manager selects files when the pointer starts on empty space.
 		if (entryId === undefined) {
+			const edge = this.edgeEntry(hit.row);
+
 			if (!additive && !event.shiftKey) {
 				this.selectedEntries = new Set();
-				this.requestRender();
 			}
+
+			drag.baseEntries = this.selectedEntries;
+			this.anchorEntryId = edge ?? this.anchorEntryId;
+			this.requestRender();
 
 			return;
 		}
@@ -2942,6 +2949,16 @@ export class LogViewer {
 		}
 
 		this.selectedEntries = next;
+	}
+
+	/**
+	 * The entry a drag starts from when the press landed on the empty space around the entries:
+	 * the newest entry for the space below them, and the oldest one for the space above.
+	 */
+	private edgeEntry(row: number): number | null {
+		const entry = this.layout.entryAt(row < 0 ? 0 : this.layout.visibleCount - 1);
+
+		return entry?.id ?? null;
 	}
 
 	/** Returns an entry id when the entry is visible, and `null` otherwise. */

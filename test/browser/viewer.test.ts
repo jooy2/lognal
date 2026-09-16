@@ -1162,6 +1162,12 @@ describe('LogViewer', () => {
 		expect(viewer.getSelectedEntryIds()).toEqual([]);
 		expect(onSelection).toHaveBeenLastCalledWith('');
 
+		// A drag that starts on the empty space below the entries selects the ones it reaches.
+		pointer('pointerdown', rowY(8));
+		pointer('pointermove', rowY(2));
+		pointer('pointerup', rowY(2));
+		expect(viewer.getSelectedEntryIds()).toEqual(ids.slice(2));
+
 		render.mockRestore();
 		viewer.dispose();
 	});

@@ -257,22 +257,23 @@ Touch input scrolls the log and does not select. A tap opens or closes a value o
 
 A selected entry gets a light background, set with `--lognal-entry-selection`, and the status bar counts the selected entries that are visible.
 
-| Action                                    | Result                                                                                                        |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Click                                     | Selects the entry alone. A click below the last entry clears the selection.                                   |
-| Ctrl and click, or Cmd and click on macOS | Adds the entry to the selection, or removes it.                                                               |
-| Shift and click                           | Selects the range from the entry chosen last. With Ctrl or Cmd held too, the range is added to the selection. |
-| Drag with the mouse                       | Selects the entries the pointer passes over. Dragging past an edge scrolls.                                   |
-| Right click                               | Opens the menu of the selected entries. On an entry outside the selection, it selects that entry alone first. |
-| ArrowUp, ArrowDown                        | Moves to the previous or the next entry and selects it alone.                                                 |
-| Home, End, Page Up, Page Down             | Moves to the first or the last entry, or a screen up or down, and selects that entry alone.                   |
-| Shift with one of the keys above          | Selects the range from the entry chosen last to the entry the key moves to.                                   |
-| Ctrl or Cmd with one of the keys above    | Moves without changing the selection.                                                                         |
-| Space                                     | Selects or deselects the entry the keyboard is on.                                                            |
-| Ctrl+A or Cmd+A                           | Selects every visible entry.                                                                                  |
-| Ctrl+C or Cmd+C                           | Copies the selected entries as text.                                                                          |
-| Shift+F10 or the context menu key         | Opens the menu of the selected entries.                                                                       |
-| Escape                                    | Clears the selection.                                                                                         |
+| Action                                    | Result                                                                                                          |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Click                                     | Selects the entry alone. A click below the last entry clears the selection.                                     |
+| Ctrl and click, or Cmd and click on macOS | Adds the entry to the selection, or removes it.                                                                 |
+| Shift and click                           | Selects the range from the entry chosen last. With Ctrl or Cmd held too, the range is added to the selection.   |
+| Drag with the mouse                       | Selects the entries the pointer passes over. Dragging past an edge scrolls.                                     |
+| Drag from the empty space                 | Starts from the entry nearest the press, so a drag up from below the last entry selects the entries it reaches. |
+| Right click                               | Opens the menu of the selected entries. On an entry outside the selection, it selects that entry alone first.   |
+| ArrowUp, ArrowDown                        | Moves to the previous or the next entry and selects it alone.                                                   |
+| Home, End, Page Up, Page Down             | Moves to the first or the last entry, or a screen up or down, and selects that entry alone.                     |
+| Shift with one of the keys above          | Selects the range from the entry chosen last to the entry the key moves to.                                     |
+| Ctrl or Cmd with one of the keys above    | Moves without changing the selection.                                                                           |
+| Space                                     | Selects or deselects the entry the keyboard is on.                                                              |
+| Ctrl+A or Cmd+A                           | Selects every visible entry.                                                                                    |
+| Ctrl+C or Cmd+C                           | Copies the selected entries as text.                                                                            |
+| Shift+F10 or the context menu key         | Opens the menu of the selected entries.                                                                         |
+| Escape                                    | Clears the selection.                                                                                           |
 
 After the keyboard moves, the entry it is on has an outline in the `--lognal-focus-ring` color, and the view scrolls to keep that entry on screen.
 
