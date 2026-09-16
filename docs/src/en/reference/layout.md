@@ -110,13 +110,14 @@ await navigator.clipboard.writeText(viewer.layout.getAllText());
 
 ### LogFilter
 
-| Field           | Type                  | Description                                                 |
-| --------------- | --------------------- | ----------------------------------------------------------- |
-| `text`          | `string`              | Text an entry must contain. Empty text matches every entry. |
-| `regex`         | `boolean`             | Whether `text` is a regular expression.                     |
-| `caseSensitive` | `boolean`             | Whether letter case must match.                             |
-| `minLevel`      | `LogLevel`            | The least severe level shown.                               |
-| `levels`        | `readonly LogLevel[]` | The levels shown. When set, `minLevel` is ignored.          |
+| Field           | Type                  | Description                                                                                |
+| --------------- | --------------------- | ------------------------------------------------------------------------------------------ |
+| `text`          | `string`              | Text an entry must contain. Empty text matches every entry.                                |
+| `regex`         | `boolean`             | Whether `text` is a regular expression.                                                    |
+| `caseSensitive` | `boolean`             | Whether letter case must match.                                                            |
+| `minLevel`      | `LogLevel`            | The least severe level shown.                                                              |
+| `levels`        | `readonly LogLevel[]` | The levels shown. When set, `minLevel` is ignored.                                         |
+| `mute`          | `readonly MuteRule[]` | Rules that hide entries whatever the rest of the filter says. See [`MuteRule`](#muterule). |
 
 ### compileFilter
 
@@ -129,6 +130,7 @@ Turns a filter into a function that tests entries.
 | `CompiledFilter` field | Type                                     | Description                                                                             |
 | ---------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------- |
 | `matches`              | `((entry: LogEntry) => boolean) \| null` | Tests an entry. `null` when the filter lets every entry through.                        |
+| `muted`                | `((entry: LogEntry) => boolean) \| null` | Tests an entry against the mute rules. `null` when no rule applies.                     |
 | `pattern`              | `RegExp \| null`                         | Finds matches in a line of text, for highlighting. `null` when there is no text filter. |
 | `error`                | `string \| null`                         | The error message when `text` is not a valid regular expression.                        |
 

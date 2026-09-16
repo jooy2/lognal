@@ -275,6 +275,57 @@ describe('LogViewer', () => {
 		viewer.dispose();
 	});
 
+	it('hides messages from the dialog of the toolbar and counts them', async () => {
+		const viewer = new LogViewer(container, { timestamps: false, core: { mergeRepeats: false } });
+		const trigger = viewer.element.querySelector('.lognal-mute-button') as HTMLButtonElement;
+		const dialog = viewer.element.querySelector('.lognal-mute-dialog') as HTMLDialogElement;
+		const badge = trigger.querySelector('.lognal-button-count') as HTMLSpanElement;
+
+		viewer.write('GET /health');
+		viewer.write('boot done');
+		viewer.write('GET /health');
+		await nextFrame();
+
+		expect(dialog.open).toBe(false);
+
+		trigger.click();
+
+		expect(dialog.open).toBe(true);
+
+		const field = dialog.querySelector('.lognal-mute-field') as HTMLInputElement;
+		const form = dialog.querySelector('.lognal-mute-add') as HTMLFormElement;
+
+		field.value = 'health';
+		form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+
+		expect(viewer.getMuteRules()).toEqual([{ text: 'health' }]);
+
+		await waitFor(() => viewer.layout.visibleCount === 1);
+		await waitFor(() => badge.textContent === '2');
+
+		expect(viewer.getMutedCount()).toBe(2);
+		expect(trigger.getAttribute('aria-label')).toBe('Hidden messages, 2 entries hidden');
+
+		// The rule stays in the filter while the filter field changes the text.
+		viewer.setFilter({ ...viewer.getFilter(), text: 'boot' });
+
+		expect(viewer.getFilter()?.mute).toEqual([{ text: 'health' }]);
+
+		viewer.setFilter({ mute: viewer.getMuteRules() });
+		(dialog.querySelector('.lognal-mute-remove') as HTMLButtonElement).click();
+
+		expect(viewer.getMuteRules()).toEqual([]);
+
+		await waitFor(() => viewer.layout.visibleCount === 3);
+		await waitFor(() => badge.textContent === '');
+
+		(dialog.querySelector('.lognal-dialog-actions button') as HTMLButtonElement).click();
+
+		expect(dialog.open).toBe(false);
+		expect(document.activeElement).toBe(trigger);
+		viewer.dispose();
+	});
+
 	it('toggles following, clears and changes wrapping from the toolbar', async () => {
 		const viewer = new LogViewer(container);
 		const follow = viewer.element.querySelector(

@@ -475,6 +475,122 @@
 	border-color: var(--lognal-error);
 }
 
+/* The button of hidden messages, and the dialog that manages them */
+
+.lognal-mute-button {
+	position: relative;
+}
+
+.lognal-button-count {
+	position: absolute;
+	top: 0;
+	right: 0;
+	min-width: 14px;
+	height: 14px;
+	padding: 0 3px;
+	color: var(--lognal-on-accent);
+	background: var(--lognal-accent);
+	border-radius: 999px;
+	font-size: 9px;
+	font-weight: 600;
+	line-height: 14px;
+	text-align: center;
+}
+
+.lognal-button-count:empty {
+	display: none;
+}
+
+.lognal-mute-list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	max-height: 240px;
+	margin: 0 0 12px;
+	padding: 0;
+	overflow: auto;
+	list-style: none;
+}
+
+.lognal-mute-empty {
+	margin: 0 0 12px;
+	color: var(--lognal-muted);
+}
+
+.lognal-mute-rule {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.lognal-mute-text,
+.lognal-mute-field {
+	flex: 1;
+	min-width: 0;
+	height: 28px;
+	padding: 0 8px;
+	color: var(--lognal-foreground);
+	background: var(--lognal-background);
+	border: 1px solid var(--lognal-border);
+	border-radius: var(--lognal-control-radius);
+	outline: 0;
+	font: inherit;
+}
+
+.lognal-mute-text[aria-invalid] {
+	border-color: var(--lognal-error);
+}
+
+.lognal-mute-text:focus-visible,
+.lognal-mute-field:focus-visible {
+	border-color: var(--lognal-focus-ring);
+}
+
+.lognal-mute-flag {
+	flex: none;
+	width: 28px;
+	height: 28px;
+	color: var(--lognal-muted);
+	background: transparent;
+	border: 1px solid var(--lognal-border);
+	border-radius: var(--lognal-control-radius);
+	font: inherit;
+	font-size: 11px;
+	cursor: pointer;
+}
+
+.lognal-mute-flag[aria-pressed='true'] {
+	color: var(--lognal-accent);
+	background: var(--lognal-control-active);
+	border-color: var(--lognal-accent);
+}
+
+.lognal-mute-remove {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	color: var(--lognal-muted);
+	background: transparent;
+	border: 0;
+	border-radius: var(--lognal-control-radius);
+	cursor: pointer;
+}
+
+.lognal-mute-remove:hover {
+	color: var(--lognal-foreground);
+	background: var(--lognal-control-hover);
+}
+
+.lognal-mute-add {
+	display: flex;
+	gap: 6px;
+	margin: 0 0 16px;
+}
+
 .lognal-levels {
 	display: inline-flex;
 	flex: 0 1 auto;

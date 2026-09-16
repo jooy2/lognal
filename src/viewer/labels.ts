@@ -69,6 +69,27 @@ export interface ViewerLabels {
 	linkDialogOpen: string;
 	/** The button of the link dialog that closes it without opening the link. */
 	linkDialogCancel: string;
+	/** The toolbar button that opens the dialog of hidden messages, and the title of the dialog. */
+	mute: string;
+	/** The sentence under the title of that dialog. */
+	muteMessage: string;
+	/** What the dialog says while no rule is set. */
+	muteEmpty: string;
+	/** The field of a rule, and the field that adds one. */
+	muteText: string;
+	/** The button that adds a rule. */
+	muteAdd: string;
+	/** The button that removes a rule. */
+	muteRemove: string;
+	/** The switch that applies a rule or leaves it out without removing it. */
+	muteEnabled: string;
+	/** The button that closes the dialog. */
+	muteClose: string;
+	/**
+	 * How many entries the mute rules hide, on the toolbar button. `format` formats a number for
+	 * the locale.
+	 */
+	muteCount: (count: number, format: (value: number) => string) => string;
 	/** The toolbar button that switches between selecting text and selecting whole entries. */
 	selectEntries: string;
 	/**
@@ -142,6 +163,17 @@ export const EN_LABELS: ViewerLabels = {
 	linkDialogMessage: 'The link opens in a new tab. Check the address before you open it.',
 	linkDialogOpen: 'Open link',
 	linkDialogCancel: 'Cancel',
+	mute: 'Hidden messages',
+	muteMessage: 'An entry that matches one of these is kept out of the log.',
+	muteEmpty: 'Nothing is hidden yet.',
+	muteText: 'Text to hide',
+	muteAdd: 'Add',
+	muteRemove: 'Remove',
+	muteEnabled: 'Apply this rule',
+	muteClose: 'Done',
+	muteCount: (count, format) => {
+		return count === 1 ? '1 entry hidden' : `${format(count)} entries hidden`;
+	},
 	selectEntries: 'Select whole entries',
 	selectedEntries: (count, format) => {
 		return count === 1 ? '1 entry selected' : `${format(count)} entries selected`;
@@ -211,6 +243,15 @@ export const KO_LABELS: ViewerLabels = {
 	linkDialogMessage: '링크는 새 탭에서 열립니다. 열기 전에 주소를 확인하세요.',
 	linkDialogOpen: '링크 열기',
 	linkDialogCancel: '취소',
+	mute: '숨긴 메시지',
+	muteMessage: '여기에 해당하는 항목은 로그에 나오지 않습니다.',
+	muteEmpty: '아직 숨긴 메시지가 없습니다.',
+	muteText: '숨길 텍스트',
+	muteAdd: '추가',
+	muteRemove: '삭제',
+	muteEnabled: '이 규칙 적용',
+	muteClose: '완료',
+	muteCount: (count, format) => `항목 ${format(count)}개 숨김`,
 	selectEntries: '항목 단위로 선택',
 	selectedEntries: (count, format) => {
 		return `항목 ${format(count)}개 선택됨`;

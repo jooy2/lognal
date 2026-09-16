@@ -44,6 +44,7 @@ type WrapMode = 'word' | 'char' | 'none';
 | `maxCells`         | `number`  | 지금까지 본 가장 넓은 행의 칸 수로, 들여쓰기를 포함합니다.                                            |
 | `isDirty`          | `boolean` | 마지막 `sync` 이후 스토어가 바뀌었는지 나타냅니다.                                                    |
 | `pendingCount`     | `number`  | 행 수가 아직 추정값인 보이는 항목의 수입니다.                                                         |
+| `mutedCount`       | `number`  | 숨김 규칙이 가리는 항목 수입니다.                                                                     |
 | `positionsVersion` | `number`  | 이미 보이던 항목의 첫 행이 움직였을 수 있을 때마다 커집니다. 끝에 항목을 추가할 때는 바뀌지 않습니다. |
 
 ### 메서드 {#methods}
@@ -110,13 +111,27 @@ await navigator.clipboard.writeText(viewer.layout.getAllText());
 
 ### LogFilter {#logfilter}
 
-| 필드            | 타입                  | 설명                                                                      |
-| --------------- | --------------------- | ------------------------------------------------------------------------- |
-| `text`          | `string`              | 항목에 들어 있어야 하는 텍스트입니다. 비어 있으면 모든 항목이 통과합니다. |
-| `regex`         | `boolean`             | `text`를 정규 표현식으로 볼지 정합니다.                                   |
-| `caseSensitive` | `boolean`             | 대소문자를 구분할지 정합니다.                                             |
-| `minLevel`      | `LogLevel`            | 보여 줄 가장 낮은 수준입니다.                                             |
-| `levels`        | `readonly LogLevel[]` | 보여 줄 수준입니다. 이 값이 있으면 `minLevel`은 무시합니다.               |
+| 필드            | 타입                  | 설명                                                                                          |
+| --------------- | --------------------- | --------------------------------------------------------------------------------------------- |
+| `text`          | `string`              | 항목에 들어 있어야 하는 텍스트입니다. 비어 있으면 모든 항목이 통과합니다.                     |
+| `regex`         | `boolean`             | `text`를 정규 표현식으로 볼지 정합니다.                                                       |
+| `caseSensitive` | `boolean`             | 대소문자를 구분할지 정합니다.                                                                 |
+| `minLevel`      | `LogLevel`            | 보여 줄 가장 낮은 수준입니다.                                                                 |
+| `levels`        | `readonly LogLevel[]` | 보여 줄 수준입니다. 이 값이 있으면 `minLevel`은 무시합니다.                                   |
+| `mute`          | `readonly MuteRule[]` | 필터의 나머지 조건과 상관없이 항목을 숨기는 규칙입니다. [`MuteRule`](#muterule)을 참고하세요. |
+
+### MuteRule {#muterule}
+
+```ts
+interface MuteRule {
+	text: string;
+	regex?: boolean;
+	caseSensitive?: boolean;
+	enabled?: boolean;
+}
+```
+
+텍스트가 걸리는 항목을 숨기는 규칙입니다. `regex`를 켜지 않으면 `text`는 일반 텍스트이고, `caseSensitive`를 켜지 않으면 대소문자를 가리지 않으며, `enabled: false`이면 규칙을 지우지 않은 채 적용만 멈춥니다. 비어 있거나 꺼져 있거나 올바른 패턴이 아닌 규칙은 아무것도 숨기지 않고, 입력 줄에 친 명령과 뷰어가 남긴 안내는 절대 숨기지 않습니다. [숨긴 메시지](/ko/guide/viewer#hidden-messages)를 참고하세요.
 
 ### compileFilter {#compilefilter}
 
@@ -126,11 +141,12 @@ compileFilter(filter: LogFilter | null | undefined): CompiledFilter
 
 필터를 항목 검사 함수로 바꿉니다.
 
-| `CompiledFilter` 필드 | 타입                                     | 설명                                                                     |
-| --------------------- | ---------------------------------------- | ------------------------------------------------------------------------ |
-| `matches`             | `((entry: LogEntry) => boolean) \| null` | 항목을 검사합니다. 모든 항목이 통과하는 필터이면 `null`입니다.           |
-| `pattern`             | `RegExp \| null`                         | 강조할 부분을 찾는 정규 표현식입니다. 텍스트 필터가 없으면 `null`입니다. |
-| `error`               | `string \| null`                         | `text`가 올바른 정규 표현식이 아닐 때의 오류 메시지입니다.               |
+| `CompiledFilter` 필드 | 타입                                     | 설명                                                                       |
+| --------------------- | ---------------------------------------- | -------------------------------------------------------------------------- |
+| `matches`             | `((entry: LogEntry) => boolean) \| null` | 항목을 검사합니다. 모든 항목이 통과하는 필터이면 `null`입니다.             |
+| `muted`               | `((entry: LogEntry) => boolean) \| null` | 항목이 숨김 규칙에 걸리는지 검사합니다. 적용할 규칙이 없으면 `null`입니다. |
+| `pattern`             | `RegExp \| null`                         | 강조할 부분을 찾는 정규 표현식입니다. 텍스트 필터가 없으면 `null`입니다.   |
+| `error`               | `string \| null`                         | `text`가 올바른 정규 표현식이 아닐 때의 오류 메시지입니다.                 |
 
 ```ts
 import { compileFilter } from 'lognal';

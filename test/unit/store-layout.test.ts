@@ -143,6 +143,57 @@ describe('filters', () => {
 		expect(compileFilter({ text: '(', regex: true }).error).not.toBeNull();
 	});
 
+	it('hides the entries a mute rule matches and counts them', () => {
+		const store = new LogStore({ mergeRepeats: false });
+		const layout = new LogLayout(store);
+
+		store.append([text('GET /health'), text('boot done'), text('GET /health')]);
+		layout.setFilter({ mute: [{ text: '/HEALTH' }] });
+
+		expect(rowTexts(layout)).toEqual(['boot done']);
+		expect(layout.mutedCount).toBe(2);
+
+		// An entry that arrives while the rule applies is hidden and counted as well.
+		store.append(text('GET /health'));
+
+		expect(rowTexts(layout)).toEqual(['boot done']);
+		expect(layout.mutedCount).toBe(3);
+
+		// A rule that is off hides nothing, and neither does one that matches no entry.
+		layout.setFilter({ mute: [{ text: '/health', enabled: false }] });
+
+		expect(rowTexts(layout)).toHaveLength(4);
+		expect(layout.mutedCount).toBe(0);
+
+		layout.setFilter({ mute: [{ text: '^get /h', regex: true }] });
+
+		expect(rowTexts(layout)).toEqual(['boot done']);
+
+		layout.setFilter({ mute: [{ text: '^get /h', regex: true, caseSensitive: true }] });
+
+		expect(rowTexts(layout)).toHaveLength(4);
+
+		// A rule that is not a valid pattern hides nothing.
+		layout.setFilter({ mute: [{ text: '(', regex: true }] });
+
+		expect(rowTexts(layout)).toHaveLength(4);
+	});
+
+	it('hides muted entries whatever the rest of the filter says', () => {
+		const store = new LogStore({ mergeRepeats: false });
+		const [muted, kept, typed] = store.append([
+			{ ...text('noise'), level: 'error' },
+			text('signal'),
+			{ ...text('noise'), kind: 'input' }
+		]);
+		const filter = compileFilter({ minLevel: 'error', mute: [{ text: 'noise' }] });
+
+		expect(filter.muted?.(muted)).toBe(true);
+		expect(filter.muted?.(kept)).toBe(false);
+		// A command the user typed is never hidden.
+		expect(filter.muted?.(typed)).toBe(false);
+	});
+
 	it('matches composed text against decomposed Hangul', () => {
 		const store = new LogStore();
 		const [entry] = store.append(text('파일 이름: ' + '한글'.normalize('NFD')));

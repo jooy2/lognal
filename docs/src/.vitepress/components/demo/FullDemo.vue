@@ -126,6 +126,7 @@ const settings = reactive({
 		wrap: true,
 		selectionMode: true,
 		theme: true,
+		mute: true,
 		filter: true,
 		levels: true
 	} as ToolbarOptions,
@@ -948,6 +949,10 @@ onBeforeUnmount(() => {
 						<label class="demo-check">
 							<input v-model="settings.toolbarControls.theme" type="checkbox" />
 							{{ t('control', 'toolbar-theme') }}
+						</label>
+						<label class="demo-check">
+							<input v-model="settings.toolbarControls.mute" type="checkbox" />
+							{{ t('control', 'toolbar-mute') }}
 						</label>
 						<label class="demo-check">
 							<input v-model="settings.toolbarControls.levels" type="checkbox" />

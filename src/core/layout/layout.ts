@@ -163,6 +163,9 @@ export class LogLayout {
 	private readonly layouts = new Map<number, EntryLayout>();
 	private readonly rowCounts = new Map<number, RowCount>();
 	private readonly expansions = new Map<number, Expansion>();
+	/** The ids of the entries the mute rules hide, oldest first, and how many were dropped. */
+	private muted: number[] = [];
+	private mutedStart = 0;
 	/** 1 where the row count of the visible entry at the same position is only an estimate. */
 	private stale: number[] = [];
 	private staleCount = 0;
@@ -200,6 +203,11 @@ export class LogLayout {
 	/** The number of visible entries whose row count is an estimate. See `measurePending`. */
 	get pendingCount(): number {
 		return this.staleCount;
+	}
+
+	/** How many of the entries the store holds the mute rules hide. Call `sync` first. */
+	get mutedCount(): number {
+		return this.muted.length - this.mutedStart;
 	}
 
 	/**
@@ -331,6 +339,15 @@ export class LogLayout {
 			this.rowIndex.shift(trimmed);
 			this.positions++;
 			this.compactVisible();
+		}
+
+		while (this.mutedStart < this.muted.length && this.muted[this.mutedStart] < firstId) {
+			this.mutedStart++;
+		}
+
+		if (this.mutedStart > 4096 && this.mutedStart > this.muted.length / 2) {
+			this.muted = this.muted.slice(this.mutedStart);
+			this.mutedStart = 0;
 		}
 
 		const lastId = this.store.lastId;
@@ -925,6 +942,8 @@ export class LogLayout {
 	private rebuild(budget: MeasureBudget): void {
 		this.needsRebuild = false;
 		this.visible = [];
+		this.muted = [];
+		this.mutedStart = 0;
 		this.stale = [];
 		this.staleCount = 0;
 		this.visibleStart = 0;
@@ -1008,6 +1027,14 @@ export class LogLayout {
 	}
 
 	private isVisible(entry: LogEntry): boolean {
+		// Muted entries are counted whatever the rest of the filter says, so the count of hidden
+		// entries does not change while the user types in the filter field.
+		if (this.filter.muted?.(entry)) {
+			this.muted.push(entry.id);
+
+			return false;
+		}
+
 		if (this.filter.matches && !this.filter.matches(entry)) {
 			return false;
 		}

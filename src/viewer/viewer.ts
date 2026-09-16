@@ -1,4 +1,4 @@
-import { entrySearchText, type LogFilter } from '../core/filter.js';
+import { entrySearchText, type LogFilter, type MuteRule } from '../core/filter.js';
 import { DEFAULT_LAYOUT_OPTIONS, LogLayout, type LayoutOptions } from '../core/layout/layout.js';
 import { LogSearch, type SearchOptions } from '../core/layout/search.js';
 import type {
@@ -34,6 +34,7 @@ import { createIcon, type IconName } from './icons.js';
 import { InputLine } from './input-line.js';
 import { labelsFor, type ViewerLabels } from './labels.js';
 import { LinkDialog } from './link-dialog.js';
+import { MuteDialog } from './mute-dialog.js';
 import { PopupMenu, type PopupAnchor, type PopupItem } from './popup-menu.js';
 import { Scrollbar } from './scrollbar.js';
 import { SearchBar } from './search-bar.js';
@@ -55,6 +56,8 @@ export interface ToolbarOptions {
 	selectionMode: boolean;
 	/** The button that opens the theme menu. */
 	theme: boolean;
+	/** The button that opens the dialog of hidden messages, with the count of hidden entries. */
+	mute: boolean;
 	filter: boolean;
 	levels: boolean;
 }
@@ -263,6 +266,7 @@ const DEFAULT_TOOLBAR: ToolbarOptions = {
 	wrap: true,
 	selectionMode: true,
 	theme: true,
+	mute: true,
 	filter: true,
 	levels: true
 };
@@ -417,6 +421,7 @@ export class LogViewer {
 	private readonly popup: PopupMenu;
 	private readonly tooltip: Tooltip;
 	private readonly linkDialog: LinkDialog;
+	private readonly muteDialog: MuteDialog;
 	private readonly search: LogSearch;
 	private readonly searchBar: SearchBar;
 	private searchTimer: ReturnType<typeof setTimeout> | undefined;
@@ -573,6 +578,7 @@ export class LogViewer {
 		this.popup = new PopupMenu(doc, this.element);
 		this.tooltip = new Tooltip(doc, this.element);
 		this.linkDialog = new LinkDialog(doc, this.element);
+		this.muteDialog = new MuteDialog(doc, this.element);
 		container.append(this.element);
 
 		this.buildChrome();
@@ -1169,6 +1175,7 @@ export class LogViewer {
 		this.popup.dispose();
 		this.tooltip.dispose();
 		this.linkDialog.dispose();
+		this.muteDialog.dispose();
 		clearTimeout(this.searchTimer);
 		this.searchBar.dispose();
 		this.verticalScrollbar.dispose();
@@ -1363,6 +1370,7 @@ export class LogViewer {
 		this.entryButton.setAttribute('aria-label', labels.entryActions);
 		this.searchBar.setLabels(labels);
 		this.linkDialog.setLabels(labels);
+		this.muteDialog.setLabels(labels);
 
 		if (toolbar) {
 			this.toolbarElement = this.buildToolbar(toolbar, labels);
@@ -1545,6 +1553,20 @@ export class LogViewer {
 			});
 		}
 
+		if (toolbar.mute) {
+			separator();
+			button('mute', 'mute', labels.mute, () => this.openMuteDialog());
+
+			const control = this.controls.get('mute') as HTMLButtonElement;
+			const count = doc.createElement('span');
+
+			count.className = 'lognal-button-count';
+			count.setAttribute('aria-hidden', 'true');
+			control.classList.add('lognal-mute-button');
+			control.append(count);
+			this.syncMute();
+		}
+
 		if (toolbar.filter) {
 			const field = doc.createElement('label');
 			const input = doc.createElement('input');
@@ -1618,6 +1640,55 @@ export class LogViewer {
 		} else {
 			control.title = label;
 		}
+	}
+
+	/** The rules that keep entries out of the log. See `MuteRule`. */
+	getMuteRules(): MuteRule[] {
+		return (this.filter?.mute ?? []).map((rule) => ({ ...rule }));
+	}
+
+	/** Replaces the rules that keep entries out of the log. */
+	setMuteRules(rules: readonly MuteRule[]): void {
+		this.setFilter({ ...this.filter, mute: rules.map((rule) => ({ ...rule })) });
+	}
+
+	/** How many of the entries the store holds the mute rules keep out of the log. */
+	getMutedCount(): number {
+		this.layout.sync();
+
+		return this.layout.mutedCount;
+	}
+
+	/** Opens the dialog that manages the rules which keep entries out of the log. */
+	openMuteDialog(): void {
+		const trigger = this.controls.get('mute') ?? this.viewport;
+
+		this.muteDialog.open({
+			rules: this.getMuteRules(),
+			onChange: (rules) => this.setMuteRules(rules),
+			returnFocus: trigger as HTMLElement
+		});
+	}
+
+	/** Shows how many entries the mute rules hide on the toolbar button. */
+	private syncMute(): void {
+		const control = this.controls.get('mute');
+		const count = control?.querySelector('.lognal-button-count');
+
+		if (!control || !count) {
+			return;
+		}
+
+		const { labels, locale } = this.options;
+		const hidden = this.layout.mutedCount;
+		const format = (value: number): string => this.numberFormat(locale).format(value);
+
+		count.textContent = hidden > 99 ? '99+' : hidden > 0 ? format(hidden) : '';
+		control.classList.toggle('has-count', hidden > 0);
+		control.setAttribute(
+			'aria-label',
+			hidden > 0 ? `${labels.mute}, ${labels.muteCount(hidden, format)}` : labels.mute
+		);
 	}
 
 	/** The text of a theme in the menu: the label it was given, or its built-in one. */
@@ -2569,6 +2640,7 @@ export class LogViewer {
 		}
 
 		this.updateStatus();
+		this.syncMute();
 
 		const doc = this.ownerDocument;
 		const seen = new Set<number>();

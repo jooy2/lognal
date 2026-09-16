@@ -42,6 +42,10 @@ Creates the viewer and appends its root element to `container`.
 | `clear()`                                                            | `void`              | Removes every entry from the store and clears the selection.                                                                                                                                                                             |
 | `setFilter(filter: LogFilter \| null)`                               | `void`              | Sets the filter. `null` shows every entry. Emits `filter`.                                                                                                                                                                               |
 | `getFilter()`                                                        | `LogFilter \| null` | Returns the filter.                                                                                                                                                                                                                      |
+| `getMuteRules()`                                                     | `MuteRule[]`        | Returns the rules that keep entries out of the log.                                                                                                                                                                                      |
+| `setMuteRules(rules: readonly MuteRule[])`                           | `void`              | Replaces those rules. Emits `filter`.                                                                                                                                                                                                    |
+| `getMutedCount()`                                                    | `number`            | How many of the entries the store holds those rules keep out of the log.                                                                                                                                                                 |
+| `openMuteDialog()`                                                   | `void`              | Opens the dialog that manages the rules.                                                                                                                                                                                                 |
 | `setFollowing(following: boolean)`                                   | `void`              | Turns following on or off. Turning it on scrolls to the newest entry. Emits `follow` when the value changes.                                                                                                                             |
 | `scrollToTop()`                                                      | `void`              | Stops following and scrolls to the first row.                                                                                                                                                                                            |
 | `scrollToBottom()`                                                   | `void`              | Turns following on, which scrolls to the newest entry.                                                                                                                                                                                   |
@@ -134,6 +138,7 @@ Every control is `true` by default.
 | `wrap`          | `boolean` | Wrap long lines                    |
 | `selectionMode` | `boolean` | Select whole entries               |
 | `theme`         | `boolean` | The theme menu                     |
+| `mute`          | `boolean` | The dialog of hidden messages      |
 | `filter`        | `boolean` | The filter field                   |
 | `levels`        | `boolean` | The log level menu                 |
 
@@ -241,6 +246,15 @@ Every label is used as visible text or as an accessible name.
 | `themeMidnight`      | Midnight                                                           | 미드나이트                                              |
 | `themeEmber`         | Ember                                                              | 엠버                                                    |
 | `themeMoss`          | Moss                                                               | 모스                                                    |
+| `mute`               | Hidden messages                                                    | 숨긴 메시지                                             |
+| `muteMessage`        | An entry that matches one of these is kept out of the log.         | 여기에 해당하는 항목은 로그에 나오지 않습니다.          |
+| `muteEmpty`          | Nothing is hidden yet.                                             | 아직 숨긴 메시지가 없습니다.                            |
+| `muteText`           | Text to hide                                                       | 숨길 텍스트                                             |
+| `muteAdd`            | Add                                                                | 추가                                                    |
+| `muteRemove`         | Remove                                                             | 삭제                                                    |
+| `muteEnabled`        | Apply this rule                                                    | 이 규칙 적용                                            |
+| `muteClose`          | Done                                                               | 완료                                                    |
+| `muteCount`          | 2 entries hidden                                                   | 항목 2개 숨김                                           |
 | `input`              | Command                                                            | 명령                                                    |
 | `inputPlaceholder`   | Type a command                                                     | 명령을 입력하세요                                       |
 | `newLogs`            | New logs                                                           | 새 로그                                                 |

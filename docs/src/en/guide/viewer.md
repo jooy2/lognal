@@ -76,16 +76,18 @@ Passing `toolbar`, `statusBar`, `input`, `labels` or `locale` builds the toolbar
 
 ## Toolbar
 
-| Control                         | `ToolbarOptions` key | What it does                                                                                                |
-| ------------------------------- | -------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Follow new logs                 | `follow`             | Turns following on or off.                                                                                  |
-| Clear logs                      | `clear`              | Removes every entry from the store.                                                                         |
-| Scroll to top, Scroll to bottom | `scroll`             | Jumps to the oldest or the newest entry. Scrolling to the bottom turns following on.                        |
-| Wrap long lines                 | `wrap`               | Turns wrapping off. Pressing it again restores the mode it turned off, `'word'` or `'char'`.                |
-| Select whole entries            | `selectionMode`      | Switches between selecting text and selecting whole entries. See [Selection and copy](#selection-and-copy). |
-| Theme                           | `theme`              | Opens a menu of the themes in `themes`. See [Themes](/guide/theming#themes).                                |
-| Filter                          | `filter`             | Shows the entries that contain the text. The filter applies 120 ms after typing stops.                      |
-| Log levels                      | `levels`             | Chooses the levels the log shows. It sets `levels` on the filter.                                           |
+| Control                         | `ToolbarOptions` key | What it does                                                                                                                                                         |
+| ------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Follow new logs                 | `follow`             | Turns following on or off.                                                                                                                                           |
+| Clear logs                      | `clear`              | Removes every entry from the store.                                                                                                                                  |
+| Scroll to top, Scroll to bottom | `scroll`             | Jumps to the oldest or the newest entry. Scrolling to the bottom turns following on.                                                                                 |
+| Wrap long lines                 | `wrap`               | Turns wrapping off. Pressing it again restores the mode it turned off, `'word'` or `'char'`.                                                                         |
+| Select whole entries            | `selectionMode`      | Switches between selecting text and selecting whole entries. See [Selection and copy](#selection-and-copy).                                                          |
+| Theme                           | `theme`              | Opens a menu of the themes in `themes`. See [Themes](/guide/theming#themes).                                                                                         |
+| Hidden messages                 | `mute`               | Opens the dialog that manages the rules which keep messages out of the log, with the count of hidden entries on the button. See [Hidden messages](#hidden-messages). |
+| Hidden messages                 | `mute`               | Opens the dialog that manages the rules which keep messages out of the log, with the count of hidden entries on the button. See [Hidden messages](#hidden-messages). |
+| Filter                          | `filter`             | Shows the entries that contain the text. The filter applies 120 ms after typing stops.                                                                               |
+| Log levels                      | `levels`             | Chooses the levels the log shows. It sets `levels` on the filter.                                                                                                    |
 
 Each control shows its name in a small label as soon as the pointer reaches it, without the wait of the tooltip of the browser. The same label appears when the keyboard moves to the control. Pass `tooltips: false` to leave the tooltip to the browser, which then shows the name from the `title` attribute.
 
@@ -167,13 +169,14 @@ viewer.setFilter({ levels: ['debug', 'info'] });
 viewer.setFilter(null);
 ```
 
-| `LogFilter` field | Type         | Description                                                       |
-| ----------------- | ------------ | ----------------------------------------------------------------- |
-| `text`            | `string`     | Text an entry must contain. Empty text matches every entry.       |
-| `regex`           | `boolean`    | Whether `text` is a regular expression.                           |
-| `caseSensitive`   | `boolean`    | Whether letter case must match. Matching ignores case by default. |
-| `minLevel`        | `LogLevel`   | The least severe level shown.                                     |
-| `levels`          | `LogLevel[]` | The levels shown. When set, `minLevel` is ignored.                |
+| `LogFilter` field | Type         | Description                                                                                            |
+| ----------------- | ------------ | ------------------------------------------------------------------------------------------------------ |
+| `text`            | `string`     | Text an entry must contain. Empty text matches every entry.                                            |
+| `regex`           | `boolean`    | Whether `text` is a regular expression.                                                                |
+| `caseSensitive`   | `boolean`    | Whether letter case must match. Matching ignores case by default.                                      |
+| `minLevel`        | `LogLevel`   | The least severe level shown.                                                                          |
+| `levels`          | `LogLevel[]` | The levels shown. When set, `minLevel` is ignored.                                                     |
+| `mute`            | `MuteRule[]` | Rules that hide entries whatever the rest of the filter says. See [Hidden messages](#hidden-messages). |
 
 Levels go from least to most severe: `debug`, `log`, `info`, `warn`, `error`.
 
@@ -191,6 +194,34 @@ The menu lists every level with a mark next to the ones the log shows, and it st
 Every change, from the toolbar or from `setFilter`, emits the `filter` event. `getFilter()` returns the current filter.
 
 To keep every entry on screen and highlight the matches instead, use [Search](#search).
+
+## Hidden messages
+
+Some messages are never worth reading: a heartbeat a library prints every second, or a warning from a dependency you cannot change. A mute rule keeps them out of the log for good, while the filter stays free for the search you are running.
+
+```ts
+new LogViewer(container, {
+	core: {
+		filter: {
+			mute: [{ text: 'GET /health' }, { text: '^\\[hmr\\]', regex: true }]
+		}
+	}
+});
+```
+
+| `MuteRule` field | Type      | Description                                                        |
+| ---------------- | --------- | ------------------------------------------------------------------ |
+| `text`           | `string`  | The text an entry must contain to be hidden.                       |
+| `regex`          | `boolean` | Whether `text` is a regular expression.                            |
+| `caseSensitive`  | `boolean` | Whether letter case must match. Matching ignores case by default.  |
+| `enabled`        | `boolean` | Whether the rule is applied. `false` keeps it without applying it. |
+
+The **Hidden messages** button in the toolbar opens a dialog that adds, edits and removes the rules while the log follows along, and the button carries the number of entries the rules hide. `getMuteRules`, `setMuteRules`, `getMutedCount` and `openMuteDialog` do the same from code, and `toolbar: { mute: false }` hides the button.
+
+- A rule is tested against the same text as the filter: the text of the entry and the one-line preview of each value.
+- A command typed into the input line and a notice from the viewer, such as `Console was cleared`, are never hidden.
+- A rule that is empty, off, or not a valid regular expression hides nothing.
+- Hidden entries stay in the store, so turning a rule off brings them back. They count in the total of the status bar, like entries the filter hides.
 
 ## Search
 

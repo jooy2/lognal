@@ -42,6 +42,10 @@ new LogViewer(container: HTMLElement, options?: LogViewerOptions)
 | `clear()`                                                            | `void`              | 스토어의 항목을 모두 지우고 선택을 해제합니다.                                                                                                                                       |
 | `setFilter(filter: LogFilter \| null)`                               | `void`              | 필터를 정합니다. `null`이면 모든 항목을 보여 줍니다. `filter` 이벤트가 발생합니다.                                                                                                   |
 | `getFilter()`                                                        | `LogFilter \| null` | 필터를 반환합니다.                                                                                                                                                                   |
+| `getMuteRules()`                                                     | `MuteRule[]`        | 항목을 로그에서 빼는 규칙을 돌려줍니다.                                                                                                                                              |
+| `setMuteRules(rules: readonly MuteRule[])`                           | `void`              | 그 규칙을 통째로 바꿉니다. `filter` 이벤트가 발생합니다.                                                                                                                             |
+| `getMutedCount()`                                                    | `number`            | 스토어가 든 항목 가운데 그 규칙이 가리는 항목 수입니다.                                                                                                                              |
+| `openMuteDialog()`                                                   | `void`              | 규칙을 관리하는 대화 상자를 엽니다.                                                                                                                                                  |
 | `setFollowing(following: boolean)`                                   | `void`              | 따라가기를 켜거나 끕니다. 켜면 가장 새 항목으로 스크롤합니다. 값이 바뀌면 `follow` 이벤트가 발생합니다.                                                                              |
 | `scrollToTop()`                                                      | `void`              | 따라가기를 멈추고 첫 행으로 스크롤합니다.                                                                                                                                            |
 | `scrollToBottom()`                                                   | `void`              | 따라가기를 켜서 가장 새 항목으로 스크롤합니다.                                                                                                                                       |
@@ -134,6 +138,7 @@ off();
 | `wrap`          | `boolean` | 긴 줄 바꾸기                 |
 | `selectionMode` | `boolean` | 항목 단위로 선택             |
 | `theme`         | `boolean` | 테마 메뉴                    |
+| `mute`          | `boolean` | 숨긴 메시지 대화 상자        |
 | `filter`        | `boolean` | 필터 입력란                  |
 | `levels`        | `boolean` | 로그 수준 메뉴               |
 
@@ -241,6 +246,15 @@ type LinkClick = 'confirm' | 'open' | 'ignore';
 | `themeMidnight`      | Midnight                                                           | 미드나이트                                              |
 | `themeEmber`         | Ember                                                              | 엠버                                                    |
 | `themeMoss`          | Moss                                                               | 모스                                                    |
+| `mute`               | Hidden messages                                                    | 숨긴 메시지                                             |
+| `muteMessage`        | An entry that matches one of these is kept out of the log.         | 여기에 해당하는 항목은 로그에 나오지 않습니다.          |
+| `muteEmpty`          | Nothing is hidden yet.                                             | 아직 숨긴 메시지가 없습니다.                            |
+| `muteText`           | Text to hide                                                       | 숨길 텍스트                                             |
+| `muteAdd`            | Add                                                                | 추가                                                    |
+| `muteRemove`         | Remove                                                             | 삭제                                                    |
+| `muteEnabled`        | Apply this rule                                                    | 이 규칙 적용                                            |
+| `muteClose`          | Done                                                               | 완료                                                    |
+| `muteCount`          | 2 entries hidden                                                   | 항목 2개 숨김                                           |
 | `input`              | Command                                                            | 명령                                                    |
 | `inputPlaceholder`   | Type a command                                                     | 명령을 입력하세요                                       |
 | `newLogs`            | New logs                                                           | 새 로그                                                 |

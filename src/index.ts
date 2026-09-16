@@ -27,7 +27,8 @@ export {
 	compileFilter,
 	entrySearchText,
 	type CompiledFilter,
-	type LogFilter
+	type LogFilter,
+	type MuteRule
 } from './core/filter.js';
 export { DEFAULT_LAYOUT_OPTIONS, LogLayout, type LayoutOptions } from './core/layout/layout.js';
 export type { SearchOptions } from './core/layout/search.js';
