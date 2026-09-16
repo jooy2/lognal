@@ -14,7 +14,7 @@ lognal is a log viewer for web pages that looks and works like a terminal. It dr
 - **Read text files.** Read a log file in chunks, detect its encoding, and turn ANSI escape codes into colors. In Chromium browsers, lognal can also follow a file that keeps growing. See [Text files](/guide/text-files).
 - **Work like a log viewer.** A toolbar follows new logs, clears the log, scrolls to the top or bottom, turns wrapping on and off, and filters by text and level. Ctrl+F searches the log and highlights every match without hiding anything. A status bar counts entries, each entry can show a timestamp, and text can be selected and copied, or copied a whole entry at a time from the menu of that entry. Addresses in the log are links that open in a new tab, after a confirmation by default. In entry mode, whole entries are selected with Ctrl, Cmd and Shift, the way files are, and copied together. See [The viewer](/guide/viewer).
 - **Accept commands.** An optional input line passes each command to a function you provide and prints the reply. See [Input line](/guide/viewer#input-line).
-- **Follow your theme.** Light, dark and automatic modes are built in, and every color is a CSS custom property. See [Themes and fonts](/guide/theming).
+- **Follow your theme.** Six palettes are built in, `auto` follows the operating system, and a theme of your own is one block of CSS custom properties. See [Themes and fonts](/guide/theming).
 - **Handle Korean and other CJK text.** Wide characters take two cells, Hangul words stay together when a line wraps, the input line works with IME composition, and legacy encodings such as EUC-KR are detected. See [Korean and CJK text](/guide/cjk).
 
 ## Why a canvas
@@ -41,7 +41,7 @@ lognal is one npm package with three entry points. The core has no runtime depen
 | ------------------ | ------------------------------------------------------------------------------------------ |
 | `lognal`           | The viewer, the store and layout, console capture, text sources and the Canvas 2D renderer |
 | `lognal/react`     | The `LogViewer` React component, for React 18 or later                                     |
-| `lognal/style.css` | The layout of the viewer and the light and dark themes                                     |
+| `lognal/style.css` | The layout of the viewer and its palettes                                                  |
 
 ## Browser support
 
