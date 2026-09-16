@@ -18,6 +18,7 @@ export {
 	DEFAULT_STORE_OPTIONS,
 	LogStore,
 	type LogStoreOptions,
+	type RepeatMode,
 	type StoreChange,
 	type StoreListener,
 	type WriteOptions

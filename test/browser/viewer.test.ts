@@ -1248,6 +1248,44 @@ describe('LogViewer', () => {
 		viewer.dispose();
 	});
 
+	it('collapses a run of identical messages and opens it from its badge', async () => {
+		const viewer = new LogViewer(container, {
+			timestamps: false,
+			toolbar: false,
+			core: { mergeRepeats: 'collapse' }
+		});
+
+		viewer.write('same');
+		viewer.write('same');
+		viewer.write('same');
+		viewer.write('other');
+		await nextFrame();
+
+		const rowHeight = parseFloat(viewer.element.style.getPropertyValue('--lognal-cell-height'));
+		const rowY = (index: number): number => 4 + rowHeight * (index + 0.5);
+
+		expect(viewer.store.size).toBe(4);
+		expect(viewer.layout.visibleCount).toBe(2);
+
+		// The badge sits in the marker column, before the text.
+		click(viewer, 12, rowY(0));
+		await nextFrame();
+
+		expect(viewer.layout.visibleCount).toBe(4);
+
+		click(viewer, 12, rowY(0));
+		await nextFrame();
+
+		expect(viewer.layout.visibleCount).toBe(2);
+
+		// A click on the text of the entry leaves the run alone.
+		click(viewer, 60, rowY(0));
+		await nextFrame();
+
+		expect(viewer.layout.visibleCount).toBe(2);
+		viewer.dispose();
+	});
+
 	it('moves through, selects and copies entries with the keyboard in entry mode', async () => {
 		const render = vi.spyOn(CanvasRenderer.prototype, 'render');
 		const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);

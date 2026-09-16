@@ -111,16 +111,16 @@ off();
 
 `CoreOptions`는 `LogStoreOptions`, `LayoutOptions`, 필터를 합친 타입입니다.
 
-| 옵션             | 타입                | 기본값   | 설명                                                                       |
-| ---------------- | ------------------- | -------- | -------------------------------------------------------------------------- |
-| `maxEntries`     | `number`            | `10000`  | 스토어가 보관하는 최대 항목 수입니다. 모두 보관하려면 `Infinity`를 씁니다. |
-| `mergeRepeats`   | `boolean`           | `true`   | 바로 앞과 똑같은 메시지가 들어오면 앞 항목의 반복 횟수를 올릴지 정합니다.  |
-| `wrap`           | `WrapMode`          | `'word'` | `'word'`, `'char'`, `'none'` 가운데 하나입니다.                            |
-| `tabSize`        | `number`            | `8`      | 탭 위치 사이의 칸 수입니다.                                                |
-| `ambiguousWidth` | `AmbiguousWidth`    | `1`      | 동아시아 모호 폭 문자가 차지하는 칸 수로, `1`이나 `2`입니다.               |
-| `maxClusters`    | `number`            | `10000`  | 한 줄에 남기는 최대 그래핌 클러스터 수입니다. 나머지는 `…`로 대신합니다.   |
-| `links`          | `boolean`           | `true`   | 텍스트 안의 `http`, `https` 주소를 링크로 만들지 정합니다.                 |
-| `filter`         | `LogFilter \| null` | `null`   | 필터입니다. [`LogFilter`](/ko/reference/layout#logfilter)를 참고하세요.    |
+| 옵션             | 타입                | 기본값   | 설명                                                                                                                 |
+| ---------------- | ------------------- | -------- | -------------------------------------------------------------------------------------------------------------------- |
+| `maxEntries`     | `number`            | `10000`  | 스토어가 보관하는 최대 항목 수입니다. 모두 보관하려면 `Infinity`를 씁니다.                                           |
+| `mergeRepeats`   | `RepeatMode`        | `true`   | 바로 앞과 똑같은 메시지를 어떻게 처리할지 정합니다. [`RepeatMode`](/ko/reference/log-store#repeatmode)를 참고하세요. |
+| `wrap`           | `WrapMode`          | `'word'` | `'word'`, `'char'`, `'none'` 가운데 하나입니다.                                                                      |
+| `tabSize`        | `number`            | `8`      | 탭 위치 사이의 칸 수입니다.                                                                                          |
+| `ambiguousWidth` | `AmbiguousWidth`    | `1`      | 동아시아 모호 폭 문자가 차지하는 칸 수로, `1`이나 `2`입니다.                                                         |
+| `maxClusters`    | `number`            | `10000`  | 한 줄에 남기는 최대 그래핌 클러스터 수입니다. 나머지는 `…`로 대신합니다.                                             |
+| `links`          | `boolean`           | `true`   | 텍스트 안의 `http`, `https` 주소를 링크로 만들지 정합니다.                                                           |
+| `filter`         | `LogFilter \| null` | `null`   | 필터입니다. [`LogFilter`](/ko/reference/layout#logfilter)를 참고하세요.                                              |
 
 ## ToolbarOptions {#toolbaroptions}
 
@@ -252,6 +252,8 @@ type LinkClick = 'confirm' | 'open' | 'ignore';
 | `copyEntryData`      | Copy as data                                                       | 데이터로 복사                                           |
 | `expandAll`          | Expand all                                                         | 모두 펼치기                                             |
 | `collapseAll`        | Collapse all                                                       | 모두 접기                                               |
+| `expandRepeats`      | Show repeats                                                       | 반복 펼치기                                             |
+| `collapseRepeats`    | Hide repeats                                                       | 반복 접기                                               |
 | `openLink`           | `Open https://…`                                                   | `링크 열기: https://…`                                  |
 | `linkDialogTitle`    | Open this link?                                                    | 이 링크를 열까요?                                       |
 | `linkDialogMessage`  | The link opens in a new tab. Check the address before you open it. | 링크는 새 탭에서 열립니다. 열기 전에 주소를 확인하세요. |

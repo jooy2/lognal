@@ -55,6 +55,10 @@ export interface ViewerLabels {
 	expandAll: string;
 	/** The menu item that collapses every value of an entry. */
 	collapseAll: string;
+	/** The menu item that shows the messages that repeat the first entry of a run. */
+	expandRepeats: string;
+	/** The menu item that hides them again. */
+	collapseRepeats: string;
 	/** The menu item that opens a link of an entry. `url` is the address of the link. */
 	openLink: (url: string) => string;
 	/** The title of the dialog that asks before a link opens. */
@@ -131,6 +135,8 @@ export const EN_LABELS: ViewerLabels = {
 	copyEntryData: 'Copy as data',
 	expandAll: 'Expand all',
 	collapseAll: 'Collapse all',
+	expandRepeats: 'Show repeats',
+	collapseRepeats: 'Hide repeats',
 	openLink: (url) => `Open ${url}`,
 	linkDialogTitle: 'Open this link?',
 	linkDialogMessage: 'The link opens in a new tab. Check the address before you open it.',
@@ -198,6 +204,8 @@ export const KO_LABELS: ViewerLabels = {
 	copyEntryData: '데이터로 복사',
 	expandAll: '모두 펼치기',
 	collapseAll: '모두 접기',
+	expandRepeats: '반복 펼치기',
+	collapseRepeats: '반복 접기',
 	openLink: (url) => `링크 열기: ${url}`,
 	linkDialogTitle: '이 링크를 열까요?',
 	linkDialogMessage: '링크는 새 탭에서 열립니다. 열기 전에 주소를 확인하세요.',

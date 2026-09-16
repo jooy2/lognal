@@ -114,10 +114,22 @@ The level filter keeps group headers visible, so the entries that pass the filte
 
 When a message is identical to the one before it, the store increases a repeat count on that entry instead of adding a new one. The gutter shows the count as a badge, and `99+` above 99.
 
-Two messages are identical when they have the same level, the same group, the same text and styles, and the same simple values. A message with an error or a value that has children is never merged. Turn merging off with the `mergeRepeats` option:
+Two messages are identical when they have the same level, the same group, the same text and styles, and the same simple values. A message with an error or a value that has children is never merged.
+
+`mergeRepeats` decides what happens to such a message:
+
+| Value        | What happens                                                                                                  |
+| ------------ | ------------------------------------------------------------------------------------------------------------- |
+| `true`       | The message is dropped and the count on the entry before it rises. This is the default.                       |
+| `'collapse'` | Every message is kept. A run of them shows as its first entry with the count, and opens to show each message. |
+| `false`      | Every message gets an entry of its own.                                                                       |
 
 ```ts
 const viewer = new LogViewer(container, {
-	core: { mergeRepeats: false }
+	core: { mergeRepeats: 'collapse' }
 });
 ```
+
+With `'collapse'`, a run starts collapsed and `a a b a a` reads as `a` with a count of 2, then `b`, then `a` with a count of 2. Click the count badge to show the messages of a run, and click it again to hide them. **Show repeats** and **Hide repeats** in the entry menu do the same from the keyboard and on a touch screen. A run that is open stays open while the same message keeps arriving.
+
+Every message counts against `maxEntries` in this mode, so a burst of the same message fills the store as any other burst would.

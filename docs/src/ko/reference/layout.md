@@ -203,10 +203,10 @@ interface TextPosition {
 ### LineAction {#lineaction}
 
 ```ts
-type LineAction = { type: 'toggle-value'; path: string } | { type: 'toggle-group' } | { type: 'open-link'; url: string };
+type LineAction = { type: 'toggle-value'; path: string } | { type: 'toggle-group' } | { type: 'toggle-repeat' } | { type: 'open-link'; url: string };
 ```
 
-조각을 클릭했을 때의 동작입니다. `toggle-value`는 `path`에 있는 값을 펼치거나 접고, `toggle-group`은 항목이 시작하는 그룹을 접거나 펼칩니다. `open-link`는 `url`을 여는 동작이며, 뷰어가 `linkClick` 옵션에 따라 처리합니다.
+조각을 클릭했을 때의 동작입니다. `toggle-value`는 `path`에 있는 값을 펼치거나 접고, `toggle-group`은 항목이 시작하는 그룹을 접거나 펼치며, `toggle-repeat`은 반복 묶음의 첫 항목이 대신하는 메시지를 보여 주거나 숨깁니다. `open-link`는 `url`을 여는 동작이며, 뷰어가 `linkClick` 옵션에 따라 처리합니다.
 
 ### findLinks {#findlinks}
 

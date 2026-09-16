@@ -203,10 +203,10 @@ A position in the text of an entry that stays the same when the rows wrap differ
 ### LineAction
 
 ```ts
-type LineAction = { type: 'toggle-value'; path: string } | { type: 'toggle-group' } | { type: 'open-link'; url: string };
+type LineAction = { type: 'toggle-value'; path: string } | { type: 'toggle-group' } | { type: 'toggle-repeat' } | { type: 'open-link'; url: string };
 ```
 
-What happens when a span is clicked. `toggle-value` opens or closes the value at `path`, and `toggle-group` collapses or expands the group the entry starts. `open-link` opens `url`, which the viewer does the way its `linkClick` option says.
+What happens when a span is clicked. `toggle-value` opens or closes the value at `path`, `toggle-group` collapses or expands the group the entry starts, and `toggle-repeat` shows or hides the messages that repeat the first entry of a run. `open-link` opens `url`, which the viewer does the way its `linkClick` option says.
 
 ### findLinks
 

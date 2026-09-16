@@ -21,10 +21,10 @@ new LogStore(options?: Partial<LogStoreOptions>)
 
 ## LogStoreOptions {#logstoreoptions}
 
-| 옵션           | 타입      | 기본값  | 설명                                                                                                                                                                                   |
-| -------------- | --------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `maxEntries`   | `number`  | `10000` | 스토어가 보관하는 최대 항목 수입니다. 가득 차면 새 항목이 들어올 때마다 가장 오래된 항목을 버립니다. 모두 보관하려면 `Infinity`를 씁니다.                                              |
-| `mergeRepeats` | `boolean` | `true`  | 바로 앞과 똑같은 메시지가 들어오면 새 항목을 추가하지 않고 앞 항목의 반복 횟수를 올릴지 정합니다. `message` 종류의 항목만 합치고, 오류나 자식이 있는 값을 담은 항목은 합치지 않습니다. |
+| 옵션           | 타입         | 기본값  | 설명                                                                                                                                      |
+| -------------- | ------------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `maxEntries`   | `number`     | `10000` | 스토어가 보관하는 최대 항목 수입니다. 가득 차면 새 항목이 들어올 때마다 가장 오래된 항목을 버립니다. 모두 보관하려면 `Infinity`를 씁니다. |
+| `mergeRepeats` | `RepeatMode` | `true`  | 바로 앞과 똑같은 메시지를 어떻게 처리할지 정합니다. [`RepeatMode`](#repeatmode)를 참고하세요.                                             |
 
 `DEFAULT_STORE_OPTIONS`에 이 기본값이 들어 있습니다.
 
@@ -52,7 +52,8 @@ id는 1부터 시작해 새 항목마다 1씩 늘어납니다. `clear()`를 호�
 | `write(text: string, options?: WriteOptions)`           | `LogEntry \| undefined`     | 텍스트를 항목 하나로 추가합니다. 줄 바꿈은 항목 안에 그대로 둡니다. 새 항목이나, 텍스트가 합쳐진 항목을 반환합니다.                                    |
 | `writeLines(text: string, options?: WriteOptions)`      | `LogEntry[]`                | 텍스트를 줄마다 항목 하나씩 추가하고, 새로 만든 항목을 반환합니다.                                                                                     |
 | `clear()`                                               | `void`                      | 항목을 모두 지웁니다.                                                                                                                                  |
-| `setCollapsed(id: number, collapsed: boolean)`          | `void`                      | 그룹 머리글을 접거나 펼쳐서 그룹 안의 항목을 숨기거나 보여 줍니다.                                                                                     |
+| `setCollapsed(id: number, collapsed: boolean)`          | `void`                      | 그룹 머리글이나 반복 묶음의 첫 항목을 접거나 펼쳐서, 그 안의 항목을 숨기거나 보여 줍니다.                                                              |
+| `isRunHead(entry: LogEntry)`                            | `boolean`                   | 스토어가 아직 들고 있는 반복 묶음의 첫 항목인지, 곧 그 묶음을 펼칠 수 있는지 알려 줍니다.                                                              |
 | `subscribe(listener: StoreListener)`                    | `() => void`                | 바뀔 때마다 리스너를 호출합니다. 리스너를 떼는 함수를 반환합니다.                                                                                      |
 
 ```ts
@@ -90,16 +91,24 @@ const stop = store.subscribe((change) => {
 | `ansi`   | `boolean \| AnsiParser` | `false`     | 텍스트의 ANSI 이스케이프 코드를 스타일로 바꿀지 정합니다. 파서를 넘기면 여러 번 호출해도 스타일이 이어집니다.                  |
 | `wrap`   | `boolean`               | `true`      | `false`이면 텍스트의 줄마다 한 행에 둡니다. 표처럼 모양을 지켜야 하는 텍스트에 씁니다. 뷰어보다 넓은 줄은 가로로 스크롤합니다. |
 
+## RepeatMode {#repeatmode}
+
+```ts
+type RepeatMode = boolean | 'collapse';
+```
+
+바로 앞과 똑같은 메시지를 어떻게 처리할지 정합니다. `true`는 메시지를 버리고 앞 항목의 반복 횟수를 올리며, `'collapse'`는 메시지를 모두 보관하고 연속된 메시지를 횟수와 함께 접힌 항목 하나로 보여 주고, `false`는 메시지마다 항목을 따로 만듭니다. `message` 종류의 항목만 묶이고, 오류나 자식이 있는 값을 담은 항목은 묶이지 않습니다. [반복 메시지](/ko/guide/values#repeated-messages)를 참고하세요.
+
 ## StoreChange {#storechange}
 
 스토어 리스너가 받는 값입니다.
 
-| `type`     | 다른 필드                      | 보내는 때                                          |
-| ---------- | ------------------------------ | -------------------------------------------------- |
-| `'append'` | `entries: readonly LogEntry[]` | 항목이 추가됐을 때입니다.                          |
-| `'update'` | `entry: LogEntry`              | 항목의 반복 횟수나 접힘 상태가 바뀌었을 때입니다.  |
-| `'trim'`   | `count: number`                | `maxEntries` 때문에 오래된 항목을 버렸을 때입니다. |
-| `'clear'`  | 없음                           | 항목을 모두 지웠을 때입니다.                       |
+| `type`     | 다른 필드                                 | 보내는 때                                                                                                       |
+| ---------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `'append'` | `entries: readonly LogEntry[]`            | 항목이 추가됐을 때입니다.                                                                                       |
+| `'update'` | `entry: LogEntry`, `visibility?: boolean` | 항목의 반복 횟수나 접힘 상태가 바뀌었습니다. `visibility`는 다른 항목까지 숨기거나 보여 주는 변경임을 뜻합니다. |
+| `'trim'`   | `count: number`                           | `maxEntries` 때문에 오래된 항목을 버렸을 때입니다.                                                              |
+| `'clear'`  | 없음                                      | 항목을 모두 지웠을 때입니다.                                                                                    |
 
 ```ts
 type StoreListener = (change: StoreChange) => void;

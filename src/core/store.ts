@@ -10,18 +10,27 @@ import type {
 	TextStyle
 } from './types.js';
 
+/**
+ * What happens to a message identical to the one before it.
+ *
+ * - `true`: the earlier entry's repeat count rises and the message is not added.
+ * - `'collapse'`: every message is kept. The run shows as the first entry with its count, which
+ *   opens to show the whole run, and starts collapsed.
+ * - `false`: every message gets an entry of its own.
+ *
+ * Only entries of the `message` kind join a run, and only when every part is text or a value
+ * that cannot be expanded; an error never joins one.
+ */
+export type RepeatMode = boolean | 'collapse';
+
 export interface LogStoreOptions {
 	/**
 	 * The most entries the store keeps. Once it is full, the oldest entry is dropped for every
 	 * new one. Use `Infinity` to keep everything.
 	 */
 	maxEntries: number;
-	/**
-	 * Whether a message identical to the one before it increases that entry's repeat count
-	 * instead of adding a new entry. Only entries of the `message` kind are merged, and only when
-	 * every part is text or a value that cannot be expanded; an error is never merged.
-	 */
-	mergeRepeats: boolean;
+	/** What happens to a message identical to the one before it. See `RepeatMode`. */
+	mergeRepeats: RepeatMode;
 }
 
 export const DEFAULT_STORE_OPTIONS: LogStoreOptions = {
@@ -32,7 +41,12 @@ export const DEFAULT_STORE_OPTIONS: LogStoreOptions = {
 /** A change to the contents of a store. */
 export type StoreChange =
 	| { type: 'append'; entries: readonly LogEntry[] }
-	| { type: 'update'; entry: LogEntry }
+	| {
+			type: 'update';
+			entry: LogEntry;
+			/** Whether the change also hides or shows other entries. */
+			visibility?: boolean;
+	  }
 	| { type: 'trim'; count: number }
 	| { type: 'clear' };
 
@@ -101,6 +115,8 @@ export class LogStore {
 	private nextId = 1;
 	private oldestId = 1;
 	private lastSignature: string | null = null;
+	/** The first entry of the run the next identical message joins, while a run is collapsed. */
+	private runHead: LogEntry | null = null;
 	private readonly listeners = new Set<StoreListener>();
 
 	constructor(options: Partial<LogStoreOptions> = {}) {
@@ -162,16 +178,20 @@ export class LogStore {
 		const inits = Array.isArray(init) ? init : [init as LogEntryInit];
 		const created: LogEntry[] = [];
 
+		const collapse = this.options.mergeRepeats === 'collapse';
+
 		for (const item of inits) {
 			const level = item.level ?? 'log';
 			const kind = item.kind ?? 'message';
 			const signature = this.options.mergeRepeats ? signatureOf(item, level, kind) : null;
 			const last = this.at(this.size - 1);
+			const head = collapse ? this.runHead : last;
+			const repeats = signature !== null && head && signature === this.lastSignature;
 
-			if (signature !== null && last && signature === this.lastSignature) {
-				last.repeat++;
-				last.version++;
-				this.emit({ type: 'update', entry: last });
+			if (repeats && !collapse) {
+				head.repeat++;
+				head.version++;
+				this.emit({ type: 'update', entry: head });
 				continue;
 			}
 
@@ -182,10 +202,22 @@ export class LogStore {
 				kind,
 				parts: item.parts,
 				groups: item.groups ?? [],
+				...(repeats ? { runHead: head.id } : {}),
 				collapsed: item.collapsed ?? false,
 				repeat: 1,
 				version: 0
 			};
+
+			if (repeats) {
+				// A run starts collapsed, so a burst of the same message stays one row until it is
+				// opened. Opening it while the message repeats keeps it open.
+				head.collapsed = head.repeat === 1 || head.collapsed;
+				head.repeat++;
+				head.version++;
+				this.emit({ type: 'update', entry: head, visibility: true });
+			} else {
+				this.runHead = signature === null ? null : entry;
+			}
 
 			this.items.push(entry);
 			this.lastSignature = signature;
@@ -227,10 +259,22 @@ export class LogStore {
 		this.start = 0;
 		this.oldestId = this.nextId;
 		this.lastSignature = null;
+		this.runHead = null;
 		this.emit({ type: 'clear' });
 	}
 
-	/** Collapses or expands a group header and hides or shows its members. */
+	/**
+	 * Whether an entry is the first of a run of identical messages that the store still holds, so
+	 * the run can be opened and collapsed. Only `mergeRepeats: 'collapse'` creates such a run.
+	 */
+	isRunHead(entry: LogEntry): boolean {
+		return this.get(entry.id + 1)?.runHead === entry.id;
+	}
+
+	/**
+	 * Collapses or expands a group header, or the first entry of a run of identical messages, and
+	 * hides or shows its members.
+	 */
 	setCollapsed(id: number, collapsed: boolean): void {
 		const entry = this.get(id);
 
@@ -240,7 +284,7 @@ export class LogStore {
 
 		entry.collapsed = collapsed;
 		entry.version++;
-		this.emit({ type: 'update', entry });
+		this.emit({ type: 'update', entry, visibility: true });
 	}
 
 	/** Calls a listener for every change. Returns a function that removes the listener. */
@@ -293,8 +337,11 @@ export class LogStore {
 			this.start = 0;
 		}
 
-		if (this.size === 0) {
+		// A run whose first entry was dropped can no longer be collapsed, so the next identical
+		// message starts a run of its own.
+		if (this.size === 0 || (this.runHead && !this.get(this.runHead.id))) {
 			this.lastSignature = null;
+			this.runHead = null;
 		}
 
 		this.emit({ type: 'trim', count: excess });

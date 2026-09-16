@@ -4,6 +4,8 @@ import type { LogEntry, StyleToken, TextStyle } from '../types.js';
 export type LineAction =
 	| { type: 'toggle-value'; path: string }
 	| { type: 'toggle-group' }
+	/** Shows or hides the messages that repeat the first entry of a run. */
+	| { type: 'toggle-repeat' }
 	| { type: 'open-link'; url: string };
 
 /** A run of text on a logical line. */

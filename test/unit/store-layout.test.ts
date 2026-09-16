@@ -45,6 +45,35 @@ describe('LogStore', () => {
 		expect(listener).toHaveBeenCalledWith(expect.objectContaining({ type: 'update' }));
 	});
 
+	it('keeps a run of identical messages and collapses it with mergeRepeats: collapse', () => {
+		const store = new LogStore({ mergeRepeats: 'collapse' });
+		const layout = new LogLayout(store);
+
+		store.append([text('a'), text('a'), text('a'), text('b'), text('a'), text('a')]);
+
+		const [first, , , , fifth] = store.toArray();
+
+		expect(store.size).toBe(6);
+		expect(first.repeat).toBe(3);
+		expect(first.collapsed).toBe(true);
+		expect(store.isRunHead(first)).toBe(true);
+		expect(fifth.repeat).toBe(2);
+		expect(rowTexts(layout)).toEqual(['a', 'b', 'a']);
+
+		// Opening the run shows every message it stands for.
+		store.setCollapsed(first.id, false);
+		expect(rowTexts(layout)).toEqual(['a', 'a', 'a', 'b', 'a']);
+
+		// A later message joins the run at the end, and the open run stays open.
+		store.append(text('a'));
+		expect(store.isRunHead(fifth)).toBe(true);
+		expect(fifth.repeat).toBe(3);
+		expect(rowTexts(layout)).toEqual(['a', 'a', 'a', 'b', 'a']);
+
+		store.setCollapsed(first.id, true);
+		expect(rowTexts(layout)).toEqual(['a', 'b', 'a']);
+	});
+
 	it('does not merge messages that hold expandable values', () => {
 		const store = new LogStore();
 

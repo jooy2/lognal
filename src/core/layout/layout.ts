@@ -539,7 +539,7 @@ export class LogLayout {
 			return;
 		}
 
-		if (action.type === 'toggle-group') {
+		if (action.type === 'toggle-group' || action.type === 'toggle-repeat') {
 			this.store.setCollapsed(entryId, !entry.collapsed);
 
 			return;
@@ -910,7 +910,7 @@ export class LogLayout {
 			this.layouts.clear();
 			this.rowCounts.clear();
 			this.expansions.clear();
-		} else if (change.type === 'update' && change.entry.kind === 'group') {
+		} else if (change.type === 'update' && change.visibility) {
 			this.version++;
 			this.needsRebuild = true;
 		}
@@ -1009,6 +1009,11 @@ export class LogLayout {
 
 	private isVisible(entry: LogEntry): boolean {
 		if (this.filter.matches && !this.filter.matches(entry)) {
+			return false;
+		}
+
+		// An entry that repeats the one that starts its run is hidden while that run is collapsed.
+		if (entry.runHead !== undefined && this.store.get(entry.runHead)?.collapsed) {
 			return false;
 		}
 

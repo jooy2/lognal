@@ -21,10 +21,10 @@ new LogStore(options?: Partial<LogStoreOptions>)
 
 ## LogStoreOptions
 
-| Option         | Type      | Default | Description                                                                                                                                                                                                                    |
-| -------------- | --------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `maxEntries`   | `number`  | `10000` | The most entries the store keeps. Once it is full, the oldest entry is dropped for every new one. Use `Infinity` to keep everything.                                                                                           |
-| `mergeRepeats` | `boolean` | `true`  | Whether a message identical to the one before it increases that entry's repeat count instead of adding a new entry. Only entries of the `message` kind are merged, and never when they hold an error or a value with children. |
+| Option         | Type         | Default | Description                                                                                                                          |
+| -------------- | ------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `maxEntries`   | `number`     | `10000` | The most entries the store keeps. Once it is full, the oldest entry is dropped for every new one. Use `Infinity` to keep everything. |
+| `mergeRepeats` | `RepeatMode` | `true`  | What happens to a message identical to the one before it. See [`RepeatMode`](#repeatmode).                                           |
 
 `DEFAULT_STORE_OPTIONS` holds these defaults.
 
@@ -52,7 +52,8 @@ Ids start at 1 and increase by one for every new entry. They are never reused, e
 | `write(text: string, options?: WriteOptions)`           | `LogEntry \| undefined`     | Adds text as one entry. Line breaks stay inside the entry. Returns the new entry, or the entry the text was merged into.                                                           |
 | `writeLines(text: string, options?: WriteOptions)`      | `LogEntry[]`                | Adds text as one entry per line. Returns the entries that were created.                                                                                                            |
 | `clear()`                                               | `void`                      | Removes every entry.                                                                                                                                                               |
-| `setCollapsed(id: number, collapsed: boolean)`          | `void`                      | Collapses or expands a group header, which hides or shows its members.                                                                                                             |
+| `setCollapsed(id: number, collapsed: boolean)`          | `void`                      | Collapses or expands a group header, or the first entry of a run of identical messages, which hides or shows its members.                                                          |
+| `isRunHead(entry: LogEntry)`                            | `boolean`                   | Whether the entry is the first of a run of identical messages the store still holds, so the run can be opened.                                                                     |
 | `subscribe(listener: StoreListener)`                    | `() => void`                | Calls a listener for every change. Returns a function that removes the listener.                                                                                                   |
 
 ```ts
@@ -90,16 +91,24 @@ The options of `write` and `writeLines`, on the store and on the viewer.
 | `ansi`   | `boolean \| AnsiParser` | `false`     | Whether ANSI escape codes in the text become styles. Pass a parser to keep the style running across calls.         |
 | `wrap`   | `boolean`               | `true`      | Set to `false` to keep every line of the text on one row, for text such as a table. A wider line scrolls sideways. |
 
+## RepeatMode
+
+```ts
+type RepeatMode = boolean | 'collapse';
+```
+
+What happens to a message identical to the one before it. `true` drops the message and raises the repeat count of the entry before it, `'collapse'` keeps every message and shows the run as one collapsed entry with its count, and `false` gives every message an entry of its own. Only entries of the `message` kind join a run, and never when they hold an error or a value with children. See [Repeated messages](/guide/values#repeated-messages).
+
 ## StoreChange
 
 The value a store listener receives.
 
-| `type`     | Other fields                   | Sent when                                                |
-| ---------- | ------------------------------ | -------------------------------------------------------- |
-| `'append'` | `entries: readonly LogEntry[]` | Entries were added.                                      |
-| `'update'` | `entry: LogEntry`              | An entry's repeat count or collapsed state changed.      |
-| `'trim'`   | `count: number`                | The oldest entries were dropped because of `maxEntries`. |
-| `'clear'`  | None                           | Every entry was removed.                                 |
+| `type`     | Other fields                              | Sent when                                                                                                               |
+| ---------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `'append'` | `entries: readonly LogEntry[]`            | Entries were added.                                                                                                     |
+| `'update'` | `entry: LogEntry`, `visibility?: boolean` | An entry's repeat count or collapsed state changed. `visibility` marks a change that also hides or shows other entries. |
+| `'trim'`   | `count: number`                           | The oldest entries were dropped because of `maxEntries`.                                                                |
+| `'clear'`  | None                                      | Every entry was removed.                                                                                                |
 
 ```ts
 type StoreListener = (change: StoreChange) => void;

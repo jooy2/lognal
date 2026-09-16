@@ -35,17 +35,18 @@ What an entry represents. The viewer marks each kind differently.
 
 An entry held by a store.
 
-| Field       | Type                 | Description                                                                             |
-| ----------- | -------------------- | --------------------------------------------------------------------------------------- |
-| `id`        | `number`             | A number that identifies the entry in its store. Read-only.                             |
-| `time`      | `number`             | When the entry was added, in epoch milliseconds. Read-only.                             |
-| `level`     | `LogLevel`           | The severity. Read-only.                                                                |
-| `kind`      | `LogKind`            | What the entry represents. Read-only.                                                   |
-| `parts`     | `readonly LogPart[]` | The content, displayed one part after another. Read-only.                               |
-| `groups`    | `readonly number[]`  | The ids of the open groups the entry belongs to, outermost first. Read-only.            |
-| `collapsed` | `boolean`            | For a group header, whether its members are hidden.                                     |
-| `repeat`    | `number`             | How many identical consecutive messages the entry stands for.                           |
-| `version`   | `number`             | Increases whenever `collapsed` or `repeat` changes, so cached layouts can be refreshed. |
+| Field       | Type                 | Description                                                                                                                       |
+| ----------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `id`        | `number`             | A number that identifies the entry in its store. Read-only.                                                                       |
+| `time`      | `number`             | When the entry was added, in epoch milliseconds. Read-only.                                                                       |
+| `level`     | `LogLevel`           | The severity. Read-only.                                                                                                          |
+| `kind`      | `LogKind`            | What the entry represents. Read-only.                                                                                             |
+| `parts`     | `readonly LogPart[]` | The content, displayed one part after another. Read-only.                                                                         |
+| `groups`    | `readonly number[]`  | The ids of the open groups the entry belongs to, outermost first. Read-only.                                                      |
+| `runHead`   | `number`             | The id of the first entry of the run of identical messages this one repeats, set only with `mergeRepeats: 'collapse'`. Read-only. |
+| `collapsed` | `boolean`            | For a group header, or for the first entry of a run of identical messages, whether its members are hidden.                        |
+| `repeat`    | `number`             | How many identical consecutive messages the entry stands for.                                                                     |
+| `version`   | `number`             | Increases whenever `collapsed` or `repeat` changes, so cached layouts can be refreshed.                                           |
 
 ## LogEntryInit
 

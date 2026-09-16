@@ -1889,6 +1889,24 @@ export class LogViewer {
 			}
 		}
 
+		const runHeads = entries.filter((entry) => this.store.isRunHead(entry));
+
+		if (runHeads.length > 0) {
+			const collapsed = runHeads.filter((entry) => entry.collapsed);
+			const shown = collapsed.length === 0;
+
+			items.push({
+				label: shown ? labels.collapseRepeats : labels.expandRepeats,
+				icon: shown ? 'collapseAll' : 'expandAll',
+				startsGroup: items.length > 0,
+				onSelect: () => {
+					for (const entry of runHeads) {
+						this.store.setCollapsed(entry.id, !shown);
+					}
+				}
+			});
+		}
+
 		if (expandable.length > 0) {
 			items.push(
 				{
@@ -2591,9 +2609,16 @@ export class LogViewer {
 		const run = visualRow?.runs.find(
 			(item) => cellColumn >= item.column && cellColumn < item.column + item.cells
 		);
+		// The marker column does not scroll sideways, so the badge is found with the raw position.
+		const onBadge =
+			visualRow?.first &&
+			x >= PADDING_LEFT + this.timestampCells() * this.metrics.width &&
+			x < this.contentLeft() &&
+			this.store.isRunHead(visualRow.entry);
 		// With `linkClick: 'ignore'`, a link is text like any other.
-		const action =
-			run?.action?.type === 'open-link' && this.options.linkClick === 'ignore'
+		const action = onBadge
+			? ({ type: 'toggle-repeat' } as const)
+			: run?.action?.type === 'open-link' && this.options.linkClick === 'ignore'
 				? undefined
 				: run?.action;
 

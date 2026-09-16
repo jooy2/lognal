@@ -52,7 +52,7 @@ viewer.dispose();
 | Option           | Type                         | Default  | Description                                                                                                                 |
 | ---------------- | ---------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `maxEntries`     | `number`                     | `10000`  | The most entries the store keeps. The oldest entry is dropped for every new one past it. Use `Infinity` to keep everything. |
-| `mergeRepeats`   | `boolean`                    | `true`   | Whether a message identical to the one before it increases that entry's repeat count.                                       |
+| `mergeRepeats`   | `boolean \| 'collapse'`      | `true`   | What happens to a message identical to the one before it. See [Repeated messages](/guide/values#repeated-messages).         |
 | `wrap`           | `'word' \| 'char' \| 'none'` | `'word'` | How lines longer than the viewer are handled. See [Word wrapping](/guide/cjk#word-wrapping).                                |
 | `tabSize`        | `number`                     | `8`      | Cells between tab stops.                                                                                                    |
 | `ambiguousWidth` | `1 \| 2`                     | `1`      | Cells an East Asian Ambiguous character takes.                                                                              |
@@ -301,15 +301,16 @@ await viewer.copySelection({ format: 'data' });
 
 When the pointer is over an entry, the rows of that entry get a light background, and a button with three vertical dots appears at the right end of its first row on screen. The button opens a menu of actions for the entry. On a touch screen, press and hold an entry to open the same menu.
 
-| Menu item              | What it does                                                                                                                                                                                                       |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Copy as text           | Copies the whole entry as plain text, whether its values are open or closed. Every value is written out in full on one line, as far as it was captured.                                                            |
-| Copy with timestamp    | Copies the same text after the time of the entry, in the format of the `timestamps` option, or in `'time'` when timestamps are hidden.                                                                             |
-| Copy as formatted text | Copies the entry with values that are too long for one line broken over several indented lines. The clipboard also gets the text as HTML with the colors of the theme, so an app that pastes rich text keeps them. |
-| Copy as data           | Copies the values of the entry as JSON: the value itself, or an array when the entry holds several. Shown only for entries with values.                                                                            |
-| Expand all             | Opens every value of the entry, and every value inside them, as far as they were captured. Shown only for entries with values that open.                                                                           |
-| Collapse all           | Closes every value of the entry, including an error logged on its own.                                                                                                                                             |
-| Open https://…         | Opens a link of the entry the way `linkClick` says. The menu lists up to five links, and none with `linkClick: 'ignore'`.                                                                                          |
+| Menu item                  | What it does                                                                                                                                                                                                       |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Copy as text               | Copies the whole entry as plain text, whether its values are open or closed. Every value is written out in full on one line, as far as it was captured.                                                            |
+| Copy with timestamp        | Copies the same text after the time of the entry, in the format of the `timestamps` option, or in `'time'` when timestamps are hidden.                                                                             |
+| Copy as formatted text     | Copies the entry with values that are too long for one line broken over several indented lines. The clipboard also gets the text as HTML with the colors of the theme, so an app that pastes rich text keeps them. |
+| Copy as data               | Copies the values of the entry as JSON: the value itself, or an array when the entry holds several. Shown only for entries with values.                                                                            |
+| Show repeats, Hide repeats | Shows or hides the messages that repeat the first entry of a run, with `core: { mergeRepeats: 'collapse' }`.                                                                                                       |
+| Expand all                 | Opens every value of the entry, and every value inside them, as far as they were captured. Shown only for entries with values that open.                                                                           |
+| Collapse all               | Closes every value of the entry, including an error logged on its own.                                                                                                                                             |
+| Open https://…             | Opens a link of the entry the way `linkClick` says. The menu lists up to five links, and none with `linkClick: 'ignore'`.                                                                                          |
 
 While the log area has focus, Shift+F10 or the context menu key opens the menu for the entry where the selection ends, or for the first entry on screen. The arrow keys move through the menu, Enter chooses an item, and Escape closes the menu. In entry mode, a right click, Shift+F10 and the context menu key open the menu of the selected entries instead. See [Entry mode](#entry-mode).
 

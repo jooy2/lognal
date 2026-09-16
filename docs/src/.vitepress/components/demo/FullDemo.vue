@@ -16,6 +16,7 @@ import type {
 	LogLevel,
 	LogViewer,
 	LogViewerOptions,
+	RepeatMode,
 	SelectionMode,
 	ThemeMode,
 	TimestampFormat,

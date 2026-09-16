@@ -111,16 +111,16 @@ The events and their values are described by the `LogViewerEvents` type.
 
 `CoreOptions` combines `LogStoreOptions`, `LayoutOptions` and a filter.
 
-| Option           | Type                | Default  | Description                                                                           |
-| ---------------- | ------------------- | -------- | ------------------------------------------------------------------------------------- |
-| `maxEntries`     | `number`            | `10000`  | The most entries the store keeps. Use `Infinity` to keep everything.                  |
-| `mergeRepeats`   | `boolean`           | `true`   | Whether a message identical to the one before it increases that entry's repeat count. |
-| `wrap`           | `WrapMode`          | `'word'` | `'word'`, `'char'` or `'none'`.                                                       |
-| `tabSize`        | `number`            | `8`      | Cells between tab stops.                                                              |
-| `ambiguousWidth` | `AmbiguousWidth`    | `1`      | Cells an East Asian Ambiguous character takes, `1` or `2`.                            |
-| `maxClusters`    | `number`            | `10000`  | The most grapheme clusters a line keeps. The rest is replaced with `…`.               |
-| `links`          | `boolean`           | `true`   | Whether `http` and `https` addresses in the text become links.                        |
-| `filter`         | `LogFilter \| null` | `null`   | The filter. See [`LogFilter`](/reference/layout#logfilter).                           |
+| Option           | Type                | Default  | Description                                                                                                    |
+| ---------------- | ------------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
+| `maxEntries`     | `number`            | `10000`  | The most entries the store keeps. Use `Infinity` to keep everything.                                           |
+| `mergeRepeats`   | `RepeatMode`        | `true`   | What happens to a message identical to the one before it. See [`RepeatMode`](/reference/log-store#repeatmode). |
+| `wrap`           | `WrapMode`          | `'word'` | `'word'`, `'char'` or `'none'`.                                                                                |
+| `tabSize`        | `number`            | `8`      | Cells between tab stops.                                                                                       |
+| `ambiguousWidth` | `AmbiguousWidth`    | `1`      | Cells an East Asian Ambiguous character takes, `1` or `2`.                                                     |
+| `maxClusters`    | `number`            | `10000`  | The most grapheme clusters a line keeps. The rest is replaced with `…`.                                        |
+| `links`          | `boolean`           | `true`   | Whether `http` and `https` addresses in the text become links.                                                 |
+| `filter`         | `LogFilter \| null` | `null`   | The filter. See [`LogFilter`](/reference/layout#logfilter).                                                    |
 
 ## ToolbarOptions
 
@@ -252,6 +252,8 @@ Every label is used as visible text or as an accessible name.
 | `copyEntryData`      | Copy as data                                                       | 데이터로 복사                                           |
 | `expandAll`          | Expand all                                                         | 모두 펼치기                                             |
 | `collapseAll`        | Collapse all                                                       | 모두 접기                                               |
+| `expandRepeats`      | Show repeats                                                       | 반복 펼치기                                             |
+| `collapseRepeats`    | Hide repeats                                                       | 반복 접기                                               |
 | `openLink`           | `Open https://…`                                                   | `링크 열기: https://…`                                  |
 | `linkDialogTitle`    | Open this link?                                                    | 이 링크를 열까요?                                       |
 | `linkDialogMessage`  | The link opens in a new tab. Check the address before you open it. | 링크는 새 탭에서 열립니다. 열기 전에 주소를 확인하세요. |

@@ -175,7 +175,12 @@ export interface LogEntry {
 	readonly kind: LogKind;
 	readonly parts: readonly LogPart[];
 	readonly groups: readonly number[];
-	/** For a group header, whether its members are hidden. */
+	/**
+	 * The id of the first entry of the run of identical messages this one repeats, set only with
+	 * `mergeRepeats: 'collapse'`. The entry is hidden while that entry is collapsed.
+	 */
+	readonly runHead?: number;
+	/** For a group header, or for the first entry of a run, whether its members are hidden. */
 	collapsed: boolean;
 	/** How many identical consecutive messages this entry stands for. */
 	repeat: number;
