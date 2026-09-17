@@ -226,7 +226,7 @@ void main() {
 
     test('counts, resets counts and warns about a missing counter', () {
       final LogStore store = LogStore(
-        options: const LogStoreOptions(mergeRepeats: RepeatMode.keep),
+        options: const LogStoreOptions(mergeRepeats: MergeRepeats.keep),
       );
       final LognalConsole log = LognalConsole(store);
 
@@ -264,7 +264,7 @@ void main() {
 
     test('writes assertion failures the way the standard describes', () {
       final LogStore store = LogStore(
-        options: const LogStoreOptions(mergeRepeats: RepeatMode.keep),
+        options: const LogStoreOptions(mergeRepeats: MergeRepeats.keep),
       );
       final LognalConsole log = LognalConsole(store);
 

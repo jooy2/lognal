@@ -3,7 +3,11 @@ import 'package:lognal/src/core/text/line_splitter.dart';
 import 'package:lognal/src/core/types.dart';
 
 /// What happens to a message identical to the one before it.
-enum RepeatMode {
+///
+/// Named for the option it is the value of rather than for what a run is,
+/// because `RepeatMode` is already a name in `package:flutter/widgets.dart` and
+/// two of them in one file is a prefix nobody wants to write.
+enum MergeRepeats {
   /// The earlier entry's repeat count rises and the message is not added.
   merge,
 
@@ -18,17 +22,17 @@ enum RepeatMode {
 /// What a store keeps and how it merges repeats.
 class LogStoreOptions {
   /// Creates the store options.
-  const LogStoreOptions({this.maxEntries = 10000, this.mergeRepeats = RepeatMode.merge});
+  const LogStoreOptions({this.maxEntries = 10000, this.mergeRepeats = MergeRepeats.merge});
 
   /// The most entries the store keeps. Once it is full, the oldest entry is
   /// dropped for every new one. Use a very large number to keep everything.
   final int maxEntries;
 
   /// What happens to a message identical to the one before it.
-  final RepeatMode mergeRepeats;
+  final MergeRepeats mergeRepeats;
 
   /// A copy with the fields given here replaced.
-  LogStoreOptions copyWith({int? maxEntries, RepeatMode? mergeRepeats}) {
+  LogStoreOptions copyWith({int? maxEntries, MergeRepeats? mergeRepeats}) {
     return LogStoreOptions(
       maxEntries: maxEntries ?? this.maxEntries,
       mergeRepeats: mergeRepeats ?? this.mergeRepeats,
@@ -222,12 +226,12 @@ class LogStore {
   /// count and is not returned.
   List<LogEntry> append(List<LogEntryInit> inits) {
     final List<LogEntry> created = <LogEntry>[];
-    final bool collapse = _options.mergeRepeats == RepeatMode.collapse;
+    final bool collapse = _options.mergeRepeats == MergeRepeats.collapse;
 
     for (final LogEntryInit item in inits) {
       final LogLevel level = item.level;
       final LogKind kind = item.kind;
-      final String? signature = _options.mergeRepeats == RepeatMode.keep
+      final String? signature = _options.mergeRepeats == MergeRepeats.keep
           ? null
           : _signatureOf(item, level, kind);
       final LogEntry? last = at(size - 1);
@@ -316,7 +320,7 @@ class LogStore {
 
   /// Whether an entry is the first of a run of identical messages that the store
   /// still holds, so the run can be opened and collapsed. Only
-  /// [RepeatMode.collapse] creates such a run.
+  /// [MergeRepeats.collapse] creates such a run.
   bool isRunHead(LogEntry entry) => get(entry.id + 1)?.runHead == entry.id;
 
   /// Collapses or expands a group header, or the first entry of a run of

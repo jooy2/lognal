@@ -60,9 +60,9 @@ void main() {
       expect(changes.whereType<StoreUpdate>(), isNotEmpty);
     });
 
-    test('keeps a run of identical messages and collapses it with RepeatMode.collapse', () {
+    test('keeps a run of identical messages and collapses it with MergeRepeats.collapse', () {
       final LogStore store = LogStore(
-        options: const LogStoreOptions(mergeRepeats: RepeatMode.collapse),
+        options: const LogStoreOptions(mergeRepeats: MergeRepeats.collapse),
       );
       final LogLayout layout = LogLayout(store);
 
@@ -111,7 +111,7 @@ void main() {
 
     test('drops the oldest entries past maxEntries', () {
       final LogStore store = LogStore(
-        options: const LogStoreOptions(maxEntries: 3, mergeRepeats: RepeatMode.keep),
+        options: const LogStoreOptions(maxEntries: 3, mergeRepeats: MergeRepeats.keep),
       );
 
       for (int index = 0; index < 5; index++) {
@@ -157,7 +157,7 @@ void main() {
   group('filters', () {
     test('matches by minimum level and by text', () {
       final LogStore store = LogStore(
-        options: const LogStoreOptions(mergeRepeats: RepeatMode.keep),
+        options: const LogStoreOptions(mergeRepeats: MergeRepeats.keep),
       );
       final List<LogEntry> entries = store.append(<LogEntryInit>[
         LogEntryInit(parts: text('cache miss').parts, level: LogLevel.debug),
@@ -178,7 +178,7 @@ void main() {
 
     test('hides the entries a mute rule matches and counts them', () {
       final LogStore store = LogStore(
-        options: const LogStoreOptions(mergeRepeats: RepeatMode.keep),
+        options: const LogStoreOptions(mergeRepeats: MergeRepeats.keep),
       );
       final LogLayout layout = LogLayout(store);
 
@@ -222,7 +222,7 @@ void main() {
 
     test('hides muted entries whatever the rest of the filter says', () {
       final LogStore store = LogStore(
-        options: const LogStoreOptions(mergeRepeats: RepeatMode.keep),
+        options: const LogStoreOptions(mergeRepeats: MergeRepeats.keep),
       );
       final List<LogEntry> entries = store.append(<LogEntryInit>[
         LogEntryInit(parts: text('noise').parts, level: LogLevel.error),
@@ -254,7 +254,7 @@ void main() {
   group('LogLayout', () {
     test('wraps entries to the column count and follows appends and trims', () {
       final LogStore store = LogStore(
-        options: const LogStoreOptions(maxEntries: 2, mergeRepeats: RepeatMode.keep),
+        options: const LogStoreOptions(maxEntries: 2, mergeRepeats: MergeRepeats.keep),
       );
       final LogLayout layout = LogLayout(store);
 
@@ -274,7 +274,7 @@ void main() {
 
     test('counts the same rows for plain entries as for the general layout', () {
       final LogStore store = LogStore(
-        options: const LogStoreOptions(mergeRepeats: RepeatMode.keep),
+        options: const LogStoreOptions(mergeRepeats: MergeRepeats.keep),
       );
       final LogLayout layout = LogLayout(store);
       const String sample =
@@ -294,7 +294,7 @@ void main() {
 
     test('hides filtered entries and members of a collapsed group', () {
       final LogStore store = LogStore(
-        options: const LogStoreOptions(mergeRepeats: RepeatMode.keep),
+        options: const LogStoreOptions(mergeRepeats: MergeRepeats.keep),
       );
       final LogLayout layout = LogLayout(store);
       final LogEntry group = store.add(
@@ -409,7 +409,7 @@ void main() {
 
     test('maps screen positions to text positions and copies text', () {
       final LogStore store = LogStore(
-        options: const LogStoreOptions(mergeRepeats: RepeatMode.keep),
+        options: const LogStoreOptions(mergeRepeats: MergeRepeats.keep),
       );
       final LogLayout layout = LogLayout(store);
 
@@ -418,10 +418,10 @@ void main() {
       store.add(text('한글 two'));
       layout.sync();
 
-      final TextPosition start = layout.positionAt(0, 6)!;
+      final LogPosition start = layout.positionAt(0, 6)!;
       // Column 1 is the right half of the first Hangul syllable, which snaps to
       // its end.
-      final TextPosition end = layout.positionAt(1, 1)!;
+      final LogPosition end = layout.positionAt(1, 1)!;
 
       expect(<int>[start.entryId, start.line, start.cell], <int>[1, 0, 6]);
       expect(<int>[end.entryId, end.line, end.cell], <int>[2, 0, 2]);
@@ -436,8 +436,8 @@ void main() {
       store.add(text('request_id=42 failed'));
       layout.sync();
 
-      final List<TextPosition>? range = layout.wordAt(
-        const TextPosition(entryId: 1, line: 0, cell: 3),
+      final List<LogPosition>? range = layout.wordAt(
+        const LogPosition(entryId: 1, line: 0, cell: 3),
       );
 
       expect(range, isNotNull);

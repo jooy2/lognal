@@ -217,7 +217,7 @@ int _spanAt(ShapedLine line, int cluster) {
   return low;
 }
 
-int _comparePositions(TextPosition a, TextPosition b) {
+int _comparePositions(LogPosition a, LogPosition b) {
   if (a.entryId != b.entryId) {
     return a.entryId - b.entryId;
   }
@@ -731,7 +731,7 @@ class LogLayout {
 
   /// Returns the row within its entry that shows a text position, and the indent
   /// of that row, or `null` when the entry is not visible.
-  PositionLocation? locatePosition(TextPosition position) {
+  PositionLocation? locatePosition(LogPosition position) {
     final LogEntry? entry = store.get(position.entryId);
 
     if (entry == null || indexOf(entry.id) < 0) {
@@ -767,7 +767,7 @@ class LogLayout {
 
   /// Returns the text position under a row and a column of the content area. The
   /// position snaps to the nearest boundary between clusters.
-  TextPosition? positionAt(int row, int column) {
+  LogPosition? positionAt(int row, int column) {
     final int total = rowCount;
 
     if (total == 0) {
@@ -784,7 +784,7 @@ class LogLayout {
     final VisualRow visualRow = found.first;
 
     if (row >= total) {
-      return TextPosition(
+      return LogPosition(
         entryId: visualRow.entry.id,
         line: visualRow.line,
         cell: visualRow.startCell + visualRow.cells,
@@ -819,7 +819,7 @@ class LogLayout {
       break;
     }
 
-    return TextPosition(
+    return LogPosition(
       entryId: visualRow.entry.id,
       line: visualRow.line,
       cell: visualRow.startCell + cell,
@@ -829,7 +829,7 @@ class LogLayout {
   /// Returns the start and end of the word at a position: a run of letters,
   /// digits, marks and underscores. On any other character, the range covers
   /// that character alone.
-  List<TextPosition>? wordAt(TextPosition position) {
+  List<LogPosition>? wordAt(LogPosition position) {
     final int index = indexOf(position.entryId);
 
     if (index < 0) {
@@ -882,18 +882,18 @@ class LogLayout {
       }
     }
 
-    return <TextPosition>[
-      TextPosition(entryId: entry.id, line: position.line, cell: starts[first]),
-      TextPosition(entryId: entry.id, line: position.line, cell: starts[last + 1]),
+    return <LogPosition>[
+      LogPosition(entryId: entry.id, line: position.line, cell: starts[first]),
+      LogPosition(entryId: entry.id, line: position.line, cell: starts[last + 1]),
     ];
   }
 
   /// Returns the text between two positions, one line of the output per logical
   /// line.
-  String getText(TextPosition from, TextPosition to) {
+  String getText(LogPosition from, LogPosition to) {
     final bool inOrder = _comparePositions(from, to) <= 0;
-    final TextPosition start = inOrder ? from : to;
-    final TextPosition end = inOrder ? to : from;
+    final LogPosition start = inOrder ? from : to;
+    final LogPosition end = inOrder ? to : from;
     final List<String> lines = <String>[];
 
     for (int index = _firstIndexFrom(start.entryId); index < visibleCount; index++) {
@@ -940,8 +940,8 @@ class LogLayout {
     }
 
     return getText(
-      TextPosition(entryId: first.id, line: 0, cell: 0),
-      TextPosition(entryId: last.id, line: _unboundedCell, cell: _unboundedCell),
+      LogPosition(entryId: first.id, line: 0, cell: 0),
+      LogPosition(entryId: last.id, line: _unboundedCell, cell: _unboundedCell),
     );
   }
 

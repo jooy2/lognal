@@ -355,9 +355,13 @@ class TextMatch {
 }
 
 /// A position in the text of an entry, stable across wrapping.
-class TextPosition {
+///
+/// Named for the log rather than for the text, because `TextPosition` is already
+/// a name in `dart:ui` and an application that imports both should not have to
+/// write a prefix to say which one it means.
+class LogPosition {
   /// Creates a position.
-  const TextPosition({required this.entryId, required this.line, required this.cell});
+  const LogPosition({required this.entryId, required this.line, required this.cell});
 
   /// The entry the position is in.
   final int entryId;

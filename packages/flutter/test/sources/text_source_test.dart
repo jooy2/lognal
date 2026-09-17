@@ -136,7 +136,7 @@ void main() {
   group('readTextBytes', () {
     test('adds one entry per line and handles CRLF split across chunks', () async {
       final LogStore store = LogStore(
-        options: const LogStoreOptions(mergeRepeats: RepeatMode.keep),
+        options: const LogStoreOptions(mergeRepeats: MergeRepeats.keep),
       );
       final ReadTextResult result = await readTextBytes(
         utf8.encode('first\r\nsecond\r\nthird'),
@@ -207,7 +207,7 @@ void main() {
   group('followTextFile', () {
     test('adds the lines appended to a file and starts over when it shrinks', () async {
       final LogStore store = LogStore(
-        options: const LogStoreOptions(mergeRepeats: RepeatMode.keep),
+        options: const LogStoreOptions(mergeRepeats: MergeRepeats.keep),
       );
       final _MemoryFile file = _MemoryFile('one\ntw');
       int resets = 0;
@@ -237,7 +237,7 @@ void main() {
 
     test('reads the file again when it keeps its size but changes', () async {
       final LogStore store = LogStore(
-        options: const LogStoreOptions(mergeRepeats: RepeatMode.keep),
+        options: const LogStoreOptions(mergeRepeats: MergeRepeats.keep),
       );
       final _MemoryFile file = _MemoryFile('aaa\n', modified: DateTime(2026));
       final FollowHandle follow = followTextFile(

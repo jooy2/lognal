@@ -559,7 +559,7 @@ class LogEntry {
   final List<int> groups;
 
   /// The id of the first entry of the run of identical messages this one
-  /// repeats, set only with [RepeatMode.collapse]. The entry is hidden while
+  /// repeats, set only with [MergeRepeats.collapse]. The entry is hidden while
   /// that entry is collapsed.
   final int? runHead;
 

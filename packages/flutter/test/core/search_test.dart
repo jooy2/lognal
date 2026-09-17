@@ -27,7 +27,7 @@ class SearchContext {
 
 SearchContext setup(List<String> lines, [int maxEntries = 1000]) {
   final LogStore store = LogStore(
-    options: LogStoreOptions(maxEntries: maxEntries, mergeRepeats: RepeatMode.keep),
+    options: LogStoreOptions(maxEntries: maxEntries, mergeRepeats: MergeRepeats.keep),
   );
   final LogLayout layout = LogLayout(store);
   final LogSearch search = LogSearch(layout);
@@ -196,21 +196,21 @@ void main() {
       context.layout.sync();
 
       final PositionLocation? start = context.layout.locatePosition(
-        const TextPosition(entryId: 2, line: 0, cell: 0),
+        const LogPosition(entryId: 2, line: 0, cell: 0),
       );
 
       expect(start?.entryRow, 0);
       expect(start?.indent, 0);
       expect(
-        context.layout.locatePosition(const TextPosition(entryId: 2, line: 0, cell: 12))?.entryRow,
+        context.layout.locatePosition(const LogPosition(entryId: 2, line: 0, cell: 12))?.entryRow,
         0,
       );
       expect(
-        context.layout.locatePosition(const TextPosition(entryId: 2, line: 0, cell: 20))?.entryRow,
+        context.layout.locatePosition(const LogPosition(entryId: 2, line: 0, cell: 20))?.entryRow,
         1,
       );
       expect(
-        context.layout.locatePosition(const TextPosition(entryId: 9, line: 0, cell: 0)),
+        context.layout.locatePosition(const LogPosition(entryId: 9, line: 0, cell: 0)),
         isNull,
       );
     });

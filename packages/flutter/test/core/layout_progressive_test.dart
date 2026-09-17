@@ -9,7 +9,7 @@ const String longLine =
 
 LogStore fillStore(int count) {
   final LogStore store = LogStore(
-    options: const LogStoreOptions(mergeRepeats: RepeatMode.keep, maxEntries: 1 << 30),
+    options: const LogStoreOptions(mergeRepeats: MergeRepeats.keep, maxEntries: 1 << 30),
   );
 
   for (int index = 0; index < count; index++) {
@@ -124,7 +124,7 @@ void main() {
 
     test('changes the positions version when entries are dropped from the front', () {
       final LogStore store = LogStore(
-        options: const LogStoreOptions(maxEntries: 3, mergeRepeats: RepeatMode.keep),
+        options: const LogStoreOptions(maxEntries: 3, mergeRepeats: MergeRepeats.keep),
       );
       final LogLayout layout = LogLayout(store);
 
@@ -145,7 +145,7 @@ void main() {
 
     test('locates a row within its entry', () {
       final LogStore store = LogStore(
-        options: const LogStoreOptions(mergeRepeats: RepeatMode.keep),
+        options: const LogStoreOptions(mergeRepeats: MergeRepeats.keep),
       );
       final LogLayout layout = LogLayout(store);
 
