@@ -1,0 +1,27 @@
+name: lognal
+description: >-
+  A terminal-style log viewer drawn on a canvas. Mirror the runtime's logging,
+  read log files, and inspect typed values that expand and collapse.
+version: 1.0.0
+repository: https://github.com/jooy2/lognal
+homepage: https://lognal.cdget.com
+issue_tracker: https://github.com/jooy2/lognal/issues
+topics:
+  - logging
+  - log-viewer
+  - console
+  - terminal
+  - devtools
+
+environment:
+  sdk: ^3.8.0
+  flutter: '>=3.32.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
