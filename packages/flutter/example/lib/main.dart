@@ -14,7 +14,6 @@
 /// showing what a consumer of this package actually gets.
 library;
 
-
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';

@@ -4,9 +4,9 @@ Guidance for AI agents and people working in this repository. Read it before sta
 
 ## What lognal is
 
-lognal is a JavaScript log viewer library that looks like a terminal. It displays a fast stream of log messages and a long history, and it can also take input when something is connected to answer it. The core is plain TypeScript with no framework dependency. React is the first framework adapter, and other frameworks are meant to follow.
+lognal is a log viewer library that looks like a terminal. It displays a fast stream of log messages and a long history, and it can also take input when something is connected to answer it. It ships as two packages built from the same library: `lognal` on npm, whose core is plain TypeScript with a React adapter, and `lognal` on pub.dev, one Flutter widget. The Dart core is a translation of the TypeScript one, file for file.
 
-The library is published on npm as `lognal`, starting with 0.1.0 on 2026-09-13. The documentation site is `docs/`, published to https://lognal.cdget.com, and its demo page at `/demo` runs every feature of the viewer.
+The npm package started with 0.1.0 on 2026-09-13. Both packages are at 1.0.0 as of 2026-09-17, and the owner publishes them. The documentation site is `docs/`, published to https://lognal.cdget.com, covers both packages behind a language switch, and its demo page at `/demo` runs every feature of the viewer.
 
 ## Use cases
 
@@ -22,16 +22,16 @@ These come from the project owner and define the scope of the library.
 
 - **Render with Canvas 2D first.** The owner chose a canvas over one DOM element per line, and confirmed Canvas 2D as the first renderer. Renderers are built one at a time; a WebGL2 renderer may follow once Canvas 2D is finished and measured. Keep everything a renderer needs behind the `Renderer` interface in `src/renderer/types.ts`.
 - **Core first, renderer last.** Capture, storage, filtering and layout are finished and correct before drawing. The renderer only turns a frame of rows into pixels.
-- **Keep the core independent of any framework.** A framework adapter mounts the viewer and passes options to it, and adding an adapter must not require a change in the core. React is the only adapter for now, published as `lognal/react`.
-- **The core may be ported to Dart.** A Flutter version is planned. It will use Flutter's own renderer, so only `src/core` would be converted. Keep `src/core` free of the DOM, of framework code and of JavaScript-only platform APIs; pass a platform feature in, the way `setGraphemeSplitter` does. Prefer plain data, explicit types and classes that translate directly.
-- **One npm package with a separated structure.** Everything ships in the single `lognal` package, with the entry points `lognal`, `lognal/react` and `lognal/style.css`.
+- **Keep the core independent of any framework.** A framework adapter mounts the viewer and passes options to it, and adding an adapter must not require a change in the core. React is the only adapter on the JavaScript side, published as `lognal/react`.
+- **The Dart port is done, and the two cores stay in step.** `packages/flutter` holds the whole library, not only the core, and it draws with Flutter's own canvas. Keep both cores free of the DOM, of framework code and of platform-only APIs; pass a platform feature in, the way `setGraphemeSplitter` does. A change to one core is a change to both, and the tests of both must agree about what it does.
+- **One package per language, with a separated structure.** The npm package has the entry points `lognal`, `lognal/react` and `lognal/style.css`. The pub.dev package has one import, `package:lognal/lognal.dart`, and takes no dependency beyond `package:flutter`.
 - **Snapshot values at call time.** A hooked console call captures its arguments synchronously, together with the timestamp, the counter and timer state, and the group nesting. See "Value capture" below.
 - **Monospace fonts only, several of them.** The viewer supports a choice of monospace font families and falls back per glyph for characters the chosen font lacks, such as Hangul. Proportional fonts are not a goal.
 - **Korean and other CJK text must work for both output and input.** Width, wrapping, selection, search, file encodings, and IME composition in the input line are part of the requirements.
 - **Options are grouped by layer.** Core options (`maxEntries`, `mergeRepeats`, `wrap`, `tabSize`, `ambiguousWidth`, `maxClusters`, `filter`) go in `core`, and viewer options (theme, font, timestamps, toolbar, status bar, input, labels, locale, entry menu, search) sit at the top level of `LogViewerOptions`. Every part of the viewer can be configured or turned off.
 - **Modern, simple design.** A toolbar at the top, the log in the middle, an optional input line and status bar at the bottom, and a custom overlay scrollbar. Lines wrap by default; wrapping can be turned off. Styles ship as a separate CSS file, and every color and size is a `--lognal-*` custom property that the canvas also reads.
-- **Toolchain.** TypeScript compiled with `tsc`, ESLint and Prettier, Vitest for unit tests in Node.js and Vitest Browser Mode with Playwright for Chromium, Firefox and WebKit, VitePress with `vitepress-sidebar` and `vitepress-i18n` for the English and Korean documentation, and GitHub Actions for tests and publishing the documentation.
-- **Name.** The project and the npm package are `lognal`.
+- **Toolchain.** TypeScript compiled with `tsc`, ESLint and Prettier, Vitest for unit tests in Node.js and Vitest Browser Mode with Playwright for Chromium, Firefox and WebKit. On the Dart side, `flutter_lints` with `public_member_api_docs`, `dart format` and `flutter_test`. VitePress with `vitepress-sidebar` and `vitepress-i18n` for the English and Korean documentation, with a `::: fw` container and an `<Fw>` component for the language switch, and GitHub Actions for both test suites and for publishing the documentation.
+- **Name.** The project and both packages are `lognal`.
 - **License.** MIT, with copyright CDGet, as in `LICENSE`. The owner confirmed it after 0.1.0 was published with it.
 - **First release.** 0.1.0 was published to npm on 2026-09-13. Later changes go under `vNext` in `CHANGELOG.md` until the owner names the next version.
 
@@ -79,7 +79,7 @@ scripts/        build.mjs and generate-unicode-width.mjs
 
 ```text
 lib/src/core/      the same core, translated: store, filters, text, layout, value previews
-lib/src/sources/   print and `dart:developer` capture, and text files
+lib/src/sources/   `debugPrint`, `print` and `FlutterError` capture, and text files
 lib/src/renderer/  the Renderer interface, the default theme and the CustomPainter renderer
 lib/src/viewer/    the widget: toolbar, scrollbar, input line, labels
 lib/src/theme/     the palettes, which the stylesheet holds on the JavaScript side

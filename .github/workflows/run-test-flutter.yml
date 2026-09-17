@@ -1,0 +1,61 @@
+name: run-test-flutter
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - packages/flutter/**
+      - .github/workflows/run-test-flutter.yml
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: ./packages/flutter
+
+jobs:
+  check:
+    name: Analyze, format check and publish check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: flutter analyze
+      # `--dry-run` reports what pub.dev would reject, without publishing anything.
+      - run: dart pub publish --dry-run
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter test
+
+  example:
+    name: Build the gallery
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./packages/flutter/example
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build web --release --no-wasm-dry-run

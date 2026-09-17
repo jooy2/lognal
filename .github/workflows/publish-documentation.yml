@@ -33,7 +33,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # `prebuild` copies the root CHANGELOG.md into the site.
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # The demo page frames the real gallery, so it is built into the site's
+      # public folder before VitePress copies that folder into the output.
+      - name: Build the Flutter gallery
+        run: npm run flutter
+
+      # `prebuild` copies each package's CHANGELOG.md into the site.
       - name: Build VitePress site
         run: npm run build
 
