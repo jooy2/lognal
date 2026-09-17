@@ -146,12 +146,7 @@ class _LogSurfaceState extends State<LogSurface> {
     _dragging = false;
 
     if (event.buttons == kSecondaryMouseButton) {
-      final HitTest hit = _controller.hitTest(event.localPosition);
-      final VisualRow? row = hit.visualRow;
-
-      if (row != null) {
-        widget.onEntryMenu(row.entry.id, event.position);
-      }
+      _pressSecondary(event);
 
       return;
     }
@@ -239,6 +234,35 @@ class _LogSurfaceState extends State<LogSurface> {
     _controller
       ..clearSelection()
       ..runAction(row.entry.id, action);
+  }
+
+  /// Opens the menu of the selected entries, in entry mode.
+  ///
+  /// Only in entry mode, as in the JavaScript viewer: while the log is read
+  /// rather than picked through, a right press belongs to whatever the platform
+  /// offers over selected text. An entry that is not selected is selected alone
+  /// first, the way a file manager does it.
+  void _pressSecondary(PointerDownEvent event) {
+    if (_controller.options.selectionMode != SelectionMode.entry ||
+        !_controller.options.entryMenu.visible) {
+      return;
+    }
+
+    final HitTest hit = _controller.hitTest(event.localPosition);
+    final VisualRow? row = hit.visualRow;
+
+    if (row == null) {
+      return;
+    }
+
+    if (!_controller.selectedEntries.contains(row.entry.id)) {
+      _controller
+        ..setSelectedEntries(<int>{row.entry.id})
+        ..setEntryAnchor(row.entry.id);
+    }
+
+    _controller.setFocusedEntry(row.entry.id, showFocus: false);
+    widget.onEntryMenu(row.entry.id, event.position);
   }
 
   void _pressEntry(Offset position) {
@@ -376,6 +400,10 @@ class _LogSurfaceState extends State<LogSurface> {
   }
 
   void _onLongPress(LongPressStartDetails details) {
+    if (!_controller.options.entryMenu.visible) {
+      return;
+    }
+
     final HitTest hit = _controller.hitTest(details.localPosition);
     final VisualRow? row = hit.visualRow;
 

@@ -433,25 +433,54 @@ void main() {
     controller.dispose();
   });
 
-  testWidgets('a right press on an entry opens its menu', (WidgetTester tester) async {
+  testWidgets('a right press opens the menu of the entries, in entry mode alone', (
+    WidgetTester tester,
+  ) async {
     final LogViewerController controller = LogViewerController();
 
-    controller.write('right click me');
+    controller
+      ..write('right click me')
+      ..write('and not me');
+
+    Future<void> rightPress(int row) async {
+      final Offset origin = tester.getTopLeft(find.byType(LogViewer));
+      final TestGesture gesture = await tester.startGesture(
+        origin +
+            Offset(
+              controller.contentLeft + 8,
+              40 + paddingTop + controller.metrics.height * (row + 0.5),
+            ),
+        kind: PointerDeviceKind.mouse,
+        buttons: kSecondaryMouseButton,
+      );
+
+      await gesture.up();
+      await tester.pumpAndSettle();
+    }
+
     await tester.pumpWidget(host(LogViewer(controller: controller)));
     await tester.pump();
 
-    final Offset origin = tester.getTopLeft(find.byType(LogViewer));
-    final Offset row = origin + Offset(controller.contentLeft + 8, 40 + paddingTop + 4);
-    final TestGesture gesture = await tester.startGesture(
-      row,
-      kind: PointerDeviceKind.mouse,
-      buttons: kSecondaryMouseButton,
+    // While the log is read rather than picked through, the right press belongs
+    // to whatever the platform offers over the selected text.
+    await rightPress(0);
+    expect(find.text('Copy as text'), findsNothing);
+
+    await tester.pumpWidget(
+      host(
+        LogViewer(
+          controller: controller,
+          options: const LogViewerOptions(selectionMode: SelectionMode.entry),
+        ),
+      ),
     );
+    await tester.pump();
 
-    await gesture.up();
-    await tester.pumpAndSettle();
-
+    // The entry under the press is selected alone first, as a file manager
+    // selects the file under a right click.
+    await rightPress(1);
     expect(find.text('Copy as text'), findsOneWidget);
+    expect(controller.selectedEntries, <int>{2});
 
     controller.dispose();
   });

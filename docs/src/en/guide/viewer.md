@@ -582,7 +582,7 @@ While the log area has focus, Shift+F10 or the context menu key opens the menu f
 
 ::: fw flutter
 
-On the web the browser answers a right click with a menu of its own, and Flutter can only turn that off for the whole view rather than for one widget. So the viewer turns it off while it is on screen and puts it back when the last one goes away. Call `BrowserContextMenu.enableContextMenu()` after the viewer is built to keep the browser's menu instead, and expect both menus on a right click over the log.
+On the web the browser answers a right click with a menu of its own, and Flutter can only turn that off for the whole view rather than for one widget. So the viewer turns it off while it is in entry mode, which is the only mode a right click is its own, and puts it back as soon as no viewer is. Call `BrowserContextMenu.enableContextMenu()` after the viewer is built to keep the browser's menu instead, and expect both menus on a right click in entry mode.
 
 :::
 

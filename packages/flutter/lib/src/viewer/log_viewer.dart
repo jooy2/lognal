@@ -43,25 +43,26 @@ const List<String> _cjkFamilies = <String>[
   'Malgun Gothic',
 ];
 
-/// How many viewers are on screen, which is what decides whether the browser
-/// draws its own menu on a right click.
+/// How many viewers want the right click for themselves, which is what decides
+/// whether the browser draws its own menu on one.
 ///
-/// A right click on the log opens the viewer's entry menu, and on the web the
-/// browser answers the same click with its own menu on top of it. Flutter can
-/// only turn that off for the whole view, so the viewer turns it off while it
-/// is on screen and puts it back when the last one goes away. An application
-/// that wants the browser's menu back can call
-/// `BrowserContextMenu.enableContextMenu()` itself.
-int _viewersOnScreen = 0;
+/// In entry mode a right click opens the menu of the selected entries, and on
+/// the web the browser answers the same click with its own menu on top of it.
+/// Flutter can only turn that off for the whole view, so a viewer turns it off
+/// while it is in entry mode and puts it back as soon as no viewer is. While
+/// the log is read rather than picked through, the right click is left alone,
+/// which is what the JavaScript viewer does too: the menu the platform offers
+/// over selected text is worth more there than ours.
+int _viewersHoldingRightClick = 0;
 
 void _holdBrowserContextMenu() {
   if (!kIsWeb) {
     return;
   }
 
-  _viewersOnScreen++;
+  _viewersHoldingRightClick++;
 
-  if (_viewersOnScreen == 1) {
+  if (_viewersHoldingRightClick == 1) {
     BrowserContextMenu.disableContextMenu().ignore();
   }
 }
@@ -71,9 +72,9 @@ void _releaseBrowserContextMenu() {
     return;
   }
 
-  _viewersOnScreen--;
+  _viewersHoldingRightClick--;
 
-  if (_viewersOnScreen == 0) {
+  if (_viewersHoldingRightClick == 0) {
     BrowserContextMenu.enableContextMenu().ignore();
   }
 }
@@ -121,19 +122,22 @@ class _LogViewerState extends State<LogViewer> {
   /// rather than inside it.
   final GlobalKey<LognalPopupHostState> _popups = GlobalKey<LognalPopupHostState>();
   LogViewerController? _own;
+  LogViewerController? _watched;
+  bool _holdsRightClick = false;
 
   LogViewerController get _controller => widget.controller ?? _own!;
 
   @override
   void initState() {
     super.initState();
-    _holdBrowserContextMenu();
 
     if (widget.controller == null) {
       _own = LogViewerController(store: widget.store, options: widget.options);
     } else {
       widget.controller!.setOptions(widget.options);
     }
+
+    _watchController();
   }
 
   @override
@@ -152,13 +156,51 @@ class _LogViewerState extends State<LogViewer> {
     if (!identical(widget.options, old.options) || widget.controller != old.controller) {
       _controller.setOptions(widget.options);
     }
+
+    _watchController();
   }
 
   @override
   void dispose() {
-    _releaseBrowserContextMenu();
+    _watched?.removeListener(_syncRightClick);
+    _watched = null;
+    _releaseRightClick();
     _own?.dispose();
     super.dispose();
+  }
+
+  /// Follows the controller in use, which is how a selection mode chosen from
+  /// the toolbar reaches [_syncRightClick] rather than only one passed in
+  /// options.
+  void _watchController() {
+    final LogViewerController current = _controller;
+
+    if (!identical(current, _watched)) {
+      _watched?.removeListener(_syncRightClick);
+      _watched = current..addListener(_syncRightClick);
+    }
+
+    _syncRightClick();
+  }
+
+  /// Takes the right click from the browser while this viewer answers it.
+  void _syncRightClick() {
+    final LogViewerOptions options = _controller.options;
+    final bool wanted = options.selectionMode == SelectionMode.entry && options.entryMenu.visible;
+
+    if (wanted == _holdsRightClick) {
+      return;
+    }
+
+    _holdsRightClick = wanted;
+    wanted ? _holdBrowserContextMenu() : _releaseBrowserContextMenu();
+  }
+
+  void _releaseRightClick() {
+    if (_holdsRightClick) {
+      _holdsRightClick = false;
+      _releaseBrowserContextMenu();
+    }
   }
 
   FontSettings _resolveFont(LogViewerOptions options) {
@@ -186,7 +228,7 @@ class _LogViewerState extends State<LogViewer> {
     final ViewerLabels labels = controller.options.resolvedLabels;
     final LogEntry? entry = controller.store.get(entryId);
 
-    if (entry == null) {
+    if (entry == null || !controller.options.entryMenu.visible) {
       return;
     }
 
