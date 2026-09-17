@@ -414,6 +414,10 @@ void main() {
     expect(find.text('Open this link?'), findsOneWidget);
     expect(opened, isEmpty);
 
+    // The sentence under the title runs onto a second line rather than losing
+    // its end to an ellipsis.
+    expect(tester.getSize(find.textContaining('Check the address')).height, greaterThan(20));
+
     await tester.tap(find.text('Open link'));
     await tester.pumpAndSettle();
 

@@ -359,6 +359,7 @@ class LognalText extends StatelessWidget {
     required this.color,
     this.size = 12,
     this.weight = FontWeight.w400,
+    this.wrap = false,
     super.key,
   });
 
@@ -374,13 +375,22 @@ class LognalText extends StatelessWidget {
   /// How heavy it is.
   final FontWeight weight;
 
+  /// Whether a long line runs on rather than ending in an ellipsis.
+  ///
+  /// A label on a control keeps its one line, which is why this is off by
+  /// default. A sentence in a dialog is read rather than glanced at, so it wraps
+  /// instead of losing its end.
+  final bool wrap;
+
   @override
   Widget build(BuildContext context) {
     return Text(
       text,
       style: TextStyle(color: color, fontSize: size, fontWeight: weight, height: 1.4),
       textDirection: TextDirection.ltr,
-      overflow: TextOverflow.ellipsis,
+      // An ellipsis with no line count of its own is one line, so this is what
+      // decides whether the text wraps at all.
+      overflow: wrap ? TextOverflow.clip : TextOverflow.ellipsis,
     );
   }
 }

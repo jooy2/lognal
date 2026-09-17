@@ -29,7 +29,7 @@ Future<void> showLinkDialog({
           weight: FontWeight.w600,
         ),
         const SizedBox(height: 8),
-        LognalText(labels.linkDialogMessage, color: theme.muted),
+        LognalText(labels.linkDialogMessage, color: theme.muted, wrap: true),
         const SizedBox(height: 12),
         Container(
           width: double.infinity,
@@ -137,7 +137,7 @@ class _MuteDialogState extends State<_MuteDialog> {
       children: <Widget>[
         LognalText(labels.mute, color: theme.foreground, size: 14, weight: FontWeight.w600),
         const SizedBox(height: 8),
-        LognalText(labels.muteMessage, color: theme.muted),
+        LognalText(labels.muteMessage, color: theme.muted, wrap: true),
         const SizedBox(height: 12),
         // A box of a fixed height that scrolls, so adding or removing a rule
         // leaves the dialog where it is.
