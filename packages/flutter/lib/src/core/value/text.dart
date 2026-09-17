@@ -89,6 +89,13 @@ String _labelOf(ValueNode node) {
 /// reached.
 String uncapturedText(ValueNode node) {
   final String? className = node.className;
+  final String? text = node.value;
+
+  // See `previewValue`: an object that could not be opened shows its own
+  // description rather than `{…}`.
+  if (node.kind == ValueKind.object && text != null && text.isNotEmpty) {
+    return text;
+  }
 
   if (node.kind == ValueKind.list && (className == null || className == 'List')) {
     return 'List(${node.size ?? 0}) […]';
