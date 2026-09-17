@@ -226,6 +226,7 @@ class LognalField extends StatefulWidget {
     this.onChanged,
     this.onSubmitted,
     this.invalid = false,
+    this.focusBorder = false,
     this.autofocus = false,
     this.style,
     super.key,
@@ -255,6 +256,16 @@ class LognalField extends StatefulWidget {
   /// Whether the text is not a valid pattern, which colors the border.
   final bool invalid;
 
+  /// Whether the border says the field has focus, and says it before it says
+  /// the pattern does not compile.
+  ///
+  /// On for the fields of the hidden-message dialog, where there is a field per
+  /// rule and one more to add another, so the border is what tells the reader
+  /// which of them the keyboard is in. The filter and the search field are
+  /// alone in their bar and say it with the caret, keeping the border for
+  /// whether the pattern compiles. The stylesheet draws them the same way.
+  final bool focusBorder;
+
   /// Whether the keyboard goes here as soon as the field appears.
   final bool autofocus;
 
@@ -268,6 +279,8 @@ class LognalField extends StatefulWidget {
 class _LognalFieldState extends State<LognalField> {
   FocusNode? _own;
 
+  FocusNode get _focus => widget.focusNode ?? _own!;
+
   @override
   void initState() {
     super.initState();
@@ -277,13 +290,37 @@ class _LognalFieldState extends State<LognalField> {
     }
 
     widget.controller.addListener(_onTextChanged);
+    _focus.addListener(_onFocusChanged);
+  }
+
+  @override
+  void didUpdateWidget(LognalField old) {
+    super.didUpdateWidget(old);
+
+    if (widget.focusNode != old.focusNode) {
+      (old.focusNode ?? _own!).removeListener(_onFocusChanged);
+      _focus.addListener(_onFocusChanged);
+    }
+
+    if (widget.controller != old.controller) {
+      old.controller.removeListener(_onTextChanged);
+      widget.controller.addListener(_onTextChanged);
+    }
   }
 
   @override
   void dispose() {
     widget.controller.removeListener(_onTextChanged);
+    _focus.removeListener(_onFocusChanged);
     _own?.dispose();
     super.dispose();
+  }
+
+  /// The border says where the keyboard is, for a field that draws one.
+  void _onFocusChanged() {
+    if (mounted && widget.focusBorder) {
+      setState(() {});
+    }
   }
 
   /// The hint appears and disappears with the text, and nothing else here does,
@@ -301,12 +338,18 @@ class _LognalFieldState extends State<LognalField> {
         widget.style ?? TextStyle(color: theme.foreground, fontSize: 12, height: 1.3);
     final LognalIcon? leading = widget.icon;
 
+    final Color border = widget.focusBorder && _focus.hasFocus
+        ? theme.focusRing
+        : widget.invalid
+        ? theme.error
+        : theme.border;
+
     return Container(
       height: controlSize,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         color: theme.background,
-        border: Border.all(color: widget.invalid ? theme.error : theme.border),
+        border: Border.all(color: border),
         borderRadius: BorderRadius.circular(controlRadius),
       ),
       child: Row(
@@ -331,7 +374,7 @@ class _LognalFieldState extends State<LognalField> {
                   ),
                 EditableText(
                   controller: widget.controller,
-                  focusNode: widget.focusNode ?? _own!,
+                  focusNode: _focus,
                   style: text,
                   cursorColor: theme.accent,
                   backgroundCursorColor: theme.border,

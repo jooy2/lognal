@@ -15,6 +15,20 @@ final Finder logSurface = find.byWidgetPredicate(
   (Widget widget) => widget is CustomPaint && widget.painter is LogPainter,
 );
 
+/// The color of the border around the field of the first hidden-message rule.
+Color ruleBorder(WidgetTester tester) {
+  final Container box = tester.widget<Container>(
+    find
+        .descendant(
+          of: find.descendant(of: find.byType(ListView), matching: find.byType(LognalField)),
+          matching: find.byType(Container),
+        )
+        .first,
+  );
+
+  return ((box.decoration! as BoxDecoration).border! as Border).top.color;
+}
+
 /// What the pointer looks like over the log.
 MouseCursor cursorOverLog(WidgetTester tester) {
   return tester
@@ -662,6 +676,14 @@ void main() {
       isTrue,
     );
     expect(controller.mutedCount, 0);
+    // While the keyboard is in the field its border says so, and the pattern
+    // that does not compile shows once focus leaves. The stylesheet orders the
+    // two the same way on the web.
+    expect(ruleBorder(tester), lightTheme.chrome.focusRing);
+
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    expect(ruleBorder(tester), lightTheme.chrome.error);
 
     await tester.tap(find.bySemanticsLabel('Remove'));
     await tester.pumpAndSettle();

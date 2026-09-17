@@ -231,6 +231,7 @@ class _MuteDialogState extends State<_MuteDialog> {
                               theme: theme,
                               hint: labels.muteText,
                               invalid: !_valid(rule),
+                              focusBorder: true,
                               onChanged: (String text) =>
                                   _applyLater(index, rule.copyWith(text: text)),
                             ),
@@ -273,6 +274,7 @@ class _MuteDialogState extends State<_MuteDialog> {
                 controller: _text,
                 theme: theme,
                 hint: labels.muteText,
+                focusBorder: true,
                 onSubmitted: (String _) => _add(),
               ),
             ),
