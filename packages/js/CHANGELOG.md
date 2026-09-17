@@ -4,6 +4,10 @@ Changes to the `lognal` package on npm that affect its users, newest first.
 
 The pub.dev package versions on its own and keeps its own changelog, in [`packages/flutter/CHANGELOG.md`](../flutter/CHANGELOG.md).
 
+## vNext (2026--)
+
+- A blank line in the stack trace of a logged error no longer becomes an empty row under it.
+
 ## 1.0.0 (2026-09-17)
 
 ### Breaking changes

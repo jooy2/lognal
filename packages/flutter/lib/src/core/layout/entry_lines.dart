@@ -92,10 +92,18 @@ void _childLines(
 
   if (node.kind == ValueKind.error && stack != null && stack.isNotEmpty) {
     for (final String stackLine in stack.split('\n')) {
+      final String frame = stackLine.trim();
+
+      // A blank line is not a frame. Engines put one at the top of a trace often
+      // enough that leaving it in would open every error with an empty row.
+      if (frame.isEmpty) {
+        continue;
+      }
+
       lines.add(
         LogicalLine(
           indent: textIndent,
-          spans: <LineSpan>[LineTextSpan(stackLine.trim(), token: StyleToken.muted)],
+          spans: <LineSpan>[LineTextSpan(frame, token: StyleToken.muted)],
         ),
       );
     }

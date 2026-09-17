@@ -407,6 +407,28 @@ void main() {
       expect(rowTexts(layout), <String>['TypeError: bad', 'at a', 'at b']);
     });
 
+    test('leaves the blank lines of a stack out', () {
+      final LogStore store = LogStore();
+      final LogLayout layout = LogLayout(store);
+
+      store.add(
+        const LogEntryInit(
+          parts: <LogPart>[
+            ValuePart(
+              ValueNode(
+                kind: ValueKind.error,
+                className: 'TypeError',
+                value: 'bad',
+                stack: '\nat a\n\nat b',
+              ),
+            ),
+          ],
+        ),
+      );
+
+      expect(rowTexts(layout), <String>['TypeError: bad', 'at a', 'at b']);
+    });
+
     test('maps screen positions to text positions and copies text', () {
       final LogStore store = LogStore(
         options: const LogStoreOptions(mergeRepeats: MergeRepeats.keep),

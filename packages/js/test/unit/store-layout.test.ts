@@ -339,6 +339,22 @@ describe('LogLayout', () => {
 		expect(rowTexts(layout)).toEqual(['TypeError: bad', 'at a', 'at b']);
 	});
 
+	it('leaves the blank lines of a stack out', () => {
+		const store = new LogStore();
+		const layout = new LogLayout(store);
+
+		store.append({
+			parts: [
+				{
+					type: 'value',
+					value: { kind: 'error', className: 'TypeError', value: 'bad', stack: '\nat a\n\nat b' }
+				}
+			]
+		});
+
+		expect(rowTexts(layout)).toEqual(['TypeError: bad', 'at a', 'at b']);
+	});
+
 	it('maps screen positions to text positions and copies text', () => {
 		const store = new LogStore({ mergeRepeats: false });
 		const layout = new LogLayout(store);

@@ -9,6 +9,7 @@ The npm package versions on its own and keeps its own changelog, in
 
 - The log is cut off at the edges of the area it is drawn in, so the row that a scroll leaves half above the top no longer paints over the toolbar.
 - The text of a row is centred in it, so it lines up with the level marks, the expanders and the box-drawing lines beside it instead of sitting above them. The underline of a link and the line through struck-out text move with it.
+- A blank line in the stack trace of a logged error no longer becomes an empty row under it.
 
 ## 1.0.0 (2026-09-17)
 

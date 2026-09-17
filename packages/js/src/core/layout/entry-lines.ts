@@ -94,7 +94,15 @@ const childLines = (
 
 	if (node.kind === 'error' && node.stack) {
 		for (const stackLine of node.stack.split('\n')) {
-			lines.push({ indent: textIndent, spans: [{ text: stackLine.trim(), token: 'muted' }] });
+			const frame = stackLine.trim();
+
+			// A blank line is not a frame. Engines put one at the top of a trace often
+			// enough that leaving it in would open every error with an empty row.
+			if (frame === '') {
+				continue;
+			}
+
+			lines.push({ indent: textIndent, spans: [{ text: frame, token: 'muted' }] });
 		}
 	}
 
