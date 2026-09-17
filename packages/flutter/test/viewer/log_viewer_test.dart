@@ -20,7 +20,13 @@ MouseCursor cursorOverLog(WidgetTester tester) {
       .cursor;
 }
 
-Widget host(Widget child, {Size size = const Size(640, 360)}) {
+/// A viewer in an application with no navigator, which is the hardest host the
+/// widget has to work in.
+///
+/// Wide enough for the whole toolbar, which takes more room here than on a
+/// screen: the font a widget test draws with puts every character in a square,
+/// so a word is about twice as wide as it would really be.
+Widget host(Widget child, {Size size = const Size(720, 360)}) {
   return WidgetsApp(
     color: const Color(0xff000000),
     builder: (BuildContext context, Widget? _) => Center(

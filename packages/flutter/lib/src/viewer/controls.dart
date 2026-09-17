@@ -9,6 +9,12 @@ const double controlRadius = 6;
 /// The size of a square icon button.
 const double controlSize = 28;
 
+/// The space between two controls of a bar.
+///
+/// Small, because the buttons of a bar belong together, but not nothing: two
+/// toggles that are both on would otherwise read as one wide button.
+const double controlGap = 2;
+
 /// A square icon button, the shape every control in the chrome takes.
 class LognalButton extends StatefulWidget {
   /// Creates a button.

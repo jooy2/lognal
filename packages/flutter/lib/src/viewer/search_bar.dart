@@ -81,6 +81,7 @@ class _LognalSearchBarState extends State<LognalSearchBar> {
         container: true,
         label: labels.search,
         child: Row(
+          spacing: controlGap,
           children: <Widget>[
             Expanded(
               child: LognalField(
@@ -95,7 +96,7 @@ class _LognalSearchBarState extends State<LognalSearchBar> {
                 onSubmitted: (String _) => widget.controller.findNext(),
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 6 - controlGap),
             LognalButton(
               icon: LognalIcon.matchCase,
               label: labels.searchCase,
@@ -112,7 +113,7 @@ class _LognalSearchBarState extends State<LognalSearchBar> {
               pressed: options.regex,
               onPressed: () => _apply(regex: !options.regex),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 6 - controlGap),
             SizedBox(
               width: 72,
               child: LognalText(

@@ -311,6 +311,7 @@ class _LognalToolbarState extends State<LognalToolbar> {
         container: true,
         label: labels.toolbar,
         child: Row(
+          spacing: controlGap,
           children: <Widget>[
             ...start,
             const Spacer(),
@@ -328,7 +329,7 @@ class _LognalToolbarState extends State<LognalToolbar> {
                 ),
               ),
             if (toolbar.levels) ...<Widget>[
-              const SizedBox(width: 6),
+              const SizedBox(width: 6 - controlGap),
               _LevelsButton(
                 theme: theme,
                 label: labels.levels,
@@ -343,9 +344,15 @@ class _LognalToolbarState extends State<LognalToolbar> {
     );
   }
 
+  /// The line between two groups of controls.
+  ///
+  /// Its padding is short of the gap it wants by [controlGap], which the row
+  /// puts back on either side of it. So the space around a separator is the
+  /// same as it ever was, and what the gap changes is only the space between
+  /// two buttons that had none.
   Widget _separator(ChromeTheme theme) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 6 - controlGap),
       child: SizedBox(width: 1, height: 16, child: ColoredBox(color: theme.border)),
     );
   }
