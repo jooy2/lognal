@@ -686,6 +686,7 @@ A palette, in two halves. `renderer` is what the log is drawn with, which is the
 | `accent`, `onAccent`                         | The accent, and text on it.                                                          |
 | `border`, `surface`                          | The line between the chrome and the log, and the toolbar and status bar behind it.   |
 | `controlHover`, `controlActive`, `focusRing` | A control under the pointer, a control that is on, and the ring the keyboard leaves. |
+| `error`                                      | A field whose text is not a pattern that compiles.                                   |
 | `scrollbarThumb`, `scrollbarThumbHover`      | The scrollbar's handle.                                                              |
 | `shadow`                                     | Under a menu or a dialog.                                                            |
 

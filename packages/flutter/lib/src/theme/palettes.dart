@@ -22,6 +22,7 @@ class ChromeTheme {
     required this.controlActive,
     required this.focusRing,
     required this.onAccent,
+    required this.error,
     required this.scrollbarThumb,
     required this.scrollbarThumbHover,
     required this.shadow,
@@ -56,6 +57,10 @@ class ChromeTheme {
 
   /// The color of text on [accent].
   final Color onAccent;
+
+  /// What marks a field whose text is not a pattern that compiles. The same
+  /// color the log draws an error in.
+  final Color error;
 
   /// The scrollbar's handle.
   final Color scrollbarThumb;
@@ -191,6 +196,7 @@ LognalTheme buildTheme({
       controlActive: controlActive,
       focusRing: accent,
       onAccent: _color(isDark ? 0xff0b1220 : 0xffffffff),
+      error: error,
       scrollbarThumb: _color(isDark ? 0x3dffffff : 0x40000000),
       scrollbarThumbHover: _color(isDark ? 0x66ffffff : 0x6b000000),
       shadow: _color(isDark ? 0x73000000 : 0x24281e14),
@@ -270,6 +276,7 @@ final LognalTheme lightTheme = LognalTheme(
     controlActive: _color(0x1f1f6fd6),
     focusRing: _color(0xff1f6fd6),
     onAccent: _color(0xffffffff),
+    error: _color(0xffc4262c),
     scrollbarThumb: _color(0x471d2129),
     scrollbarThumbHover: _color(0x731d2129),
     shadow: _color(0x241d2129),
@@ -348,6 +355,7 @@ final LognalTheme darkTheme = LognalTheme(
     controlActive: _color(0x2e5aa2ff),
     focusRing: _color(0xff5aa2ff),
     onAccent: _color(0xff0b1220),
+    error: _color(0xffff8a8d),
     scrollbarThumb: _color(0x40e3e5ea),
     scrollbarThumbHover: _color(0x6be3e5ea),
     shadow: _color(0x73000000),

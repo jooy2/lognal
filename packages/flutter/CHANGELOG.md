@@ -7,6 +7,12 @@ The npm package versions on its own and keeps its own changelog, in
 
 ## vNext (2026--)
 
+### Breaking changes
+
+- `ChromeTheme` has the new color `error`, which marks a field whose text is not a pattern that compiles. A `ChromeTheme` built by hand needs it; `buildTheme` and the six palettes it ships already have it. Before this a field marked itself in the accent color, which is what a field in focus is drawn in, so nothing told the two apart.
+
+### Changes
+
 - The log is cut off at the edges of the area it is drawn in, so the row that a scroll leaves half above the top no longer paints over the toolbar.
 - The text of a row is centred in it, so it lines up with the level marks, the expanders and the box-drawing lines beside it instead of sitting above them. The underline of a link and the line through struck-out text move with it.
 - A blank line in the stack trace of a logged error no longer becomes an empty row under it.

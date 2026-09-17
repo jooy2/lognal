@@ -686,6 +686,7 @@ class LognalTheme {
 | `accent`, `onAccent`                         | 강조색과 그 위의 텍스트입니다.                                     |
 | `border`, `surface`                          | 둘레와 로그 사이의 선, 도구 모음과 상태 표시줄의 배경입니다.       |
 | `controlHover`, `controlActive`, `focusRing` | 포인터가 올라간 컨트롤, 켜진 컨트롤, 키보드가 남기는 윤곽선입니다. |
+| `error`                                      | 컴파일되지 않는 패턴이 들어간 입력란입니다.                        |
 | `scrollbarThumb`, `scrollbarThumbHover`      | 스크롤바의 손잡이입니다.                                           |
 | `shadow`                                     | 메뉴나 대화 상자 아래의 그림자입니다.                              |
 

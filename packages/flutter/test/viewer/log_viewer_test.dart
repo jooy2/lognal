@@ -6,7 +6,9 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lognal/lognal.dart';
 import 'package:lognal/src/viewer/controller.dart' show paddingTop;
+import 'package:lognal/src/viewer/controls.dart' show LognalField;
 import 'package:lognal/src/viewer/log_painter.dart';
+import 'package:lognal/src/viewer/toolbar.dart' show filterDelay;
 
 /// The painted log, which is what the pointer and the clip are tested through.
 final Finder logSurface = find.byWidgetPredicate(
@@ -583,9 +585,30 @@ void main() {
       find.descendant(of: find.byType(ListView), matching: find.byType(EditableText)),
       '^GET',
     );
+    // Past the wait an edited rule takes before it is applied.
+    await tester.pump(filterDelay * 2);
     await tester.pumpAndSettle();
     expect(controller.muteRules.single.text, '^GET');
     expect(controller.mutedCount, 2);
+
+    // A pattern that does not compile is marked in the color the log draws an
+    // error in, which is what tells it apart from a field that is merely in
+    // focus.
+    await tester.enterText(
+      find.descendant(of: find.byType(ListView), matching: find.byType(EditableText)),
+      '^GET[',
+    );
+    await tester.pump(filterDelay * 2);
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<LognalField>(
+            find.descendant(of: find.byType(ListView), matching: find.byType(LognalField)),
+          )
+          .invalid,
+      isTrue,
+    );
+    expect(controller.mutedCount, 0);
 
     await tester.tap(find.bySemanticsLabel('Remove'));
     await tester.pumpAndSettle();

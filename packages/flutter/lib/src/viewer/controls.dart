@@ -306,7 +306,7 @@ class _LognalFieldState extends State<LognalField> {
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         color: theme.background,
-        border: Border.all(color: widget.invalid ? theme.accent : theme.border),
+        border: Border.all(color: widget.invalid ? theme.error : theme.border),
         borderRadius: BorderRadius.circular(controlRadius),
       ),
       child: Row(
