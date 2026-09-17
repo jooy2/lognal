@@ -26,10 +26,6 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      # `flutter analyze` walks into `example/`, which resolves against the
-      # gallery's own pubspec, so its dependencies have to be fetched too.
-      - run: flutter pub get
-        working-directory: ./packages/flutter/example
       - run: dart format --output=none --set-exit-if-changed .
       - run: flutter analyze
       # `--dry-run` reports what pub.dev would reject, without publishing anything.
