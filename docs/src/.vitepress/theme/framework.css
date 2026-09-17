@@ -1,0 +1,219 @@
+/**
+ * The language switch.
+ *
+ * Every `::: fw` block and every `<Fw>` phrase is in the document at once; this file is what
+ * displays one of them. Doing it in CSS rather than with `v-if` buys three things at the cost of
+ * some page weight:
+ *
+ * - **No flash.** The inline script in `<head>` writes `data-fw` on `<html>` before the first
+ *   paint, so the wrong half is never drawn. A `v-if` cannot run before hydration.
+ * - **No hydration mismatch.** The server renders both halves, which is what the client renders
+ *   too.
+ * - **Both halves are searchable.** VitePress builds its index from the rendered page, so a
+ *   reader looking up `hookDebugPrint` finds the console guide whichever package they had chosen.
+ *
+ * `data-fw` on a block holds a space-separated list, because a block that both languages want and
+ * a third would not is a real case, hence `~=` rather than `=`.
+ */
+
+/*
+ * Written as "hide the other one" rather than "hide everything, then show this one", because the
+ * second shape has to name a `display` value to come back to, and a `::: fw` block is a `<div>`
+ * while an `<Fw>` phrase is a `<span>` or a `<code>`. The half that is displayed is left with no
+ * `display` declaration from this file at all, so whatever it would otherwise be, it stays.
+ */
+html[data-fw='js'] .lognal-fw[data-fw]:not([data-fw~='js']),
+html[data-fw='flutter'] .lognal-fw[data-fw]:not([data-fw~='flutter']) {
+	display: none;
+}
+
+/*
+ * The first block in a fold has the margin the paragraph above it already spent, so a `::: fw`
+ * wrapper must not add one of its own: it is a bracket around content, not a section.
+ */
+.vp-doc .lognal-fw > :first-child {
+	margin-top: 0;
+}
+
+.vp-doc .lognal-fw > :last-child {
+	margin-bottom: 0;
+}
+
+/*
+ * A bullet that only one language has. `:::` is a block, so such a list arrives as a list, a
+ * `<div>`, and another list, and the two gaps around the `<div>` are the ones between lists
+ * rather than the ones between items. These put them back to the spacing of `li + li`, so the
+ * reader sees one column of bullets.
+ */
+.vp-doc ul:has(+ .lognal-fw > ul),
+.vp-doc ol:has(+ .lognal-fw > ol) {
+	margin-bottom: 8px;
+}
+
+.vp-doc .lognal-fw:has(> ul) + ul,
+.vp-doc .lognal-fw:has(> ol) + ol {
+	margin-top: 8px;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * The switch itself, at the top of the sidebar
+ *
+ * Drawn from VitePress's own variables rather than the library's: it is part of the site's chrome
+ * and it sits among the site's navigation, so it should look like the sidebar it is in rather
+ * than like the viewer it is about. The one exception is the marks, which carry their products'
+ * own colors.
+ * ------------------------------------------------------------------------------------------- */
+
+/*
+ * Pinned to the top of the sidebar's own scroller.
+ *
+ * The menu is long and the switch decides what every entry in it will say, so a reader four
+ * groups down who wants the other package should not have to scroll back up to a control they can
+ * no longer see. It is the one thing in the sidebar that is not a link, which is also what makes
+ * it safe to pin: nothing is hidden behind it that the reader was on their way to.
+ */
+.lognal-fw-switch {
+	position: sticky;
+	z-index: 2;
+	top: 0;
+	/* The gap below the rule is padding rather than margin, because a margin is transparent, and
+	   transparency on a pinned strip is the menu sliding through it. */
+	padding: 12px 0 24px;
+	border-bottom: 1px solid var(--vp-c-divider);
+	background-color: var(--vp-sidebar-bg-color);
+}
+
+/* On a page with no sidebar, the same control without the strip it would be pinned to. */
+.lognal-fw-switch-compact {
+	position: static;
+	max-width: 260px;
+	padding: 0;
+	border-bottom: 0;
+	background-color: transparent;
+}
+
+.lognal-fw-title {
+	margin: 0 0 8px;
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 1;
+	color: var(--vp-c-text-3);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+/* A track with the options laid side by side, so both are always readable and the chosen one is a
+   position rather than a word you have to go and find. */
+.lognal-fw-track {
+	display: grid;
+	grid-auto-columns: 1fr;
+	grid-auto-flow: column;
+	gap: 3px;
+	padding: 3px;
+	border: 1px solid var(--vp-c-divider);
+	border-radius: 10px;
+	background-color: var(--vp-c-bg-alt);
+}
+
+.lognal-fw-option {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	height: 30px;
+	border-radius: 7px;
+	color: var(--vp-c-text-2);
+	font-size: 12.5px;
+	font-weight: 600;
+	line-height: 1;
+	white-space: nowrap;
+	cursor: pointer;
+	user-select: none;
+	transition:
+		color 0.16s,
+		background-color 0.16s,
+		box-shadow 0.16s;
+}
+
+/* Present to every other kind of reader, and to the arrow keys, but not drawn: the `<label>`
+   around it is the control as far as the eye is concerned. */
+.lognal-fw-option input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	white-space: nowrap;
+	clip-path: inset(50%);
+}
+
+.lognal-fw-option:hover {
+	color: var(--vp-c-text-1);
+}
+
+/*
+ * The chosen option, read off `<html>` rather than off a class the component writes, which is the
+ * same detour the top of this file takes for the `::: fw` blocks and for the same reason:
+ * `data-fw` is set before the first paint, and a class is set after hydration.
+ */
+html[data-fw='js'] .lognal-fw-option[data-fw='js'],
+html[data-fw='flutter'] .lognal-fw-option[data-fw='flutter'] {
+	background-color: var(--vp-c-bg);
+	color: var(--vp-c-text-1);
+	box-shadow:
+		0 0 0 1px var(--vp-c-divider),
+		0 1px 2px rgb(0 0 0 / 0.06);
+}
+
+/* On the label, because the input it belongs to has no box to draw one on. */
+.lognal-fw-option:has(input:focus-visible) {
+	outline: 2px solid var(--vp-c-brand-1);
+	outline-offset: 2px;
+}
+
+/* Quiet on the option that is not chosen, so the row reads as one selected thing rather than two
+   competing ones. */
+.lognal-fw-mark {
+	flex: none;
+	opacity: 0.5;
+	transition: opacity 0.16s;
+}
+
+html[data-fw='js'] .lognal-fw-option[data-fw='js'] .lognal-fw-mark,
+html[data-fw='flutter'] .lognal-fw-option[data-fw='flutter'] .lognal-fw-mark,
+.lognal-fw-option:hover .lognal-fw-mark {
+	opacity: 1;
+}
+
+/*
+ * An outline entry for a heading the chosen language cannot see. Set by `Layout.vue`, which is
+ * the only thing that can match an outline link to the block its heading sits in.
+ */
+.lognal-fw-hidden {
+	display: none;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * A preview, in whichever package the reader picked
+ * ------------------------------------------------------------------------------------------- */
+
+/* The Flutter half is a frame, so it needs a height of its own: an `<iframe>` has no content this
+   page can measure. */
+.lognal-demo-frame {
+	display: block;
+	width: 100%;
+	border: 1px solid var(--vp-c-divider);
+	border-radius: 10px;
+	background-color: var(--vp-c-bg-soft);
+}
+
+/* Said once, above the JavaScript half that is being shown instead. */
+.lognal-demo-missing {
+	margin: 0 0 8px;
+	padding: 10px 14px;
+	border: 1px solid var(--vp-c-divider);
+	border-radius: 10px;
+	background-color: var(--vp-c-bg-soft);
+	color: var(--vp-c-text-2);
+	font-size: 13px;
+	line-height: 1.5;
+}

@@ -1,10 +1,19 @@
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { defineConfig, type HeadConfig, type PageData, type UserConfig } from 'vitepress';
+import container from 'markdown-it-container';
+import {
+	defineConfig,
+	type HeadConfig,
+	type MarkdownRenderer,
+	type PageData,
+	type UserConfig
+} from 'vitepress';
 import { withI18n } from 'vitepress-i18n';
 import type { VitePressI18nOptions } from 'vitepress-i18n/types';
 import { withSidebar } from 'vitepress-sidebar';
 import type { VitePressSidebarOptions } from 'vitepress-sidebar/types';
+
+import { FRAMEWORK_HEAD_SCRIPT, FRAMEWORK_IDS } from './data/frameworks';
 
 const SITE_TITLE = 'lognal';
 const HOSTNAME = 'https://lognal.cdget.com';
@@ -173,8 +182,43 @@ const vitePressConfigs: UserConfig = {
 		['meta', { property: 'og:image:width', content: '1200' }],
 		['meta', { property: 'og:image:height', content: '630' }],
 		['meta', { name: 'twitter:card', content: 'summary_large_image' }],
-		['meta', { name: 'twitter:image', content: OG_IMAGE_URL }]
+		['meta', { name: 'twitter:image', content: OG_IMAGE_URL }],
+		// Which package's half of every page is displayed, applied to `<html>` before the first
+		// paint. See `data/frameworks.ts`.
+		['script', {}, FRAMEWORK_HEAD_SCRIPT]
 	],
+	/**
+	 * `::: fw js` … `:::` — the block that only one package's readers see.
+	 *
+	 * Both halves are in the document and CSS displays one of them, which is what makes the
+	 * switch instant and what keeps the two from being two pages that drift apart. It also means
+	 * the search index carries both, so a reader looking up `hookDebugPrint` finds the console
+	 * guide whichever package they had chosen.
+	 */
+	markdown: {
+		config(md: MarkdownRenderer) {
+			md.use(container, 'fw', {
+				validate: (params: string) => /^fw(\s+\S+)+$/.test(params.trim()),
+				render(tokens: { nesting: number; info: string }[], index: number) {
+					const token = tokens[index];
+
+					if (token.nesting !== 1) {
+						return '</div>\n';
+					}
+
+					// `::: fw flutter`, and `::: fw js flutter` for a block both of them want and
+					// a third language would not.
+					const wanted = token.info
+						.trim()
+						.split(/\s+/)
+						.slice(1)
+						.filter((id) => FRAMEWORK_IDS.includes(id));
+
+					return `<div class="lognal-fw" data-fw="${wanted.join(' ')}">\n`;
+				}
+			});
+		}
+	},
 	sitemap: {
 		hostname: HOSTNAME
 	},
@@ -220,7 +264,17 @@ const vitePressConfigs: UserConfig = {
 		logo: { src: '/logo.webp', alt: SITE_TITLE, width: 24, height: 24 },
 		socialLinks: [
 			{ icon: 'github', link: REPOSITORY_URL },
-			{ icon: 'npm', link: 'https://www.npmjs.com/package/lognal' }
+			{ icon: 'npm', link: 'https://www.npmjs.com/package/lognal' },
+			// pub.dev has no icon in VitePress's set, so the mark is Flutter's own: the same path
+			// `FrameworkMark.vue` draws in the sidebar switch, in the navigation bar's color like
+			// every other social link.
+			{
+				icon: {
+					svg: '<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>pub.dev</title><path d="M14.314 0 2.3 12l3.7 3.7L21.684.013h-7.37Zm.014 11.072L7.857 17.53l6.47 6.47H21.7l-6.42-6.47 6.42-6.458h-7.372Z"/></svg>'
+				},
+				link: 'https://pub.dev/packages/lognal',
+				ariaLabel: 'lognal on pub.dev'
+			}
 		],
 		editLink: {
 			pattern: `${REPOSITORY_URL}/edit/main/docs/src/:path`

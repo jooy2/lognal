@@ -7,3 +7,6 @@ src/.vitepress/cache/
 src/.vitepress/.temp/
 src/changelog.md
 src/ko/changelog.md
+
+# The Flutter gallery, built by `npm run flutter`
+src/public/flutter/

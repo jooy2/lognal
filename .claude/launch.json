@@ -3,8 +3,17 @@
 	"configurations": [
 		{
 			"name": "playground",
-			"runtimeExecutable": "npx",
-			"runtimeArgs": ["vite", "playground", "--port", "5178", "--strictPort"],
+			"runtimeExecutable": "npm",
+			"runtimeArgs": [
+				"--prefix",
+				"packages/js",
+				"run",
+				"dev",
+				"--",
+				"--port",
+				"5178",
+				"--strictPort"
+			],
 			"port": 5178
 		},
 		{
@@ -12,6 +21,18 @@
 			"runtimeExecutable": "npm",
 			"runtimeArgs": ["--prefix", "docs", "run", "dev", "--", "--port", "5191", "--strictPort"],
 			"port": 5191
+		},
+		{
+			"name": "flutter-gallery",
+			"runtimeExecutable": "python3",
+			"runtimeArgs": [
+				"-m",
+				"http.server",
+				"8099",
+				"--directory",
+				"packages/flutter/example/build/web"
+			],
+			"port": 8099
 		}
 	]
 }

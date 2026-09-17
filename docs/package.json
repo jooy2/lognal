@@ -8,11 +8,14 @@
 		"prebuild": "node scripts/copy-changelog.mjs",
 		"build": "vitepress build src",
 		"serve": "vitepress serve src",
+		"flutter": "node scripts/build-flutter.mjs",
 		"format": "prettier . --write"
 	},
 	"author": "CDGet (https://cdget.com)",
 	"license": "MIT",
 	"dependencies": {
+		"@types/markdown-it-container": "^4.0.1",
+		"markdown-it-container": "^4.0.0",
 		"vitepress": "^1.6.4",
 		"vitepress-i18n": "^1.4.0",
 		"vitepress-sidebar": "^1.40.0",
