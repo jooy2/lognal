@@ -15,6 +15,7 @@ class LogPainter extends CustomPainter {
     required this.renderer,
     required this.theme,
     required this.font,
+    this.fontGeneration = 0,
   }) : super(repaint: controller);
 
   /// The viewer's state.
@@ -29,11 +30,17 @@ class LogPainter extends CustomPainter {
   /// The font to draw with.
   final FontSettings font;
 
+  /// Rises whenever a font face the last frame wanted has arrived, which is what
+  /// makes the renderer measure again rather than keep the widths it took from a
+  /// face that was not there yet.
+  final int fontGeneration;
+
   @override
   void paint(Canvas canvas, Size size) {
     renderer.theme = theme;
 
-    if (renderer.font != font) {
+    if (renderer.font != font || _generation != fontGeneration) {
+      _generation = fontGeneration;
       renderer.setFont(font);
     }
 
@@ -41,8 +48,13 @@ class LogPainter extends CustomPainter {
     renderer.paint(canvas, size, controller.frame());
   }
 
+  int _generation = -1;
+
   @override
   bool shouldRepaint(LogPainter old) {
-    return old.controller != controller || old.theme != theme || old.font != font;
+    return old.controller != controller ||
+        old.theme != theme ||
+        old.font != font ||
+        old.fontGeneration != fontGeneration;
   }
 }

@@ -1,0 +1,40 @@
+name: lognal_example
+description: >-
+  The lognal viewer, running. A gallery of log sources on any platform, and the
+  renderer behind every Flutter preview on the documentation site.
+publish_to: none
+version: 0.0.1
+
+environment:
+  sdk: ^3.8.0
+  flutter: '>=3.32.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  lognal:
+    path: ../
+  # What `onOpenLink` is answered with. The library refuses a plugin — opening a
+  # URL is the application's job and every application has already chosen how it
+  # does that — and this is an application, so it chooses.
+  url_launcher: ^6.3.0
+  # What the "Open a log file" button is answered with, for the same reason:
+  # reading a file the reader picked is a plugin, and which plugin is the
+  # application's choice.
+  file_selector: ^1.0.3
+  # How the documentation site tells a framed gallery which palette the page
+  # around it is in. Web-only, and imported behind a conditional so a gallery
+  # built for anything else never sees it — see `lib/host.dart`.
+  web: ^1.1.0
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+
+flutter:
+  fonts:
+    # Flutter on the web draws with the fonts the application bundles and cannot
+    # reach the ones the system has, so a gallery that wants a grid on the web
+    # has to carry one. See `fonts/README.md`.
+    - family: NanumGothicCoding
+      fonts:
+        - asset: fonts/NanumGothicCoding-Regular.ttf

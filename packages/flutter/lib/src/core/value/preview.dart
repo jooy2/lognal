@@ -186,11 +186,20 @@ List<LineTextSpan> _leafSpans(ValueNode node, bool nested) {
 }
 
 /// `StateError: message`, or just the name when there is no message.
+///
+/// With no name at all the message stands alone, which is the case a release
+/// build for the web leaves: it does not keep the type names an error would
+/// otherwise be titled with.
 String errorTitle(ValueNode node) {
-  final String name = node.className ?? 'Error';
+  final String? name = node.className;
   final String? message = node.value;
+  final bool hasMessage = message != null && message.isNotEmpty;
 
-  return message != null && message.isNotEmpty ? '$name: $message' : name;
+  if (name == null || name.isEmpty) {
+    return hasMessage ? message : 'Error';
+  }
+
+  return hasMessage ? '$name: $message' : name;
 }
 
 bool _isContainer(ValueNode node) {
@@ -234,6 +243,18 @@ List<LineTextSpan> previewValue(ValueNode node, [bool nested = false]) {
   final bool isList = node.kind == ValueKind.list;
 
   if (children == null) {
+    // An object the capture could not open shows what it says about itself.
+    // Dart has no way to read the fields of an arbitrary value, so a class that
+    // writes its own `toString()` is the common case here, and printing `{…}`
+    // over a description the author wrote would throw away the only thing the
+    // log line has. The JavaScript side never reaches this branch: it reads the
+    // properties instead.
+    final String? text = node.value;
+
+    if (node.kind == ValueKind.object && text != null && text.isNotEmpty) {
+      return <LineTextSpan>[LineTextSpan(text, token: StyleToken.defaultToken)];
+    }
+
     spans.add(LineTextSpan(isList ? '[…]' : '{…}', token: StyleToken.defaultToken));
 
     return spans;

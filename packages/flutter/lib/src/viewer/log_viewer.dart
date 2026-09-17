@@ -22,6 +22,8 @@ import 'package:lognal/src/viewer/toolbar.dart';
 /// Flutter has no generic `monospace` that means the same thing everywhere, so
 /// the list is written out: the platform's own first, then the Korean and
 /// Japanese monospace faces a CJK log line needs, then whatever else is around.
+const List<String> _webFamilies = <String>['monospace', 'Courier New'];
+
 const Map<TargetPlatform, List<String>> _monospaceFamilies = <TargetPlatform, List<String>>{
   TargetPlatform.iOS: <String>['Menlo', 'Courier'],
   TargetPlatform.macOS: <String>['SF Mono', 'Menlo', 'Monaco', 'Courier'],
@@ -123,8 +125,9 @@ class _LogViewerState extends State<LogViewer> {
       return font;
     }
 
-    final List<String> platform =
-        _monospaceFamilies[defaultTargetPlatform] ?? const <String>['monospace'];
+    final List<String> platform = kIsWeb
+        ? _webFamilies
+        : _monospaceFamilies[defaultTargetPlatform] ?? const <String>['monospace'];
 
     return font.copyWith(
       family: platform.first,

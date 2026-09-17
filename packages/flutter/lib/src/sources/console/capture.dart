@@ -60,6 +60,18 @@ const CaptureOptions defaultCaptureOptions = CaptureOptions();
 /// What `Object.toString()` returns for a class that does not override it.
 final RegExp _defaultToString = RegExp(r"^Instance of '.*'$");
 
+/// The name a type has once the compiler has renamed it.
+///
+/// `runtimeType` is not preserved by a release build for the web: the class name
+/// comes back as `minified:eD`, which is worse than no name at all. A name like
+/// that is dropped, and the value is shown by what it holds and what its
+/// `toString()` says instead.
+String? _typeNameOf(Object value) {
+  final String name = value.runtimeType.toString();
+
+  return name.startsWith('minified:') || name.isEmpty ? null : name;
+}
+
 /// The headers the errors in the SDK print in front of their message.
 ///
 /// Dart has no rule that an error's `toString()` opens with its own type name —
@@ -149,7 +161,7 @@ class _Capture {
     if (value is Duration || value is Uri) {
       return ValueNode(
         kind: ValueKind.object,
-        className: value.runtimeType.toString(),
+        className: _typeNameOf(value),
         value: value.toString(),
       );
     }
@@ -218,7 +230,7 @@ class _Capture {
   }
 
   ValueNode _plainObject(Object value, int depth) {
-    final String className = value.runtimeType.toString();
+    final String? className = _typeNameOf(value);
     final String text = value.toString();
     final String? shown = _defaultToString.hasMatch(text) ? null : text;
 
@@ -272,10 +284,9 @@ class _Capture {
 
   ValueNode _list(Iterable<Object?> value, int depth) {
     final int length = value.length;
-    final String className = value.runtimeType.toString();
     final ValueNode node = ValueNode(
       kind: ValueKind.list,
-      className: _cleanTypeName(className, 'List'),
+      className: _cleanTypeName(_typeNameOf(value), 'List'),
       size: length,
     );
 
@@ -310,7 +321,7 @@ class _Capture {
   ValueNode _set(Set<Object?> value, int depth) {
     final ValueNode node = ValueNode(
       kind: ValueKind.set,
-      className: _cleanTypeName(value.runtimeType.toString(), 'Set'),
+      className: _cleanTypeName(_typeNameOf(value), 'Set'),
       size: value.length,
     );
 
@@ -337,7 +348,7 @@ class _Capture {
   ValueNode _map(Map<Object?, Object?> value, int depth) {
     final ValueNode node = ValueNode(
       kind: ValueKind.map,
-      className: _cleanTypeName(value.runtimeType.toString(), 'Map'),
+      className: _cleanTypeName(_typeNameOf(value), 'Map'),
       size: value.length,
     );
 
@@ -371,8 +382,11 @@ class _Capture {
   }
 
   ValueNode _error(Object value, StackTrace? stackTrace, int depth) {
-    final String className = value.runtimeType.toString();
-    final String message = _messageOf(value, className);
+    // With no type name to put in front of it — a release build for the web has
+    // none — the message keeps the header it came with, so the title reads the
+    // way Dart itself prints the error rather than losing half of it.
+    final String? className = _typeNameOf(value);
+    final String message = className == null ? value.toString() : _messageOf(value, className);
     final String stack = stackTrace?.toString().trimRight() ?? '';
     final ValueNode node = ValueNode(
       kind: ValueKind.error,
@@ -404,10 +418,11 @@ class _Capture {
 }
 
 /// `_Map<String, int>` and `_GrowableList<int>` are implementation names. What a
-/// reader wants is `Map` or the author's own type, so an internal name falls
-/// back to the plain one.
-String? _cleanTypeName(String className, String fallback) {
-  final String name = className.split('<').first;
+/// reader wants is `Map` or the author's own type, so an internal name — or none
+/// at all, which is what a release build for the web leaves — falls back to the
+/// plain one.
+String? _cleanTypeName(String? className, String fallback) {
+  final String name = (className ?? '').split('<').first;
 
   if (name.startsWith('_') || name.isEmpty) {
     return fallback;

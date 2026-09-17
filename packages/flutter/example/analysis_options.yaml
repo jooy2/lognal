@@ -1,0 +1,22 @@
+# The gallery is an application rather than a package, so it is not held to the
+# rule about documenting every public member — but everything else the library
+# is held to applies here too.
+
+include: package:flutter_lints/flutter.yaml
+
+formatter:
+  page_width: 100
+
+linter:
+  rules:
+    - always_declare_return_types
+    - always_use_package_imports
+    - prefer_single_quotes
+    - directives_ordering
+    - unawaited_futures
+    - use_super_parameters
+
+analyzer:
+  errors:
+    unused_import: error
+    avoid_relative_lib_imports: error

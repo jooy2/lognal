@@ -62,6 +62,7 @@ class LogSurface extends StatefulWidget {
 class _LogSurfaceState extends State<LogSurface> {
   final CanvasLogRenderer _renderer = CanvasLogRenderer();
   final FocusNode _focus = FocusNode(debugLabel: 'lognal log');
+  int _fontGeneration = 0;
   Offset? _pressAt;
   bool _dragging = false;
   bool _selectingEntries = false;
@@ -71,10 +72,28 @@ class _LogSurfaceState extends State<LogSurface> {
   LogViewerController get _controller => widget.controller;
 
   @override
+  void initState() {
+    super.initState();
+    // A font that was not there when a frame was drawn may be there by the next
+    // one: on the web the engine fetches a face for a character no bundled font
+    // covers, and until it arrives that character is a box. This is the same
+    // seam the JavaScript renderer has in `onFontsChanged` — measure again, and
+    // draw again.
+    PaintingBinding.instance.systemFonts.addListener(_onSystemFontsChanged);
+  }
+
+  @override
   void dispose() {
+    PaintingBinding.instance.systemFonts.removeListener(_onSystemFontsChanged);
     _focus.dispose();
     _renderer.dispose();
     super.dispose();
+  }
+
+  void _onSystemFontsChanged() {
+    if (mounted) {
+      setState(() => _fontGeneration++);
+    }
   }
 
   bool get _isApple {
@@ -519,6 +538,7 @@ class _LogSurfaceState extends State<LogSurface> {
               renderer: _renderer,
               theme: widget.theme.renderer,
               font: widget.font,
+              fontGeneration: _fontGeneration,
             ),
             size: size,
           ),

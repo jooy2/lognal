@@ -22,6 +22,19 @@ class Account {
   Map<String, Object?> toJson() => <String, Object?>{'id': 7};
 }
 
+class Session {
+  const Session(this.id);
+
+  final String id;
+
+  @override
+  String toString() => 'Session($id)';
+}
+
+class Opaque {
+  const Opaque();
+}
+
 void main() {
   group('formatValueText', () {
     test('keeps every value on one line unless multiline is on', () {
@@ -69,6 +82,14 @@ void main() {
           '}',
         ].join('\n'),
       );
+    });
+
+    test('shows an object it could not open by what it says about itself', () {
+      expect(line(const Session('9f3a')), 'Session(9f3a)');
+      expect(multiline(const Session('9f3a')), 'Session(9f3a)');
+      expect(data(const Session('9f3a')), '"Session(9f3a)"');
+      // One that says nothing has nothing to show but its type.
+      expect(line(const Opaque()), 'Opaque {…}');
     });
 
     test('writes type names, sets and empty containers', () {
