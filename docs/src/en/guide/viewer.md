@@ -171,6 +171,8 @@ A theme the reader picked from the toolbar stays picked; only a new value in `op
 | Filter                          | `filter`             | Shows the entries that contain the text. The filter applies 120 ms after typing stops.                                                                               |
 | Log levels                      | `levels`             | Chooses the levels the log shows. It sets `levels` on the filter.                                                                                                    |
 
+The controls sit in two groups, with the filter and the levels at the right end. In a viewer too narrow to hold both groups on one line, the second group goes onto a line of its own and the toolbar grows to fit.
+
 Each control shows its name in a small label as soon as the pointer reaches it, without the wait of the tooltip of the browser. The same label appears when the keyboard moves to the control. Pass `tooltips: false` to leave the tooltip to the browser, which then shows the name from the `title` attribute.
 
 Every control is shown by default. Pass an object to hide some of them, or `false` to hide the toolbar:

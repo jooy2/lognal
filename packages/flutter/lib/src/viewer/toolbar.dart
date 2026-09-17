@@ -301,7 +301,9 @@ class _LognalToolbarState extends State<LognalToolbar> {
     ];
 
     return Container(
-      constraints: const BoxConstraints(minHeight: 40),
+      // The whole width, which a row took by itself and a wrap does not: it is
+      // as wide as the lines it holds.
+      constraints: const BoxConstraints(minWidth: double.infinity, minHeight: 40),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: theme.surface,
@@ -310,34 +312,49 @@ class _LognalToolbarState extends State<LognalToolbar> {
       child: Semantics(
         container: true,
         label: labels.toolbar,
-        child: Row(
-          spacing: controlGap,
+        // Two groups with the room between them, and a second line when there
+        // is not enough of it. A toolbar that kept everything on one line would
+        // push the filter and the levels off the right of a narrow viewer, and
+        // the stylesheet has wrapped them onto a second line all along.
+        child: Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 6,
           children: <Widget>[
-            ...start,
-            const Spacer(),
-            if (toolbar.filter)
-              SizedBox(
-                width: 180,
-                child: LognalField(
-                  controller: _filterText,
-                  focusNode: _filterFocus,
-                  theme: theme,
-                  hint: labels.filter,
-                  icon: LognalIcon.search,
-                  invalid: _controller.layout.filter.error != null,
-                  onChanged: _onFilterChanged,
-                ),
+            Row(mainAxisSize: MainAxisSize.min, spacing: controlGap, children: start),
+            if (toolbar.filter || toolbar.levels)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 6,
+                children: <Widget>[
+                  if (toolbar.filter)
+                    Flexible(
+                      // Its width until the bar runs short of room, and no
+                      // narrower than a field worth typing into.
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(minWidth: 96, maxWidth: 180),
+                        child: LognalField(
+                          controller: _filterText,
+                          focusNode: _filterFocus,
+                          theme: theme,
+                          hint: labels.filter,
+                          icon: LognalIcon.search,
+                          invalid: _controller.layout.filter.error != null,
+                          onChanged: _onFilterChanged,
+                        ),
+                      ),
+                    ),
+                  if (toolbar.levels)
+                    _LevelsButton(
+                      theme: theme,
+                      label: labels.levels,
+                      value: _levelsText(),
+                      tooltips: tooltips,
+                      onOpen: _openLevelMenu,
+                    ),
+                ],
               ),
-            if (toolbar.levels) ...<Widget>[
-              const SizedBox(width: 6 - controlGap),
-              _LevelsButton(
-                theme: theme,
-                label: labels.levels,
-                value: _levelsText(),
-                tooltips: tooltips,
-                onOpen: _openLevelMenu,
-              ),
-            ],
           ],
         ),
       ),

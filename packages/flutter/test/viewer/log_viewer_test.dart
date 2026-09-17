@@ -8,7 +8,7 @@ import 'package:lognal/lognal.dart';
 import 'package:lognal/src/viewer/controller.dart' show paddingTop;
 import 'package:lognal/src/viewer/controls.dart' show LognalField;
 import 'package:lognal/src/viewer/log_painter.dart';
-import 'package:lognal/src/viewer/toolbar.dart' show filterDelay;
+import 'package:lognal/src/viewer/toolbar.dart' show LognalToolbar, filterDelay;
 
 /// The painted log, which is what the pointer and the clip are tested through.
 final Finder logSurface = find.byWidgetPredicate(
@@ -74,6 +74,30 @@ void main() {
     expect(find.text('Following'), findsNothing);
     // No toolbar filter and no input line, so nothing here takes text.
     expect(find.byType(EditableText), findsNothing);
+  });
+
+  testWidgets('the toolbar goes onto a second line rather than off a narrow viewer', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(host(const LogViewer()));
+    await tester.pump();
+
+    final double oneLine = tester.getSize(find.byType(LognalToolbar)).height;
+
+    await tester.pumpWidget(host(const LogViewer(), size: const Size(380, 320)));
+    await tester.pump();
+
+    // A row that ran off the edge would be reported as an overflow and fail
+    // this test on its own. What is left to say is that nothing was dropped and
+    // that the bar took the second line it needed.
+    expect(find.text('All levels'), findsOneWidget);
+    expect(tester.getSize(find.byType(LognalToolbar)).height, greaterThan(oneLine));
+    // Two short lines do not make the bar itself short: it is as wide as the
+    // viewer it sits at the top of.
+    expect(
+      tester.getSize(find.byType(LognalToolbar)).width,
+      tester.getSize(find.byType(LogViewer)).width,
+    );
   });
 
   testWidgets('follows new entries and counts them', (WidgetTester tester) async {
