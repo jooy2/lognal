@@ -20,3 +20,8 @@ analyzer:
   errors:
     unused_import: error
     avoid_relative_lib_imports: error
+  # The same migration as in the package's own `analysis_options.yaml`. The
+  # gallery has a `web/` directory, so that one is written out as well.
+  exclude:
+    - build/**
+    - web/**

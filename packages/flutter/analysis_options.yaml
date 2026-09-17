@@ -29,5 +29,10 @@ analyzer:
   errors:
     unused_import: error
     avoid_relative_lib_imports: error
+  # `flutter pub get` adds `build/**`, and every platform directory the
+  # package has, to this list whenever one of them is missing. That leaves
+  # the working tree dirty and fails `dart pub publish --dry-run`, so the
+  # entries are checked in and the migration finds nothing left to write.
   exclude:
+    - build/**
     - example/build/**
