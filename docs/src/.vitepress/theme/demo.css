@@ -10,8 +10,17 @@
 }
 
 .demo-page .demo-intro {
-	max-width: 840px;
 	margin-bottom: 24px;
+}
+
+.demo-page .demo-intro-text {
+	max-width: 840px;
+}
+
+/* Below the text, and with the gap the paragraph above would have given it: `::: fw` takes the
+   margin off its last child, and that last child is that paragraph. */
+.demo-page .demo-intro .lognal-fw-switch {
+	margin-top: 16px;
 }
 
 /*
@@ -22,9 +31,36 @@
 	display: none;
 }
 
+/* The Flutter half is one frame, so the page is what gives it a height. See `FlutterDemo.vue`. */
+.demo-page .lognal-demo-fill {
+	height: 70vh;
+	height: 70svh;
+	min-height: 420px;
+}
+
 @media (min-width: 768px) {
 	.demo-page {
 		padding: 32px 32px 96px;
+	}
+
+	/*
+	 * The switch moves out of the column of text and into the space beside it, which is empty at
+	 * this width. What the demo below gains is the height the switch was taking.
+	 */
+	.demo-page .demo-intro {
+		display: flex;
+		align-items: flex-start;
+		gap: 32px;
+	}
+
+	.demo-page .demo-intro-text {
+		flex: 1;
+	}
+
+	.demo-page .demo-intro .lognal-fw-switch {
+		flex: none;
+		width: 240px;
+		margin-top: 0;
 	}
 }
 
@@ -41,8 +77,28 @@
 		padding: 24px 32px;
 	}
 
-	.demo-page .demo-intro > :last-child {
+	.demo-page .demo-intro {
+		margin-bottom: 16px;
+	}
+
+	.demo-page .demo-intro-text > :last-child {
 		margin-bottom: 0;
+	}
+
+	/*
+	 * The `::: fw` wrapper around each demo is a bracket rather than a box: what has to take the
+	 * rest of the page is the demo inside it, and a wrapper in between would take it instead.
+	 * The rule that hides the package a reader did not pick is the more specific one, so the half
+	 * that is not displayed stays hidden.
+	 */
+	.demo-page > .lognal-fw {
+		display: contents;
+	}
+
+	.demo-page .lognal-demo-fill {
+		flex: 1;
+		height: auto;
+		min-height: 0;
 	}
 
 	.demo-layout .VPFooter {

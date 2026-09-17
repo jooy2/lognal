@@ -7,7 +7,8 @@ description: lognal의 모든 기능을 브라우저에서 시험합니다. 콘�
 ---
 
 <div class="demo-page">
-<div class="demo-intro vp-doc">
+<div class="demo-intro">
+<div class="demo-intro-text vp-doc">
 
 # 데모
 
@@ -22,6 +23,8 @@ description: lognal의 모든 기능을 브라우저에서 시험합니다. 콘�
 `packages/flutter/example`를 빌드한 Flutter 갤러리를 그대로 끼워 넣었습니다. 그림이 아니라 진짜 Flutter 빌드입니다. 왼쪽 버튼으로 예제 로그를 쓴 다음 도구 모음을 써 보세요. 팔레트는 이 페이지의 라이트/다크 스위치를 따릅니다.
 
 :::
+
+</div>
 
 <FrameworkSelect compact />
 
@@ -38,7 +41,7 @@ description: lognal의 모든 기능을 브라우저에서 시험합니다. 콘�
 ::: fw flutter
 
 <ClientOnly>
-  <FlutterDemo :height="620" />
+  <FlutterDemo fill />
 </ClientOnly>
 
 :::

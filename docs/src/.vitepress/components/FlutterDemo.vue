@@ -20,8 +20,14 @@ const props = withDefaults(
 		demo?: string;
 		/** How tall the frame is. A frame has no content of ours to measure. */
 		height?: number;
+		/**
+		 * Takes the height of the box around it instead of a height of its own, for a page that
+		 * has already sized that box. The demo page is the one: it is as tall as the screen, and
+		 * a frame with a number in it would either fall short of the bottom or run past it.
+		 */
+		fill?: boolean;
 	}>(),
-	{ demo: undefined, height: 420 }
+	{ demo: undefined, height: 420, fill: false }
 );
 
 const { isDark, lang } = useData();
@@ -101,6 +107,9 @@ const onMessage = (event: MessageEvent): void => {
 	}
 };
 
+/** The height the frame is given, which is nothing at all when the page gives it one. */
+const frameStyle = computed(() => (props.fill ? undefined : { height: `${props.height}px` }));
+
 onMounted(() => {
 	window.addEventListener('message', onMessage);
 	void galleryBuilt(`${galleryUrl}version.json`).then((ok) => {
@@ -116,7 +125,7 @@ watch(isDark, tellFrame);
 </script>
 
 <template>
-	<div class="lognal-demo">
+	<div class="lognal-demo" :class="{ 'lognal-demo-fill': fill }">
 		<p v-if="built === false" class="lognal-demo-missing">
 			The Flutter preview needs the gallery built — <code>npm run flutter</code> in
 			<code>docs/</code>.
@@ -126,10 +135,10 @@ watch(isDark, tellFrame);
 			ref="frame"
 			class="lognal-demo-frame"
 			:src="source"
-			:style="{ height: `${height}px` }"
+			:style="frameStyle"
 			title="lognal for Flutter"
 			loading="lazy"
 		/>
-		<div v-else class="lognal-demo-frame" :style="{ height: `${height}px` }" />
+		<div v-else class="lognal-demo-frame" :style="frameStyle" />
 	</div>
 </template>

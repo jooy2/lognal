@@ -7,7 +7,8 @@ description: Try every feature of lognal in the browser. Write console messages,
 ---
 
 <div class="demo-page">
-<div class="demo-intro vp-doc">
+<div class="demo-intro">
+<div class="demo-intro-text vp-doc">
 
 # Demo
 
@@ -22,6 +23,8 @@ This page runs lognal from its repository. Write sample logs with the buttons, c
 This is the Flutter gallery, built from `packages/flutter/example` and framed here, so what you are looking at is the real Flutter build rather than a picture of one. Write sample logs with the buttons on the left, then try the toolbar. It takes its palette from this page's light and dark switch.
 
 :::
+
+</div>
 
 <FrameworkSelect compact />
 
@@ -38,7 +41,7 @@ This is the Flutter gallery, built from `packages/flutter/example` and framed he
 ::: fw flutter
 
 <ClientOnly>
-  <FlutterDemo :height="620" />
+  <FlutterDemo fill />
 </ClientOnly>
 
 :::

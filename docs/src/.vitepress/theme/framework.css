@@ -206,6 +206,20 @@ html[data-fw='flutter'] .lognal-fw-option[data-fw='flutter'] .lognal-fw-mark,
 	background-color: var(--vp-c-bg-soft);
 }
 
+/* `<FlutterDemo fill />`, where the page has sized the box and the frame takes what is left of
+   it. The note about a missing gallery keeps its own height, so the frame is the one that grows. */
+.lognal-demo-fill {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 0;
+}
+
+.lognal-demo-fill .lognal-demo-frame {
+	flex: 1;
+	min-height: 0;
+}
+
 /* Said once, above the JavaScript half that is being shown instead. */
 .lognal-demo-missing {
 	margin: 0 0 8px;
