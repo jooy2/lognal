@@ -578,6 +578,12 @@ When the pointer is over an entry, the rows of that entry get a light background
 
 While the log area has focus, Shift+F10 or the context menu key opens the menu for the entry where the selection ends, or for the first entry on screen. The arrow keys move through the menu, Enter chooses an item, and Escape closes the menu. In entry mode, a right click, Shift+F10 and the context menu key open the menu of the selected entries instead. See [Entry mode](#entry-mode).
 
+::: fw flutter
+
+On the web the browser answers a right click with a menu of its own, and Flutter can only turn that off for the whole view rather than for one widget. So the viewer turns it off while it is on screen and puts it back when the last one goes away. Call `BrowserContextMenu.enableContextMenu()` after the viewer is built to keep the browser's menu instead, and expect both menus on a right click over the log.
+
+:::
+
 ### Add your own items
 
 Pass an object as `entryMenu` to add items after the built-in ones. `items` is called every time the menu opens, with the entry the menu opens for, and `onSelect` receives the same entry.

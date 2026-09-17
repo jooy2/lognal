@@ -206,7 +206,9 @@ Future<void> showLognalMenu({
   required List<PopupItem> items,
   double width = 240,
 }) {
-  if (host == null) {
+  // A menu with nothing in it does not open, the way the JavaScript viewer's
+  // entry menu does not when every item has been turned off.
+  if (host == null || items.isEmpty) {
     return Future<void>.value();
   }
 

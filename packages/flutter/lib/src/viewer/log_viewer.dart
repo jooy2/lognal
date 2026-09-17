@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:lognal/src/core/store.dart';
 import 'package:lognal/src/core/types.dart';
@@ -41,6 +42,41 @@ const List<String> _cjkFamilies = <String>[
   'Apple SD Gothic Neo',
   'Malgun Gothic',
 ];
+
+/// How many viewers are on screen, which is what decides whether the browser
+/// draws its own menu on a right click.
+///
+/// A right click on the log opens the viewer's entry menu, and on the web the
+/// browser answers the same click with its own menu on top of it. Flutter can
+/// only turn that off for the whole view, so the viewer turns it off while it
+/// is on screen and puts it back when the last one goes away. An application
+/// that wants the browser's menu back can call
+/// `BrowserContextMenu.enableContextMenu()` itself.
+int _viewersOnScreen = 0;
+
+void _holdBrowserContextMenu() {
+  if (!kIsWeb) {
+    return;
+  }
+
+  _viewersOnScreen++;
+
+  if (_viewersOnScreen == 1) {
+    BrowserContextMenu.disableContextMenu().ignore();
+  }
+}
+
+void _releaseBrowserContextMenu() {
+  if (!kIsWeb) {
+    return;
+  }
+
+  _viewersOnScreen--;
+
+  if (_viewersOnScreen == 0) {
+    BrowserContextMenu.enableContextMenu().ignore();
+  }
+}
 
 /// A log viewer that looks and behaves like a terminal.
 ///
@@ -91,6 +127,7 @@ class _LogViewerState extends State<LogViewer> {
   @override
   void initState() {
     super.initState();
+    _holdBrowserContextMenu();
 
     if (widget.controller == null) {
       _own = LogViewerController(store: widget.store, options: widget.options);
@@ -119,6 +156,7 @@ class _LogViewerState extends State<LogViewer> {
 
   @override
   void dispose() {
+    _releaseBrowserContextMenu();
     _own?.dispose();
     super.dispose();
   }

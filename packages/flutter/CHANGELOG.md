@@ -13,6 +13,8 @@ The npm package versions on its own and keeps its own changelog, in
 - The toolbar menus, the entry menu and the link and hidden-message dialogs open again. The viewer draws them over itself instead of pushing a route onto the application's navigator, so they work in an application that has none, such as a `WidgetsApp` with nothing but a `builder`.
 - The pointer over the log says what a press would do, the way the stylesheet already says it on the web: a bar over text to select, a hand over a link or an expander, and an arrow while whole entries are being picked out.
 - The sentence a dialog explains itself with wraps instead of ending in an ellipsis.
+- On the web, the browser no longer draws its own menu over the entry menu on a right click. The viewer turns the browser's menu off while it is on screen and puts it back when the last one goes away.
+- A menu that would have no items in it does not open.
 - A filter, a mute rule or anything else that leaves fewer rows behind no longer scrolls the log off the bottom of the view. The view comes back inside the log it is showing, and a view that was following new entries stays at the end.
 
 ## 1.0.0 (2026-09-17)
