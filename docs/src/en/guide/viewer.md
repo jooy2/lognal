@@ -7,6 +7,8 @@ description: Every LogViewer option with its default, and how the toolbar, statu
 
 ## Create and dispose
 
+::: fw js
+
 `new LogViewer(container, options)` adds the viewer to the end of `container`. The viewer fills the container, so give the container a height.
 
 ```ts
@@ -24,7 +26,35 @@ viewer.dispose();
 
 `dispose()` removes the viewer from the page, removes its event listeners, and stops the console hooks started with `viewer.hookConsole`. The store keeps its entries, so another viewer can show them.
 
+:::
+
+::: fw flutter
+
+`LogViewer` is a widget. It fills what it is put in, so give that a height.
+
+```dart
+import 'package:flutter/widgets.dart';
+import 'package:lognal/lognal.dart';
+
+SizedBox(
+  height: 400,
+  child: LogViewer(
+    store: store,
+    options: const LogViewerOptions(
+      theme: 'dark',
+      core: CoreOptions(maxEntries: 50000),
+    ),
+  ),
+);
+```
+
+The widget disposes of whatever it created when it leaves the tree. A `LogViewerController` you passed in is yours, so dispose of it with whatever holds it. The store keeps its entries either way, so another viewer can show them.
+
+:::
+
 ## Options
+
+::: fw js
 
 | Option          | Type                                    | Default                | Description                                                                                                       |
 | --------------- | --------------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------- |
@@ -47,6 +77,38 @@ viewer.dispose();
 | `tooltips`      | `boolean`                               | `true`                 | Whether a toolbar control shows its name as soon as the pointer reaches it. See [Toolbar](#toolbar).              |
 | `renderer`      | `(ownerDocument: Document) => Renderer` | Canvas 2D              | Creates the renderer. See [Layout and renderers](/reference/layout#renderer).                                     |
 
+:::
+
+::: fw flutter
+
+The widget takes `store`, `controller` and `options`. Everything below is a field of `LogViewerOptions`.
+
+| Option            | Type                             | Default                | Description                                                                                                       |
+| ----------------- | -------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `core`            | `CoreOptions`                    | See below              | What is kept, how lines are laid out, and which entries are shown.                                                |
+| `theme`           | `String`                         | `'auto'`               | The palette. `'auto'` follows the platform. See [Themes](/guide/theming#themes).                                  |
+| `themes`          | `List<ThemeChoice>?`             | Every built-in palette | The themes the toolbar menu offers.                                                                               |
+| `themeResolver`   | `LognalTheme? Function(String)?` | None                   | Returns the palette for a name of your own.                                                                       |
+| `font`            | `FontSettings`                   | The platform's         | The font of the log. See [Fonts](/guide/theming#fonts).                                                           |
+| `timestamps`      | `bool`                           | `true`                 | Whether each entry shows its time.                                                                                |
+| `timestampFormat` | `TimestampFormat`                | `TimestampFormat.time` | How the time is written.                                                                                          |
+| `formatTimestamp` | `String Function(DateTime)?`     | None                   | Writes the time in your own format.                                                                               |
+| `follow`          | `bool`                           | `true`                 | Whether the view follows new entries at the start.                                                                |
+| `toolbar`         | `ViewerToolbarOptions`           | Everything on          | The toolbar controls, or `ViewerToolbarOptions.hidden` to leave it out.                                           |
+| `statusBar`       | `bool`                           | `true`                 | Whether the status bar is shown.                                                                                  |
+| `input`           | `InputOptions?`                  | `null`                 | The input line. Leave it out for a read-only viewer.                                                              |
+| `locale`          | `String?`                        | None                   | The language of the built-in labels, such as `'ko'`.                                                              |
+| `labels`          | `ViewerLabels?`                  | Built-in labels        | Labels that replace the built-in ones.                                                                            |
+| `entryMenu`       | `EntryMenuOptions`               | On                     | The menu of actions of the entry under the pointer. See [Entry menu](#entry-menu).                                |
+| `search`          | `bool`                           | `true`                 | Whether the find shortcut opens a search bar over the log. See [Search](#search).                                 |
+| `linkClick`       | `LinkClick`                      | `LinkClick.confirm`    | What a tap on a link does. See [Links](#links).                                                                   |
+| `selectionMode`   | `SelectionMode`                  | `SelectionMode.text`   | Whether the pointer and the keyboard select text or whole entries. See [Selection and copy](#selection-and-copy). |
+| `tooltips`        | `bool`                           | `true`                 | Whether a toolbar control shows its name as soon as the pointer reaches it. See [Toolbar](#toolbar).              |
+| `formatNumber`    | `String Function(int)`           | A comma every three    | Formats a count for the reader's language.                                                                        |
+| `onOpenLink`      | `void Function(String)?`         | None                   | Opens a link. See [Links](#links).                                                                                |
+
+:::
+
 ### Core options
 
 | Option           | Type                         | Default  | Description                                                                                                                 |
@@ -60,9 +122,13 @@ viewer.dispose();
 | `links`          | `boolean`                    | `true`   | Whether `http` and `https` addresses in the text are drawn as links. See [Links](#links).                                   |
 | `filter`         | `LogFilter \| null`          | `null`   | The initial filter. See [Filtering](#filtering).                                                                            |
 
+<Fw js="mergeRepeats takes true, 'collapse' or false." flutter="In Dart these are the same names with Dart's own types: mergeRepeats is a MergeRepeats, wrap is a WrapMode, and filter is a LogFilter?." />
+
 `maxEntries` and `mergeRepeats` belong to the store. When you pass a `store` together with these options, they are applied to that store, and so to every viewer that shares it.
 
 ### Change options later
+
+::: fw js
 
 `setOptions` changes the options you pass and keeps the others. `store` and `renderer` cannot be changed after creation.
 
@@ -73,6 +139,23 @@ viewer.setOptions({ locale: 'ko' });
 ```
 
 Passing `toolbar`, `statusBar`, `input`, `labels` or `locale` builds the toolbar, the input line and the status bar again. For `locale`, this happens whenever the key is present, even when its value is `undefined`. See [Labels and locale](#labels-and-locale) for how `locale` and `labels` combine.
+
+:::
+
+::: fw flutter
+
+`LogViewerOptions` is a value, so changing an option is rebuilding the widget with a different one. `copyWith` keeps the rest:
+
+```dart
+LogViewer(
+  controller: controller,
+  options: base.copyWith(theme: 'light', core: base.core.copyWith(wrap: WrapMode.none)),
+);
+```
+
+A theme the reader picked from the toolbar stays picked; only a new value in `options.theme` replaces it. `store` cannot be changed after the controller exists.
+
+:::
 
 ## Toolbar
 
@@ -85,7 +168,6 @@ Passing `toolbar`, `statusBar`, `input`, `labels` or `locale` builds the toolbar
 | Select whole entries            | `selectionMode`      | Switches between selecting text and selecting whole entries. See [Selection and copy](#selection-and-copy).                                                          |
 | Theme                           | `theme`              | Opens a menu of the themes in `themes`. See [Themes](/guide/theming#themes).                                                                                         |
 | Hidden messages                 | `mute`               | Opens the dialog that manages the rules which keep messages out of the log, with the count of hidden entries on the button. See [Hidden messages](#hidden-messages). |
-| Hidden messages                 | `mute`               | Opens the dialog that manages the rules which keep messages out of the log, with the count of hidden entries on the button. See [Hidden messages](#hidden-messages). |
 | Filter                          | `filter`             | Shows the entries that contain the text. The filter applies 120 ms after typing stops.                                                                               |
 | Log levels                      | `levels`             | Chooses the levels the log shows. It sets `levels` on the filter.                                                                                                    |
 
@@ -93,18 +175,46 @@ Each control shows its name in a small label as soon as the pointer reaches it, 
 
 Every control is shown by default. Pass an object to hide some of them, or `false` to hide the toolbar:
 
+::: fw js
+
 ```ts
 new LogViewer(container, { toolbar: { wrap: false, levels: false } });
 new LogViewer(container, { toolbar: false });
 ```
 
+:::
+
+::: fw flutter
+
+```dart
+const LogViewerOptions(toolbar: ViewerToolbarOptions(wrap: false, levels: false));
+const LogViewerOptions(toolbar: ViewerToolbarOptions.hidden);
+```
+
+:::
+
 When wrapping was turned off another way, for example with `core: { wrap: 'none' }`, the wrap button turns on `'word'`, or `'char'` if the button turned `'char'` off before.
 
 Some text keeps its lines whole whatever `wrap` says: the output of `console.table`, and text written with `wrap: false`. When such a line is wider than the viewer, the log scrolls sideways and the horizontal scrollbar appears.
 
+::: fw js
+
 ```ts
 viewer.write(['+-------+------+', '| build | pass |', '+-------+------+'].join('\n'), { wrap: false });
 ```
+
+:::
+
+::: fw flutter
+
+```dart
+store.write(
+  <String>['+-------+------+', '| build | pass |', '+-------+------+'].join('\n'),
+  const WriteOptions(wrap: false),
+);
+```
+
+:::
 
 ## Status bar
 
@@ -114,15 +224,17 @@ The status bar shows the number of entries on the left, such as `3 entries`, or 
 
 Each entry shows the time it was added, or the `time` passed with it, in a column on the left.
 
-| `timestamps`               | Example                    |
-| -------------------------- | -------------------------- |
-| `true`, `'time'`           | `14:03:09.120`             |
-| `'datetime'`               | `2026-09-13 14:03:09.120`  |
-| `'iso'`                    | `2026-09-13T05:03:09.120Z` |
-| `(time: number) => string` | Your own format            |
-| `false`                    | No timestamp column        |
+| <Fw js="timestamps" flutter="timestampFormat" code />               | Example                    |
+| ------------------------------------------------------------------- | -------------------------- |
+| <Fw js="true, 'time'" flutter="TimestampFormat.time" code />        | `14:03:09.120`             |
+| <Fw js="'datetime'" flutter="TimestampFormat.datetime" code />      | `2026-09-13 14:03:09.120`  |
+| <Fw js="'iso'" flutter="TimestampFormat.iso" code />                | `2026-09-13T05:03:09.120Z` |
+| <Fw js="(time: number) => string" flutter="formatTimestamp" code /> | Your own format            |
+| <Fw js="false" flutter="timestamps: false" code />                  | No timestamp column        |
 
 `'time'` and `'datetime'` use local time, and `'iso'` uses UTC. The width of the column is measured from the current time in the chosen format, so a function should return text of the same length every time. Longer text is squeezed to fit.
+
+::: fw js
 
 ```ts
 new LogViewer(container, {
@@ -130,9 +242,23 @@ new LogViewer(container, {
 });
 ```
 
+:::
+
+::: fw flutter
+
+```dart
+LogViewerOptions(
+  formatTimestamp: (DateTime time) => '${time.hour}:${time.minute}:${time.second}',
+);
+```
+
+:::
+
 ## Following new logs
 
 The viewer starts at the bottom and stays there as entries arrive. Scrolling up pauses following, and entries that arrive while paused show a **New logs** button. Scrolling back to the bottom, pressing the button, or pressing the follow button in the toolbar resumes following.
+
+::: fw js
 
 ```ts
 const checkpoint = viewer.store.write('Checkpoint', { level: 'info' });
@@ -147,13 +273,37 @@ viewer.on('follow', (following) => {
 });
 ```
 
-`scrollToTop()` and `scrollToEntry(id)` pause following. `scrollToBottom()` and `setFollowing(true)` resume it, and `viewer.isFollowing` tells whether the view follows.
+:::
+
+::: fw flutter
+
+```dart
+final LogEntry? checkpoint = store.write(
+  'Checkpoint',
+  const WriteOptions(level: LogLevel.info),
+);
+
+// Later: pause following and show the checkpoint at the top of the view.
+if (checkpoint != null) {
+  controller.scrollToEntry(checkpoint.id);
+}
+
+// The controller is a ChangeNotifier, so this is how anything of yours follows
+// it: there is no separate event for each thing that can change.
+controller.addListener(() => setState(() {}));
+```
+
+:::
+
+`scrollToTop()` and `scrollToEntry(id)` pause following. `scrollToBottom()` and `setFollowing(true)` resume it, and <Fw js="viewer.isFollowing" flutter="controller.isFollowing" code /> tells whether the view follows.
 
 While following is paused, the view keeps the entry at its top in place. Entries dropped from the front of the store, a value expanded above the view, or a new width that wraps lines differently do not move what you are reading.
 
 With a large log, a change of width lays out the rows on screen first, and the rest of the log in small steps between frames. Until that finishes, the scrollbar is based on estimated row heights, so its thumb can move a little while the view stays put.
 
 ## Filtering
+
+::: fw js
 
 ```ts
 // Entries that contain "timeout", at the warning level or above.
@@ -168,6 +318,30 @@ viewer.setFilter({ levels: ['debug', 'info'] });
 // Show every entry.
 viewer.setFilter(null);
 ```
+
+:::
+
+::: fw flutter
+
+```dart
+// Entries that contain "timeout", at the warning level or above.
+controller.setFilter(const LogFilter(text: 'timeout', minLevel: LogLevel.warn));
+
+// A case-sensitive regular expression.
+controller.setFilter(
+  const LogFilter(text: '^GET /api/', regex: true, caseSensitive: true),
+);
+
+// Only debug and info entries.
+controller.setFilter(
+  const LogFilter(levels: <LogLevel>[LogLevel.debug, LogLevel.info]),
+);
+
+// Show every entry.
+controller.setFilter(null);
+```
+
+:::
 
 | `LogFilter` field | Type         | Description                                                                                            |
 | ----------------- | ------------ | ------------------------------------------------------------------------------------------------------ |
@@ -191,13 +365,15 @@ Levels go from least to most severe: `debug`, `log`, `info`, `warn`, `error`.
 
 The menu lists every level with a mark next to the ones the log shows, and it stays open while you choose, so several levels take one visit. While every level is shown, choosing one shows that level alone. From there, choosing a level adds it or takes it away, and **All levels** goes back to showing them all. The button says which levels are shown: the name of the only level, the number of levels, or **All levels**.
 
-Every change, from the toolbar or from `setFilter`, emits the `filter` event. `getFilter()` returns the current filter.
+<Fw js="Every change, from the toolbar or from setFilter, emits the filter event. getFilter() returns the current filter." flutter="Every change, from the toolbar or from setFilter, notifies the controller's listeners. controller.filter returns the current filter." />
 
 To keep every entry on screen and highlight the matches instead, use [Search](#search).
 
 ## Hidden messages
 
 Some messages are never worth reading: a heartbeat a library prints every second, or a warning from a dependency you cannot change. A mute rule keeps them out of the log for good, while the filter stays free for the search you are running.
+
+::: fw js
 
 ```ts
 new LogViewer(container, {
@@ -209,6 +385,25 @@ new LogViewer(container, {
 });
 ```
 
+:::
+
+::: fw flutter
+
+```dart
+const LogViewerOptions(
+  core: CoreOptions(
+    filter: LogFilter(
+      mute: <MuteRule>[
+        MuteRule(text: 'GET /health'),
+        MuteRule(text: r'^\[hmr\]', regex: true),
+      ],
+    ),
+  ),
+);
+```
+
+:::
+
 | `MuteRule` field | Type      | Description                                                        |
 | ---------------- | --------- | ------------------------------------------------------------------ |
 | `text`           | `string`  | The text an entry must contain to be hidden.                       |
@@ -216,7 +411,7 @@ new LogViewer(container, {
 | `caseSensitive`  | `boolean` | Whether letter case must match. Matching ignores case by default.  |
 | `enabled`        | `boolean` | Whether the rule is applied. `false` keeps it without applying it. |
 
-The **Hidden messages** button in the toolbar opens a dialog that adds, edits and removes the rules while the log follows along, and the button carries the number of entries the rules hide. `getMuteRules`, `setMuteRules`, `getMutedCount` and `openMuteDialog` do the same from code, and `toolbar: { mute: false }` hides the button.
+The **Hidden messages** button in the toolbar opens a dialog that adds, edits and removes the rules while the log follows along, and the button carries the number of entries the rules hide. <Fw js="getMuteRules, setMuteRules, getMutedCount and openMuteDialog" flutter="controller.muteRules, setMuteRules and mutedCount" /> do the same from code, and <Fw js="toolbar: { mute: false }" flutter="toolbar: ViewerToolbarOptions(mute: false)" code /> hides the button.
 
 - A rule is tested against the same text as the filter: the text of the entry and the one-line preview of each value.
 - A command typed into the input line and a notice from the viewer, such as `Console was cleared`, are never hidden.
@@ -235,7 +430,7 @@ Press Ctrl+F, or Cmd+F on macOS, while focus is anywhere in the viewer, to open 
 | Alt+R in the search field  | Turns **Use regular expression** on or off. |
 | Escape in the search field | Closes the bar and removes the highlights.  |
 
-- Two toggles in the bar, `Aa` and `.*`, decide how text is compared. By default the search ignores letter case and takes the text as typed. **Match case** makes letter case count, and **Use regular expression** reads the text as a JavaScript regular expression. A pattern that does not compile marks the field and finds nothing. Text is compared in Unicode normalization form C, so decomposed Hangul matches too.
+- Two toggles in the bar, `Aa` and `.*`, decide how text is compared. By default the search ignores letter case and takes the text as typed. **Match case** makes letter case count, and **Use regular expression** reads the text as a <Fw js="JavaScript" flutter="Dart" /> regular expression. A pattern that does not compile marks the field and finds nothing. Text is compared in Unicode normalization form C, so decomposed Hangul matches too.
 - It searches what the log shows: the visible entries, with the rows of open values. Entries hidden by the filter or by a closed group are not searched.
 - When the bar opens with text selected on one line, the search starts with that text.
 - The first match at the top of the view or below it becomes current, and the view scrolls to the current match when it is off screen. Moving to a match pauses following.
@@ -245,13 +440,15 @@ The same actions are available as methods: `openSearch(query?, options?)`, `clos
 
 ## Links
 
-`http` and `https` addresses in the log are drawn as links, underlined in the `--lognal-link` color. A click or a tap on a link does what `linkClick` says, and the link opens in a new tab.
+`http` and `https` addresses in the log are drawn as links, underlined in the <Fw js="--lognal-link" flutter="link" code /> color. A click or a tap on a link does what `linkClick` says.
 
 | `linkClick` | What a click on a link does                                                                                                                  |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `'confirm'` | Opens a dialog that shows the whole address. **Open link** opens it, and **Cancel**, Escape or a click outside the dialog closes the dialog. |
 | `'open'`    | Opens the link right away.                                                                                                                   |
 | `'ignore'`  | Nothing. The address is still drawn as a link, and a click selects text as it does anywhere else.                                            |
+
+::: fw js
 
 ```ts
 // Open links without asking.
@@ -261,10 +458,31 @@ new LogViewer(container, { linkClick: 'open' });
 new LogViewer(container, { core: { links: false } });
 ```
 
+:::
+
+::: fw flutter
+
+```dart
+LogViewerOptions(
+  // Open links without asking.
+  linkClick: LinkClick.open,
+  // And what actually opens one, which is yours to answer.
+  onOpenLink: (String url) => launchUrl(Uri.parse(url)),
+);
+
+// Draw addresses as plain text.
+const LogViewerOptions(core: CoreOptions(links: false));
+```
+
+Opening a URL needs a plugin, and which plugin is your application's decision, so lognal draws the link, asks the question and hands you the answer. Without `onOpenLink`, the answer goes nowhere.
+
+:::
+
 - An address starts with `http://` or `https://` and ends before the next space, quote or angle bracket. Punctuation at its end, such as the period of a sentence, is left out, and so is a closing bracket that has no opening bracket in the address. Addresses with other schemes, such as `javascript:` or `file:`, never become links.
 - An address inside the preview of a value that opens, such as `{ url: 'https://…' }`, is not a link, because a click there opens the value. Open the value, and the address on its own row is a link.
-- The dialog writes the host the way the browser reads it, so a host made of letters that look like other letters shows its `xn--` form. An invisible or bidirectional formatting character is never part of an address; the link ends before it.
-- A link opens with `noopener` and `noreferrer`, so the new page cannot reach the page of the viewer and is not told where it was opened from.
+- An invisible or bidirectional formatting character is never part of an address; the link ends before it, so what the dialog shows is what would open. ::: fw js
+- A link opens in a new tab with `noopener` and `noreferrer`, so the new page cannot reach the page of the viewer and is not told where it was opened from. ::: ::: fw flutter
+- Where a link opens is decided by `onOpenLink`, which is your application's. The viewer never opens one itself. :::
 - The entry menu lists up to five links of the entry, so a link also opens from the keyboard with Shift+F10. With `linkClick: 'ignore'`, the menu leaves them out.
 - Ctrl+click, or Cmd+click on macOS, opens a link right away, without the dialog. It does nothing with `linkClick: 'ignore'`, and in entry mode it adds the entry to the selection instead.
 - Any other click with Shift, Ctrl, Alt or Cmd held selects text and does not open the link.
@@ -320,13 +538,28 @@ A click on a value, a group header or a link still opens it, and selects its ent
 
 ### Selection methods
 
-`getSelectionText(options?)` returns the selection as text, `selectAll()` and `clearSelection()` change it, and `copySelection(options?)` copies it and resolves to whether anything was copied. In entry mode, `options` takes the `format` and `timestamp` that [`getEntryText`](#entry-menu) takes, and `copySelection` adds HTML for `'formatted'`. `getSelectedEntryIds()` returns the ids of the selected entries, or in text mode the ids of the entries the selected text runs through. The `selection` event reports the text of the selection whenever it changes.
+<Fw js="getSelectionText(options?)" flutter="selectionText(options?)" code /> returns the selection as text, `selectAll()` and `clearSelection()` change it, and `copySelection(options?)` copies it and reports whether anything was copied. In entry mode, `options` takes the `format` and `timestamp` that <Fw js="getEntryText" flutter="entryText" code /> takes<Fw js=", and copySelection adds HTML for 'formatted'" />. <Fw js="getSelectedEntryIds()" flutter="selectedEntryIds" code /> returns the ids of the selected entries, or in text mode the ids of the entries the selected text runs through. <Fw js="The selection event reports the text of the selection whenever it changes." flutter="The controller notifies its listeners whenever the selection changes." />
+
+::: fw js
 
 ```ts
 viewer.setOptions({ selectionMode: 'entry' });
 viewer.selectAll();
 await viewer.copySelection({ format: 'data' });
 ```
+
+:::
+
+::: fw flutter
+
+```dart
+controller.selectAll();
+await controller.copySelection(
+  const EntryTextOptions(format: EntryTextFormat.data),
+);
+```
+
+:::
 
 ## Entry menu
 
@@ -348,6 +581,8 @@ While the log area has focus, Shift+F10 or the context menu key opens the menu f
 ### Add your own items
 
 Pass an object as `entryMenu` to add items after the built-in ones. `items` is called every time the menu opens, with the entry the menu opens for, and `onSelect` receives the same entry.
+
+::: fw js
 
 ```ts
 const socket = new WebSocket('wss://example.com/reports');
@@ -377,7 +612,46 @@ An `EntryMenuItem` has a `label` and an `onSelect(entry, viewer)` function. Your
 
 `entryMenu: false` turns off the button, the long press and the keyboard shortcut. The hover background stays; set `--lognal-hover` to `transparent` to remove it.
 
-The copies are also available as methods. `getEntryText(id, options?)` returns an entry in the format `options.format` names, `'text'`, `'formatted'` or `'data'`, with the time in front when `options.timestamp` is `true`. `copyEntry(id, options?)` copies the same text, adds the HTML for `'formatted'`, and resolves to whether anything was copied.
+:::
+
+::: fw flutter
+
+```dart
+LogViewerOptions(
+  entryMenu: EntryMenuOptions(
+    items: (LogEntry entry) => <EntryMenuItem>[
+      EntryMenuItem(
+        label: 'Show only this level',
+        onSelect: (LogEntry chosen) => controller.setFilter(
+          LogFilter(levels: <LogLevel>[chosen.level]),
+        ),
+      ),
+      EntryMenuItem(
+        label: 'Report this entry',
+        onSelect: (LogEntry chosen) => socket.sink.add(
+          controller.entryText(chosen.id, const EntryTextOptions(timestamp: true)),
+        ),
+      ),
+    ],
+  ),
+);
+```
+
+| `EntryMenuOptions` field | Type                                      | Default | Description                                           |
+| ------------------------ | ----------------------------------------- | ------- | ----------------------------------------------------- |
+| `visible`                | `bool`                                    | `true`  | Whether the button is there at all.                   |
+| `copy`                   | `bool`                                    | `true`  | Whether the menu starts with the built-in copy items. |
+| `items`                  | `List<EntryMenuItem> Function(LogEntry)?` | None    | Returns the items that follow the built-in ones.      |
+
+An `EntryMenuItem` has a `label` and an `onSelect(entry)` function. Your items come after the built-in ones, below a separator.
+
+`EntryMenuOptions.hidden` turns off the button, the long press and the keyboard shortcut. The hover background stays; set the theme's `hover` to a transparent color to remove it.
+
+:::
+
+The copies are also available as methods. <Fw js="getEntryText(id, options?)" flutter="entryText(id, options?)" code /> returns an entry in the format `options.format` names, `text`, `formatted` or `data`, with the time in front when `options.timestamp` is `true`. `copyEntry(id, options?)` copies the same text<Fw js=", adds the HTML for 'formatted'," /> and reports whether anything was copied.
+
+::: fw js
 
 ```ts
 const entry = viewer.store.write('Deploy finished', { level: 'info' });
@@ -387,9 +661,31 @@ if (entry) {
 }
 ```
 
+:::
+
+::: fw flutter
+
+```dart
+final LogEntry? entry = store.write(
+  'Deploy finished',
+  const WriteOptions(level: LogLevel.info),
+);
+
+if (entry != null) {
+  await controller.copyEntry(
+    entry.id,
+    const EntryTextOptions(format: EntryTextFormat.formatted, timestamp: true),
+  );
+}
+```
+
+:::
+
 ## Input line
 
 The input line appears when you pass `input`. Each command goes to `onSubmit`, and what the function returns is printed as the reply.
+
+::: fw js
 
 <ClientOnly>
   <LiveViewer preset="input" :height="300" />
@@ -422,23 +718,72 @@ socket.addEventListener('message', (event) => viewer.write(String(event.data)));
 | `echo`               | `boolean`                                         | `true`           | Whether the command is added to the log before it runs. |
 | `historySize`        | `number`                                          | `100`            | How many past commands the arrow keys go through.       |
 
+:::
+
+::: fw flutter
+
+<ClientOnly>
+  <FlutterDemo demo="levels" :height="380" />
+</ClientOnly>
+
+```dart
+LogViewerOptions(
+  input: InputOptions(
+    prompt: r'$',
+    onSubmit: (String command) {
+      if (command == 'time') {
+        return DateTime.now();
+      }
+
+      // Send the command to a server. The reply arrives later through
+      // store.write.
+      socket.sink.add(command);
+
+      return null;
+    },
+  ),
+);
+```
+
+| `InputOptions` field | Type                       | Default          | Description                                             |
+| -------------------- | -------------------------- | ---------------- | ------------------------------------------------------- |
+| `onSubmit`           | `Object? Function(String)` | Required         | Called with each command.                               |
+| `prompt`             | `String`                   | `'>'`            | The prompt shown before the input.                      |
+| `placeholder`        | `String?`                  | `Type a command` | The hint inside the field, from the labels by default.  |
+| `echo`               | `bool`                     | `true`           | Whether the command is added to the log before it runs. |
+| `historySize`        | `int`                      | `100`            | How many past commands the arrow keys go through.       |
+
+:::
+
 What `onSubmit` returns decides the reply:
 
 - A string is printed as text.
 - Any other value is printed as a [typed value](/guide/values).
-- `undefined` prints nothing. Use it when the reply arrives later.
-- A promise is awaited, and the value it resolves to is printed the same way.
-- An error thrown by the function, or a rejected promise, is printed as an error-level entry.
+- <Fw js="undefined" flutter="null" code /> prints nothing. Use it when the reply arrives later.
+- A <Fw js="promise" flutter="future" /> is awaited, and the value it produces is printed the same way.
+- An error thrown by the function, or a failed <Fw js="promise" flutter="future" />, is printed as an error-level entry.
 
-Enter submits the command, and Shift+Enter adds a line. The field grows up to six lines. A command made only of spaces is ignored. ArrowUp and ArrowDown go through past commands when the caret is on the first or the last line. Submitting a command turns following on. While an IME composition is open, Enter finishes a Korean syllable and submits, and only confirms a Japanese or Chinese candidate. See [Input line and IME](/guide/cjk#input-line-and-ime).
+::: fw js
+
+Enter submits the command, and Shift+Enter adds a line, up to six. A command made only of spaces is ignored. ArrowUp and ArrowDown go through past commands while the caret is on the first or the last line. Submitting a command turns following on. An Enter pressed during IME composition finishes a Hangul syllable and submits with it, and only confirms a Japanese or Chinese candidate. See [Input line and input methods](/guide/cjk#input-line-and-input-methods).
+
+:::
+
+::: fw flutter
+
+Enter submits the command. A command made only of spaces is ignored. The arrow keys go through past commands. Submitting a command turns following on. An input method composes into the field, so Enter reaches the command only once the composition is finished. See [Input line and input methods](/guide/cjk#input-line-and-input-methods).
+
+:::
 
 ## Labels and locale
 
 With `locale: 'ko'`, or a language tag such as `'ko-KR'`, the toolbar, the status bar and the accessible names are in Korean. Every other language uses the English labels. The `locale` also decides how the status bar formats numbers.
 
-`setOptions({ locale })` switches the built-in labels of a viewer that already exists. The labels you passed in `labels` stay on top of the new built-in labels. Passing `labels` to `setOptions` replaces the earlier overrides, and `labels: {}` removes them.
-
 Replace any label with `labels`. `entries` is a function that receives the number of shown entries, the total, and a function that formats a number for the locale.
+
+::: fw js
+
+`setOptions({ locale })` switches the built-in labels of a viewer that already exists. The labels you passed in `labels` stay on top of the new built-in labels. Passing `labels` to `setOptions` replaces the earlier overrides, and `labels: {}` removes them.
 
 ```ts
 new LogViewer(container, {
@@ -451,9 +796,34 @@ new LogViewer(container, {
 });
 ```
 
+:::
+
+::: fw flutter
+
+`ViewerLabels` is a complete set rather than a partial one, so `copyWith` on the built-in labels is how a few of them are replaced.
+
+```dart
+LogViewerOptions(
+  locale: 'de',
+  labels: enLabels.copyWith(
+    clear: 'Protokoll leeren',
+    filter: 'Filtern',
+    entries: (int shown, int total, NumberFormatter format) => shown == total
+        ? '${format(total)} Einträge'
+        : '${format(shown)} von ${format(total)} Einträgen',
+  ),
+);
+```
+
+`formatNumber` is what those `format` functions are, and it writes a comma every three digits unless you pass your own. `package:intl` is a dependency this package does not take.
+
+:::
+
 Every label is listed in [`ViewerLabels`](/reference/log-viewer#viewerlabels).
 
 ## Methods and events
+
+::: fw js
 
 | Member                                                                                                              | Description                                                                                |
 | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
@@ -475,9 +845,38 @@ Every label is listed in [`ViewerLabels`](/reference/log-viewer#viewerlabels).
 | `setOptions(options)`                                                                                               | Changes the options given and keeps the others.                                            |
 | `dispose()`                                                                                                         | Removes the viewer and stops everything it started.                                        |
 
+:::
+
+::: fw flutter
+
+These are on `LogViewerController`.
+
+| Member                                                                                              | Description                                                     |
+| --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `store`, `layout`, `search`                                                                         | The entries, how they are laid out, and the search over them.   |
+| `write(text, options?)`, `writeLines(text, options?)`                                               | Add text as one entry, or as one entry per line.                |
+| `clear()`                                                                                           | Removes every entry.                                            |
+| `setFilter(filter)`, `filter`                                                                       | Sets or returns the filter.                                     |
+| `muteRules`, `setMuteRules(rules)`, `mutedCount`                                                    | Work with the rules that keep messages out of the log.          |
+| `setFollowing(following)`, `isFollowing`                                                            | Turn following on or off.                                       |
+| `scrollToTop()`, `scrollToBottom()`, `scrollToEntry(id)`                                            | Scroll the view.                                                |
+| `selectionText(options?)`, `selectedEntryIds`, `selectAll()`, `clearSelection()`, `copySelection()` | Work with the selection.                                        |
+| `entryText(id, options?)`, `copyEntry(id, options?)`, `copyEntries(ids, options?)`                  | Return or copy the text of one entry or several.                |
+| `expandEntry(id)`, `collapseEntry(id)`                                                              | Open or close every value of an entry.                          |
+| `openSearch(query?, options?)`, `closeSearch()`, `findNext()`, `findPrevious()`                     | Open or close the search bar and move between matches.          |
+| `setTheme(name)`, `themeName`                                                                       | Pick a palette.                                                 |
+| `toggleWrap()`                                                                                      | Turns line wrapping on or off, the way the toolbar button does. |
+| `refresh()`                                                                                         | Draws the viewer again, for a change the controller cannot see. |
+| `addListener(listener)`                                                                             | It is a `ChangeNotifier`, so anything of yours can follow it.   |
+| `dispose()`                                                                                         | Stops listening to the store and releases what it cached.       |
+
+:::
+
 The full signatures are in the [LogViewer reference](/reference/log-viewer).
 
 ## Accessibility
+
+::: fw js
 
 - The viewer is a region named by the `viewer` label, and the toolbar is a toolbar of labeled buttons. The follow, wrap and selection mode buttons report whether they are pressed.
 - The log area can take keyboard focus, and the arrow keys and Page Up and Page Down scroll it the way they scroll any scrollable element. In entry mode, the same keys move from entry to entry, and a live region tells a screen reader which entry the keyboard is on and how many entries are selected.
@@ -488,3 +887,16 @@ The full signatures are in the [LogViewer reference](/reference/log-viewer).
 - The input line is a labeled `<textarea>`.
 - The search bar is a search landmark named by the `search` label. Its buttons are labeled, and the position of the current match is announced when it changes.
 - The log area, the input line and the filter field draw no focus outline, and the caret shows focus in the two text fields. To outline the focused log area, add a rule such as `.lognal-viewport:focus-visible { box-shadow: inset 0 0 0 2px var(--lognal-focus-ring); }`.
+
+:::
+
+::: fw flutter
+
+- The viewer is a semantics container named by the `viewer` label, and every control in the toolbar is a labelled button that reports whether it is pressed.
+- The log itself is a picture as far as accessibility is concerned, so what is on screen is mirrored beside it as text: a semantics node named by the `entryList` label, holding the entries in view. Only the rows in view are mirrored, which is what keeps a hundred thousand entries from becoming a hundred thousand nodes. While the view is following, it is a live region.
+- The log area takes keyboard focus, and the arrow keys, Page Up and Page Down scroll it. In entry mode the same keys move from entry to entry, and the entry the keyboard is on is outlined in the theme's `focusRing`.
+- The entry menu button is named by the `entryActions` label, and a long press opens the same menu on a touch screen.
+- The link dialog and the hidden-messages dialog are routes, so the platform's own focus and dismissal behaviour applies to them.
+- The input line is a labelled text field, which is also what makes an input method work in it.
+
+:::

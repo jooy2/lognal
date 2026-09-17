@@ -1,9 +1,13 @@
 ---
 order: 6
-description: Use lognal in React with the LogViewer component from lognal/react, its props and ref, a shared store, the hookConsole prop and server rendering.
+description: Use lognal in React with the component from lognal/react, or in Flutter with the LogViewer widget and its controller.
 ---
 
-# React
+# In a framework
+
+The core knows nothing about any framework. What sits on top of it is one component in React and one widget in Flutter, and this page is about whichever one the switch above the menu says.
+
+::: fw js
 
 `lognal/react` exports a `LogViewer` component. It renders a container and creates the viewer in it after mounting. It needs React 18 or later.
 
@@ -50,7 +54,7 @@ A prop that you remove goes back to its default:
 | A key of `core`, or `core` itself                                                                                      | The value in `DEFAULT_STORE_OPTIONS` or `DEFAULT_LAYOUT_OPTIONS`, and `null` for `filter` |
 | `follow`                                                                                                               | Nothing is applied. The view keeps following, or stays paused, as it is.                  |
 
-## Write logs
+## Write logs {#write-logs}
 
 Log entries never go through React state, so a new message never renders a component again. Write to the viewer through the ref, through `onReady`, or through a store.
 
@@ -132,3 +136,137 @@ export default function LogsPage() {
 	return <LogViewer hookConsole style={{ height: '80vh' }} />;
 }
 ```
+
+:::
+
+::: fw flutter
+
+`LogViewer` is the whole viewer. There is no adapter to install and no separate package: the widget is the library's own, and everything below it is the same core the npm package ships.
+
+```dart
+import 'package:flutter/widgets.dart';
+import 'package:lognal/lognal.dart';
+
+final LogStore store = LogStore();
+
+class Logs extends StatelessWidget {
+  const Logs({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 400,
+      child: LogViewer(
+        store: store,
+        options: const LogViewerOptions(theme: 'auto', timestampFormat: TimestampFormat.datetime),
+      ),
+    );
+  }
+}
+```
+
+The widget fills what it is put in, so give it a height through its parent.
+
+## What the widget takes
+
+| Property     | Type                   | What it is                                                                                                                |
+| ------------ | ---------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `store`      | `LogStore?`            | The entries to show. Without one the controller makes its own.                                                            |
+| `controller` | `LogViewerController?` | The state to show, for an application that holds its own. Without one the widget makes it and disposes of it with itself. |
+| `options`    | `LogViewerOptions`     | Everything else. See [The viewer](/guide/viewer#options).                                                                 |
+
+`options` is what configures the viewer whether or not you passed a controller: a controller is the viewer's state, not its settings, so changing an option here changes the viewer.
+
+## Write logs {#write-logs-flutter}
+
+Log entries never go through `setState`, so a new message never rebuilds a widget. Write to the store, or to the controller, from anywhere.
+
+```dart
+final LognalConsole log = LognalConsole(store);
+
+ElevatedButton(
+  onPressed: () => log.info('Deploy started'),
+  child: const Text('Deploy'),
+);
+```
+
+The store collects entries whether or not a viewer is on screen, and several viewers can show the same store.
+
+```dart
+final LogStore store = LogStore(options: const LogStoreOptions(maxEntries: 50000));
+final WebSocketChannel socket = WebSocketChannel.connect(uri);
+
+socket.stream.listen((Object? message) => store.write('$message'));
+```
+
+## Hold the state yourself
+
+A `LogViewerController` is what the viewer keeps: the scroll position, what is selected, the filter, the search and the palette. Hold one when you want to drive the viewer from outside it, and dispose of it with whatever holds it.
+
+```dart
+class _LogPanelState extends State<LogPanel> {
+  late final LogViewerController _controller = LogViewerController(store: store);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            TextButton(
+              onPressed: _controller.scrollToBottom,
+              child: const Text('Latest'),
+            ),
+            TextButton(
+              onPressed: () => _controller.openSearch('error'),
+              child: const Text('Find errors'),
+            ),
+          ],
+        ),
+        Expanded(child: LogViewer(controller: _controller)),
+      ],
+    );
+  }
+}
+```
+
+The controller is a `ChangeNotifier`, so anything of yours can listen to it the way the viewer does.
+
+## Hook the output
+
+The three hooks are described in [Capturing output](/guide/console). Each one returns the function that takes it off again, so a widget that installs one puts it back in `dispose`.
+
+```dart
+class _LogPanelState extends State<LogPanel> {
+  late final void Function() _unhook = hookDebugPrint(store);
+
+  @override
+  void dispose() {
+    _unhook();
+    super.dispose();
+  }
+}
+```
+
+## On the web
+
+Flutter draws with the fonts an application bundles and cannot reach the ones the system has, so a web build has to carry a monospace font of its own and name it:
+
+```dart
+LogViewer(
+  store: store,
+  options: const LogViewerOptions(font: FontSettings(family: 'JetBrainsMono')),
+);
+```
+
+Every other platform resolves its own monospace font by name and needs nothing. [Themes and fonts](/guide/theming#fonts) has the rest.
+
+A release build for the web also does not keep type names, so a value shows what it holds and what its `toString()` says rather than the name of its class. Nothing is lost that was not already gone.
+
+:::

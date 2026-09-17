@@ -390,7 +390,7 @@ Formats an epoch time in milliseconds. `format` defaults to `'time'`.
 import { LogViewer, type LogViewerProps } from 'lognal/react';
 ```
 
-`LogViewerProps` extends `LogViewerOptions` with the props below. The component forwards its ref to the `LogViewer` instance. See [React](/guide/react) for how prop changes are applied.
+`LogViewerProps` extends `LogViewerOptions` with the props below. The component forwards its ref to the `LogViewer` instance. See [In a framework](/guide/framework) for how prop changes are applied.
 
 | Prop                | Type                                  | Description                                                                  |
 | ------------------- | ------------------------------------- | ---------------------------------------------------------------------------- |

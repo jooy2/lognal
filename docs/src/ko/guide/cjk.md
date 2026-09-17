@@ -7,9 +7,21 @@ description: lognal이 한국어, 중국어, 일본어 텍스트를 다루는 �
 
 lognal은 한국어, 중국어, 일본어 텍스트를 출력과 입력 모두에서 기본으로 다뤄야 할 대상으로 봅니다.
 
+::: fw js
+
 <ClientOnly>
   <LiveViewer preset="korean" />
 </ClientOnly>
+
+:::
+
+::: fw flutter
+
+<ClientOnly>
+  <FlutterDemo demo="wide" :height="360" />
+</ClientOnly>
+
+:::
 
 ## 격자 위의 폭 {#width-on-the-grid}
 
@@ -33,12 +45,29 @@ lognal은 한국어, 중국어, 일본어 텍스트를 출력과 입력 모두�
 
 `measureCells(text)`는 같은 규칙으로 문자열의 폭을 계산하고, `truncateCells(text, maxCells)`는 전각 문자를 쪼개지 않고 문자열을 원하는 폭으로 자릅니다.
 
+::: fw js
+
 ```ts
 import { measureCells, truncateCells } from 'lognal';
 
 measureCells('한글 log'); // 8
 truncateCells('안녕하세요', 5); // '안녕…'
 ```
+
+:::
+
+::: fw flutter
+
+```dart
+import 'package:lognal/lognal.dart';
+
+measureCells('한글 log'); // 8
+truncateCells('안녕하세요', 5); // '안녕…'
+```
+
+코어에는 자소 분리기가 필요한데 Dart에는 내장된 것이 없습니다. 그래서 뷰어가 `package:characters`의 분리기를 설치합니다. JavaScript 쪽에서 `Intl.Segmenter`가 채우는 `setGraphemeSplitter` 자리와 같은 이음매입니다. 뷰어 없이 코어만 쓰면 여기에 들어 있는 대체 분리기를 씁니다. 결합 문자, 이형 선택자, 이모지 수정자, 영 너비 결합자 시퀀스, 지역 표시 문자 쌍을 앞 글자에 붙입니다.
+
+:::
 
 ## 줄 바꿈 {#word-wrapping}
 
@@ -61,8 +90,8 @@ truncateCells('안녕하세요', 5); // '안녕…'
 
 다른 모드는 다음과 같습니다.
 
-- `wrap: 'char'`는 행을 끝까지 채우고 어느 두 클러스터 사이에서든 줄을 바꿉니다. 전각 문자를 둘로 쪼개지는 않습니다.
-- `wrap: 'none'`은 줄마다 한 행에 두고, 로그를 가로로 스크롤합니다.
+- <Fw js="wrap: 'char'" flutter="wrap: WrapMode.char" code />는 행을 끝까지 채우고 어느 두 클러스터 사이에서든 줄을 바꿉니다. 전각 문자를 둘로 쪼개지는 않습니다.
+- <Fw js="wrap: 'none'" flutter="wrap: WrapMode.none" code />은 줄마다 한 행에 두고, 로그를 가로로 스크롤합니다.
 
 도구 모음의 **긴 줄 바꾸기** 버튼은 줄 바꿈을 끄고, 한 번 더 누르면 쓰던 모드인 `'word'`나 `'char'`로 돌아갑니다.
 
@@ -70,32 +99,62 @@ truncateCells('안녕하세요', 5); // '안녕…'
 
 더블클릭하면 낱말 하나를 선택합니다. 낱말은 문자, 숫자, 결합 문자, 밑줄, `$`가 이어진 구간입니다. 한글 음절도 문자이므로, 더블클릭하면 포인터 아래의 한국어 낱말을 붙어 있는 조사까지 포함해 다음 공백이나 문장 부호 앞까지 선택합니다.
 
-## 입력 줄과 IME {#input-line-and-ime}
+## 입력 줄과 입력기 {#input-line-and-input-methods}
 
-입력 줄은 실제 `<textarea>`이므로 운영체제의 입력기가 여느 입력란에서처럼 동작합니다. 조합 중인 글자가 제자리에 보이고, 후보 창이 캐럿을 따라다닙니다.
+::: fw js
 
-- 한글 음절을 조합하는 도중에 Enter를 누르면 음절이 완성되면서 명령이 제출됩니다. 영문을 입력할 때처럼 한 번만 누르면 됩니다.
-- 일본어나 중국어 후보를 확정하려고 누른 Enter는 확정만 합니다. 제출하려면 Enter를 한 번 더 누릅니다.
-- 입력 줄은 조합 이벤트, `KeyboardEvent.isComposing`, 그리고 조합에 속한 키 입력에서 브라우저가 알려 주는 키 코드 229를 모두 확인합니다. 이런 키 입력만으로는 명령이 제출되지 않습니다.
-- Safari 26까지는 조합을 끝내는 키의 `keydown`보다 `compositionend`가 먼저 발생해서, 그 `keydown`에는 조합 중이라는 표시가 없습니다. 입력 줄은 `compositionend` 다음 태스크까지 조합이 이어지는 것으로 보므로, Safari에서도 다른 브라우저와 똑같이 동작합니다.
-- 한글 입력기는 음절을 완성한 뒤 Enter를 입력란에 그대로 넘기고, 브라우저는 이어서 줄 바꿈을 넣으려고 합니다. 입력 줄은 `beforeinput`에서 이 줄 바꿈을 취소하고 명령을 제출합니다. Shift를 누른 채였다면 줄 바꿈이 그대로 들어갑니다.
-- 조합 중에는 ArrowUp과 ArrowDown을 입력기에 맡기고, 조합 중이 아닐 때만 이전 명령을 오가는 데 씁니다.
+입력 줄은 실제 `<textarea>`이므로, 운영체제 입력기가 다른 입력란에서와 똑같이 동작합니다. 조합 중인 글자가 자리에 그대로 보이고 후보 창이 캐럿을 따라갑니다.
+
+- 한글 음절을 조합하는 중에 Enter를 누르면 음절을 완성하면서 명령을 보냅니다. 라틴 문자와 마찬가지로 한 번만 누르면 됩니다.
+- 일본어나 중국어 후보를 확정하는 Enter는 확정만 합니다. 명령을 보내려면 한 번 더 누릅니다.
+- 입력 줄은 조합 이벤트, `KeyboardEvent.isComposing`, 그리고 브라우저가 조합에 속한 키 입력에 쓰는 키 코드 229를 함께 확인합니다. 그런 키 입력만으로는 명령이 전송되지 않습니다.
+- Safari는 26 버전까지 조합을 확정하는 `keydown`보다 `compositionend`를 먼저 보내므로, 그 `keydown`에는 조합 정보가 없습니다. 입력 줄은 `compositionend` 다음 작업까지 조합이 열려 있는 것으로 보아, Safari도 다른 브라우저와 똑같이 동작합니다.
+- 한국어 입력기는 음절을 완성한 뒤 Enter를 그대로 넘기고, 브라우저는 이어서 줄 바꿈을 넣습니다. 입력 줄은 `beforeinput`에서 그 줄 바꿈을 취소하고 대신 명령을 보냅니다. Shift를 누르고 있으면 줄 바꿈이 그대로 들어갑니다.
+- 조합 중에는 ArrowUp과 ArrowDown을 입력기에 맡기고, 조합 중이 아닐 때만 지난 명령을 오갑니다.
+
+:::
+
+::: fw flutter
+
+입력 줄은 캔버스에 그린 것이 아니라 실제 텍스트 필드입니다. 입력기가 제대로 동작하는 이유가 바로 이것입니다. 조합은 필드의 것이므로, 플랫폼이 필드 안에서 조합하고 그 위에 후보를 띄웁니다. 애플리케이션의 다른 입력란과 똑같습니다.
+
+- Enter는 조합이 끝난 뒤에야 명령에 닿습니다. 한글 음절은 명령을 보내는 그 누름으로 완성되고, 일본어나 중국어 후보는 한 번 눌러 확정한 뒤 다음 누름으로 전송됩니다.
+- 조합은 필드가 알아서 처리하므로 설정할 것도, 플랫폼마다 달라지는 것도 없습니다.
+- 조합 중이 아닐 때 방향키는 지난 명령을 오갑니다.
+
+:::
 
 ## 풀어쓴 한글 필터링 {#filtering-decomposed-hangul}
 
 같은 음절도 `한`처럼 모아쓴 형태와 `ᄒ` + `ᅡ` + `ᆫ`처럼 자모로 풀어쓴 형태가 있습니다. macOS의 파일 이름이나 일부 애플리케이션에서 복사한 텍스트는 풀어쓴 형태일 때가 많지만, 사용자가 입력하는 글자는 모아쓴 형태입니다.
 
-필터는 항목 텍스트와 필터 텍스트를 모두 유니코드 정규화 형식 C로 바꾼 뒤 비교합니다. 그래서 `한글`을 입력하면 풀어쓴 `한글`도 찾아서 강조합니다. 선택하고 복사할 때는 정규화하지 않고 기록된 그대로의 텍스트를 돌려줍니다.
+필터와 검색은 항목 텍스트와 입력한 텍스트를 모두 유니코드 정규화 형식 C로 바꾼 뒤 비교합니다. 그래서 `한글`을 입력하면 풀어쓴 `한글`도 찾아서 강조합니다. 선택하고 복사할 때는 정규화하지 않고 기록된 그대로의 텍스트를 돌려줍니다.
+
+::: fw flutter
+
+Dart에는 `String.normalize`가 없어서 이 패키지가 조합 표를 직접 들고 있습니다. 폭 표와 나란히 유니코드 문자 데이터베이스에서 생성합니다. JavaScript 쪽이 런타임에서 받아 오는 이음매를 직접 써야 했던 유일한 자리입니다.
+
+:::
 
 ## 파일 인코딩 {#file-encodings}
 
-`readTextFile`과 `followTextFile`은 UTF-8인지 확인하고, UTF-8이 아니면 레거시 인코딩으로 대신 읽습니다. 브라우저 언어가 한국어이면 대체 인코딩은 `euc-kr`입니다. 브라우저는 `euc-kr`을 Windows 코드 페이지 949로 디코딩하고, 이 코드 페이지는 현대 한글 음절을 모두 담고 있으므로 CP949로 저장한 파일도 제대로 읽힙니다.
+파일 리더는 UTF-8인지 확인하고, UTF-8이 아니면 레거시 인코딩으로 대신 읽습니다. 시스템 언어가 한국어이면 대체 인코딩은 `euc-kr`입니다.
 
-브라우저 언어와 상관없이 한국어 레거시 파일을 읽으려면 대체 인코딩을 지정하세요.
+::: fw js
+
+브라우저는 `euc-kr`을 Windows 코드 페이지 949로 디코딩하고, 이 코드 페이지는 현대 한글 음절을 모두 담고 있으므로 CP949로 저장한 파일도 제대로 읽힙니다. 브라우저 언어와 상관없이 한국어 레거시 파일을 읽으려면 대체 인코딩을 지정하세요.
 
 ```ts
 await readTextFile(file, viewer.store, { fallbackEncoding: 'euc-kr' });
 ```
+
+:::
+
+::: fw flutter
+
+여기서는 인코딩 이름을 알아내는 것과 디코딩하는 것이 다릅니다. `euc-kr`은 수만 자 규모의 표이고, 브라우저에는 이미 있지만 Dart에는 없습니다. 그래서 이 패키지는 `registerTextDecoder`로 애플리케이션에서 디코더를 받습니다. 디코더가 없으면 읽기는 실패하지 않고 `result.decoded`로 물러섰다는 사실을 알립니다.
+
+:::
 
 인코딩을 고르는 순서는 [인코딩](/ko/guide/text-files#encodings)에서 설명합니다.
 
@@ -104,9 +163,27 @@ await readTextFile(file, viewer.store, { fallbackEncoding: 'euc-kr' });
 - 음절이 두 칸을 채우도록 D2Coding처럼 한글이 들어 있는 고정폭 글꼴을 쓰세요. [한국어에 맞는 글꼴](/ko/guide/theming#fonts-for-korean-text)을 참고하세요.
 - `locale: 'ko'`를 지정하면 도구 모음, 상태 표시줄, 접근성 이름이 한국어로 나옵니다.
 
+::: fw js
+
 ```ts
 new LogViewer(container, {
 	locale: 'ko',
 	font: { family: "D2Coding, 'Noto Sans Mono CJK KR', monospace" }
 });
 ```
+
+:::
+
+::: fw flutter
+
+```dart
+LogViewer(
+  store: store,
+  options: const LogViewerOptions(
+    locale: 'ko',
+    font: FontSettings(family: 'D2Coding', fallbackFamilies: <String>['Noto Sans Mono CJK KR']),
+  ),
+);
+```
+
+:::

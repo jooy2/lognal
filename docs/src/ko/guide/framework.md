@@ -1,9 +1,13 @@
 ---
 order: 6
-description: lognal/react의 LogViewer 컴포넌트로 React에서 lognal을 쓰는 방법과 props, ref, 스토어 공유, hookConsole prop, 서버 렌더링을 설명합니다.
+description: lognal/react 컴포넌트로 React에서, LogViewer 위젯과 컨트롤러로 Flutter에서 lognal을 쓰는 방법을 설명합니다.
 ---
 
-# React
+# 프레임워크에서
+
+코어는 어떤 프레임워크도 알지 못합니다. 그 위에 올라가는 것이 React에서는 컴포넌트 하나, Flutter에서는 위젯 하나이고, 이 페이지는 메뉴 위 스위치가 가리키는 쪽을 설명합니다.
+
+::: fw js
 
 `lognal/react`는 `LogViewer` 컴포넌트를 내보냅니다. 이 컴포넌트는 컨테이너를 렌더링하고, 마운트된 뒤 그 안에 뷰어를 만듭니다. React 18 이상이 필요합니다.
 
@@ -132,3 +136,137 @@ export default function LogsPage() {
 	return <LogViewer hookConsole style={{ height: '80vh' }} />;
 }
 ```
+
+:::
+
+::: fw flutter
+
+`LogViewer` 위젯 하나가 뷰어 전체입니다. 따로 설치할 어댑터도, 별도 패키지도 없습니다. 위젯이 라이브러리의 것이고, 그 아래는 npm 패키지와 같은 코어입니다.
+
+```dart
+import 'package:flutter/widgets.dart';
+import 'package:lognal/lognal.dart';
+
+final LogStore store = LogStore();
+
+class Logs extends StatelessWidget {
+  const Logs({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 400,
+      child: LogViewer(
+        store: store,
+        options: const LogViewerOptions(theme: 'auto', timestampFormat: TimestampFormat.datetime),
+      ),
+    );
+  }
+}
+```
+
+위젯은 담긴 자리를 가득 채우므로 부모 쪽에서 높이를 정해 주세요.
+
+## 위젯이 받는 것 {#what-the-widget-takes}
+
+| 속성         | 타입                   | 설명                                                                             |
+| ------------ | ---------------------- | -------------------------------------------------------------------------------- |
+| `store`      | `LogStore?`            | 보여 줄 항목. 넘기지 않으면 컨트롤러가 직접 만듭니다.                            |
+| `controller` | `LogViewerController?` | 애플리케이션이 직접 들고 있는 상태. 넘기지 않으면 위젯이 만들고 같이 정리합니다. |
+| `options`    | `LogViewerOptions`     | 나머지 전부. [뷰어](/ko/guide/viewer#options)에서 설명합니다.                    |
+
+컨트롤러를 넘겼더라도 설정은 `options`가 합니다. 컨트롤러는 뷰어의 상태이지 설정이 아니므로, 여기서 옵션을 바꾸면 뷰어가 바뀝니다.
+
+## 로그 쓰기 {#write-logs-flutter}
+
+로그 항목은 `setState`를 거치지 않으므로 메시지가 하나 늘어도 위젯이 다시 만들어지지 않습니다. 어디서든 스토어나 컨트롤러에 쓰면 됩니다.
+
+```dart
+final LognalConsole log = LognalConsole(store);
+
+ElevatedButton(
+  onPressed: () => log.info('Deploy started'),
+  child: const Text('Deploy'),
+);
+```
+
+스토어는 뷰어가 화면에 있든 없든 항목을 모으고, 여러 뷰어가 같은 스토어를 볼 수 있습니다.
+
+```dart
+final LogStore store = LogStore(options: const LogStoreOptions(maxEntries: 50000));
+final WebSocketChannel socket = WebSocketChannel.connect(uri);
+
+socket.stream.listen((Object? message) => store.write('$message'));
+```
+
+## 상태를 직접 들기 {#hold-the-state-yourself}
+
+`LogViewerController`는 뷰어가 들고 있는 것, 즉 스크롤 위치, 선택, 필터, 검색, 팔레트입니다. 뷰어를 밖에서 조작하려면 직접 들고, 들고 있는 쪽에서 함께 정리합니다.
+
+```dart
+class _LogPanelState extends State<LogPanel> {
+  late final LogViewerController _controller = LogViewerController(store: store);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            TextButton(
+              onPressed: _controller.scrollToBottom,
+              child: const Text('최신'),
+            ),
+            TextButton(
+              onPressed: () => _controller.openSearch('error'),
+              child: const Text('오류 찾기'),
+            ),
+          ],
+        ),
+        Expanded(child: LogViewer(controller: _controller)),
+      ],
+    );
+  }
+}
+```
+
+컨트롤러는 `ChangeNotifier`이므로 뷰어가 듣는 것처럼 여러분 코드도 들을 수 있습니다.
+
+## 출력 후크 {#hook-the-output}
+
+후크 세 개는 [출력 기록](/ko/guide/console)에서 설명합니다. 각각 후크를 떼는 함수를 돌려주므로, 위젯이 후크를 걸었다면 `dispose`에서 되돌립니다.
+
+```dart
+class _LogPanelState extends State<LogPanel> {
+  late final void Function() _unhook = hookDebugPrint(store);
+
+  @override
+  void dispose() {
+    _unhook();
+    super.dispose();
+  }
+}
+```
+
+## 웹에서 {#on-the-web}
+
+Flutter는 애플리케이션이 번들한 글꼴로 그리고 시스템 글꼴에는 접근하지 못하므로, 웹 빌드는 고정폭 글꼴을 직접 싣고 이름을 알려 줘야 합니다.
+
+```dart
+LogViewer(
+  store: store,
+  options: const LogViewerOptions(font: FontSettings(family: 'JetBrainsMono')),
+);
+```
+
+다른 플랫폼은 이름으로 각자의 고정폭 글꼴을 찾으므로 아무것도 필요 없습니다. 나머지는 [테마와 글꼴](/ko/guide/theming#fonts)에 있습니다.
+
+웹 릴리스 빌드는 타입 이름도 남기지 않습니다. 그래서 값은 클래스 이름 대신 내용과 `toString()`이 말하는 것을 보여 줍니다. 원래 없던 것이 사라지는 것은 아닙니다.
+
+:::

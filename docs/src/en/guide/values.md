@@ -1,19 +1,33 @@
 ---
 order: 2
-description: How lognal shows objects, arrays, maps, sets, errors and DOM elements, how values expand and collapse, and how tables, groups and repeated messages look.
+description: How lognal shows objects, lists, maps, sets and errors, how values expand and collapse, and how tables, groups and repeated messages look.
 ---
 
 # Typed values
 
-Every console argument that is not a string becomes a typed value: a copy of the value taken when it was logged, shown with formatting for its type. Values with children expand and collapse.
+Every logged argument that is not a string becomes a typed value: a copy of the value taken when it was logged, shown with formatting for its type. Values with children expand and collapse.
+
+::: fw js
 
 <ClientOnly>
   <LiveViewer preset="values" />
 </ClientOnly>
 
+:::
+
+::: fw flutter
+
+<ClientOnly>
+  <FlutterDemo demo="collections" :height="380" />
+</ClientOnly>
+
+:::
+
 ## Previews
 
 A value first appears as a one-line preview.
+
+::: fw js
 
 | Value                                    | Preview                                              |
 | ---------------------------------------- | ---------------------------------------------------- |
@@ -32,27 +46,58 @@ A value first appears as a one-line preview.
 | DOM element                              | `<nav class="menu">`                                 |
 | Circular reference, accessor             | `[Circular]`, `[Getter]`                             |
 
-Inside a preview, nested objects are shown by name, such as `{…}` or `Array(2)`, and strings longer than 50 characters are cut. Once a preview passes 100 characters, the remaining children are replaced with `…`. Dates are written in ISO 8601 format, in UTC.
+:::
 
-A string passed directly to a console method is plain text, not a value, so it has no quotes. `console.dir('text')` shows the quotes.
+::: fw flutter
+
+| Value                       | Preview                                             |
+| --------------------------- | --------------------------------------------------- |
+| String inside another value | `'text'`                                            |
+| `int`, `double`, `BigInt`   | `42`, `-0.0`, `NaN`, `10`                           |
+| `bool`, `null`              | `true`, `null`                                      |
+| `Symbol`                    | `Symbol("token")`                                   |
+| Closure, `Type`             | `ƒ (int) => String`, `class User`                   |
+| `DateTime`                  | `2026-09-13T05:03:09.120Z`                          |
+| `RegExp`                    | `/ab+c/`                                            |
+| Error, exception            | `StateError: The order was already paid`            |
+| `List`, `Iterable`          | `(3) [1, 2, 3]`, `Uint8List(4) [1, 2, 3, 4]`        |
+| A class with `toJson()`     | `Account {id: 1, name: 'lognal'}`                   |
+| A class with `toString()`   | `Session(9f3a)`                                     |
+| `Map`, `Set`                | `Map(2) {'a': 1, 'b': Map(1)}`, `Set(2) {'x', 'y'}` |
+| `Future`                    | `Future`                                            |
+| Circular reference          | `[Circular]`                                        |
+
+:::
+
+Inside a preview, nested values are shown by name, such as <Fw js="{…} or Array(2)" flutter="Map(1) or List(2)" code />, and strings longer than 50 characters are cut. Once a preview passes 100 characters, the remaining children are replaced with `…`. Dates are written in ISO 8601 format.
+
+A string passed directly as the message is plain text, not a value, so it has no quotes. <Fw js="console.dir('text')" flutter="log.dir('text')" code /> shows the quotes.
 
 ## Expand and collapse
 
 A value that has children starts with a small triangle. Click or tap the triangle or the preview to open the value, and do it again to close it. Each child takes its own row, indented by two cells:
 
-- Object properties as `name: value`, with symbol keys shown as `Symbol(key)`.
-- Array items as `0: value`.
-- Map entries as `key => value`, and set items without a key.
-- Element children, followed by the closing tag, such as `</nav>`.
-- The stack trace of an error, followed by its own properties and its `cause`.
+- Properties as `name: value`.
+- Items of a list as `0: value`.
+- Map entries as <Fw js="key => value" flutter="key: value" code />, and set items without a key.
+- The stack trace of an error, followed by its own properties. ::: fw js
+- Element children, followed by the closing tag, such as `</nav>`. :::
 
 A value that reached the `maxDepth` limit has no captured children, so it has no triangle. What the other limits leave out is shown as a last row such as `… 25 more`. See [Capture limits](/guide/console#capture-limits).
+
+::: fw flutter
+
+An object the capture could not open has no triangle either, and for a different reason: Dart cannot read the fields of an arbitrary value without reflection. A class that writes `toJson()` opens; one that writes only `toString()` shows what it says on one row.
+
+:::
 
 The viewer remembers which values are open for each entry, until the entry leaves the store or the store is cleared. Selecting and copying text includes the rows of open values. **Copy as text** in the [entry menu](/guide/viewer#entry-menu) copies every value in full, open or closed, and **Expand all** and **Collapse all** open or close every value of an entry at once.
 
 ## Errors
 
-An error passed directly to a console method, such as `console.error(error)`, is open when it is added, so its stack trace is visible right away. An error nested inside another value starts closed.
+An error passed directly as the message is open when it is added, so its stack trace is visible right away. An error nested inside another value starts closed.
+
+::: fw js
 
 ```ts
 try {
@@ -64,11 +109,31 @@ try {
 
 The first row shows `SyntaxError: ` and the message. The rows below show the stack trace in the muted color, then any extra properties the error has, such as `code`, and the `cause` passed to the `Error` constructor.
 
+:::
+
+::: fw flutter
+
+```dart
+try {
+  jsonDecode('{');
+} on FormatException catch (error, stack) {
+  log.error(error, const <Object?>[], stack);
+}
+```
+
+The first row shows `FormatException: ` and the message. The rows below show the stack trace in the muted color. An error has no properties Dart can read, so what follows is whatever its `toJson()` returned, if it has one.
+
+`hookFlutterErrors` puts a failed build here too, with the stack the framework reported and the context it gave.
+
+:::
+
 Entries at the error level are drawn in the error color on a tinted row, with a marker in the gutter. Warnings get the same treatment in the warning color. When a command typed into the [input line](/guide/viewer#input-line) throws, its error is printed as an error-level entry too.
 
 ## Tables
 
-`console.table` draws its data as a text table with box-drawing characters. The canvas draws those characters as lines, so the borders join across rows.
+<Fw js="console.table" flutter="log.table" code /> draws its data as a text table with box-drawing characters. The canvas draws those characters as lines, so the borders join across rows.
+
+::: fw js
 
 ```ts
 console.table([
@@ -76,6 +141,19 @@ console.table([
 	{ name: '김철수', role: 'editor', active: false }
 ]);
 ```
+
+:::
+
+::: fw flutter
+
+```dart
+log.table(<Map<String, Object?>>[
+  <String, Object?>{'name': 'Alice', 'role': 'admin', 'active': true},
+  <String, Object?>{'name': '김철수', 'role': 'editor', 'active': false},
+]);
+```
+
+:::
 
 ```text
 ┌─────────┬──────────┬──────────┬────────┐
@@ -86,16 +164,18 @@ console.table([
 └─────────┴──────────┴──────────┴────────┘
 ```
 
-- The `(index)` column holds the property name or the array index of each row.
-- Every key of the row objects becomes a column. Pass an array of keys as the second argument to choose the columns.
+- The `(index)` column holds the property name or the index of each row.
+- Every key of the row values becomes a column. Pass a list of keys as the second argument to choose the columns.
 - Rows that are not objects go into a `Values` column. The column is left out when you choose the columns.
 - A table keeps every row on one line. When it is wider than the viewer, the log scrolls sideways instead of wrapping the table.
 - A table shows at most 100 rows and 20 columns, and a cell is cut at 40 cells. The rows left out are counted below the table.
-- A value that is not an object is logged the usual way. An object with no rows is logged as a typed value.
+- A value that is not a collection is logged the usual way. One with no rows is logged as a typed value.
 
 ## Groups
 
-`console.group` adds a bold header, and every entry until the matching `console.groupEnd` is indented under it by two cells for each level. `console.groupCollapsed` adds a header that starts closed.
+<Fw js="console.group" flutter="log.group" code /> adds a bold header, and every entry until the matching <Fw js="console.groupEnd" flutter="log.groupEnd" code /> is indented under it by two cells for each level. <Fw js="console.groupCollapsed" flutter="log.groupCollapsed" code /> adds a header that starts closed.
+
+::: fw js
 
 ```ts
 console.group('Request %s', '/api/users');
@@ -105,6 +185,24 @@ console.log('Status', 200);
 console.groupEnd();
 console.groupEnd();
 ```
+
+:::
+
+::: fw flutter
+
+```dart
+log
+  ..group('Request %s', <Object?>['/api/users'])
+  ..log('Headers', <Object?>[
+    <String, String>{'accept': 'application/json'},
+  ])
+  ..groupCollapsed('Response')
+  ..log('Status', <Object?>[200])
+  ..groupEnd()
+  ..groupEnd();
+```
+
+:::
 
 Click or tap a header to hide or show the entries inside the group. While entries are hidden, the status bar shows both numbers, such as `12 of 20 entries`. To open or close a group from code, call `store.setCollapsed(id, collapsed)` with the id of the header entry.
 
@@ -118,6 +216,8 @@ Two messages are identical when they have the same level, the same group, the sa
 
 `mergeRepeats` decides what happens to such a message:
 
+::: fw js
+
 | Value        | What happens                                                                                                  |
 | ------------ | ------------------------------------------------------------------------------------------------------------- |
 | `true`       | The message is dropped and the count on the entry before it rises. This is the default.                       |
@@ -130,6 +230,29 @@ const viewer = new LogViewer(container, {
 });
 ```
 
-With `'collapse'`, a run starts collapsed and `a a b a a` reads as `a` with a count of 2, then `b`, then `a` with a count of 2. Click the count badge to show the messages of a run, and click it again to hide them. **Show repeats** and **Hide repeats** in the entry menu do the same from the keyboard and on a touch screen. A run that is open stays open while the same message keeps arriving.
+:::
+
+::: fw flutter
+
+| Value                   | What happens                                                                                                  |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `MergeRepeats.merge`    | The message is dropped and the count on the entry before it rises. This is the default.                       |
+| `MergeRepeats.collapse` | Every message is kept. A run of them shows as its first entry with the count, and opens to show each message. |
+| `MergeRepeats.keep`     | Every message gets an entry of its own.                                                                       |
+
+```dart
+LogViewer(
+  store: store,
+  options: const LogViewerOptions(
+    core: CoreOptions(mergeRepeats: MergeRepeats.collapse),
+  ),
+);
+```
+
+The enum is named `MergeRepeats` rather than `RepeatMode`, because `RepeatMode` is already a name in `package:flutter/widgets.dart`.
+
+:::
+
+With <Fw js="'collapse'" flutter="MergeRepeats.collapse" code />, a run starts collapsed and `a a b a a` reads as `a` with a count of 2, then `b`, then `a` with a count of 2. Click the count badge to show the messages of a run, and click it again to hide them. **Show repeats** and **Hide repeats** in the entry menu do the same from the keyboard and on a touch screen. A run that is open stays open while the same message keeps arriving.
 
 Every message counts against `maxEntries` in this mode, so a burst of the same message fills the store as any other burst would.

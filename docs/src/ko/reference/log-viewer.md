@@ -390,7 +390,7 @@ formatTimestamp(time: number, format?: TimestampFormat): string
 import { LogViewer, type LogViewerProps } from 'lognal/react';
 ```
 
-`LogViewerProps`는 `LogViewerOptions`에 아래 prop을 더한 타입입니다. 컴포넌트는 ref를 `LogViewer` 인스턴스로 전달합니다. prop 변경이 적용되는 방식은 [React](/ko/guide/react)를 참고하세요.
+`LogViewerProps`는 `LogViewerOptions`에 아래 prop을 더한 타입입니다. 컴포넌트는 ref를 `LogViewer` 인스턴스로 전달합니다. prop 변경이 적용되는 방식은 [프레임워크에서](/ko/guide/framework)를 참고하세요.
 
 | Prop                | 타입                                  | 설명                                                                 |
 | ------------------- | ------------------------------------- | -------------------------------------------------------------------- |
