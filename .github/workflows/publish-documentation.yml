@@ -1,13 +1,12 @@
 name: publish-documentation
 
 on:
-  # The live demos import the library source, so a change there is published too.
   push:
     branches: [main]
     paths:
       - docs/**
-      - src/**
-      - CHANGELOG.md
+      # The live demos import each package's source, so a change there is published too.
+      - packages/**
       - .github/workflows/publish-documentation.yml
   workflow_dispatch:
 

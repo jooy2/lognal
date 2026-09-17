@@ -6,48 +6,72 @@ This project adheres to the [Contributor Covenant](CODE_OF_CONDUCT.md) code of c
 
 ## Repository layout
 
-`lognal` is one npm package. Its source is split by what each part may depend on:
+lognal ships one library in two ecosystems, so the repository holds one package per language and a documentation site they share. There is no install at the root and no root manifest; each folder is entered and run on its own.
 
 ```text
-src/
-  core/       # entries, the store, filters, text measurement and layout; no DOM and no framework
-  sources/    # console capture and text file reading, which use browser or JavaScript APIs
-  renderer/   # the renderer interface and the Canvas 2D renderer
-  viewer/     # the DOM viewer: toolbar, scrolling, selection, input line and accessibility
-  react/      # the React component, published as `lognal/react`
-  styles/     # `lognal.css`, published as `lognal/style.css`
-test/
-  unit/       # Vitest tests that run in Node.js
-  browser/    # Vitest Browser Mode tests that run in Chromium, Firefox and WebKit
-playground/   # a Vite page for trying changes by hand
-docs/         # the VitePress documentation site (English and Korean)
-scripts/      # the build script and the Unicode width table generator
+packages/js/       # the npm package, `lognal`
+packages/flutter/  # the pub.dev package, `lognal`
+docs/              # the VitePress documentation site (English and Korean, both packages)
 ```
 
-Code under `src/core` must stay free of the DOM, of framework code and of JavaScript-only platform APIs, because the core may be ported to other languages. Pass a platform feature in, the way `setGraphemeSplitter` does, instead of importing it there.
+Both packages are laid out the same way, because they are the same library:
+
+```text
+core/       # entries, the store, filters, text measurement and layout; no screen, no framework
+sources/    # console capture and text file reading, which use the platform's own APIs
+renderer/   # the renderer interface and the canvas renderer
+viewer/     # the viewer itself: toolbar, scrolling, selection, input line and accessibility
+```
+
+In `packages/js` those are folders under `src/`, plus `react/` for the React component and `styles/` for `lognal.css`. In `packages/flutter` they are folders under `lib/src/`, plus `theme/` for the palettes that the stylesheet holds on the other side. Each package keeps its own tests beside them, its own `README.md`, `LICENSE` and `CHANGELOG.md`, and its own toolchain.
+
+Code under `core/` must stay free of the DOM, of framework code and of platform APIs only one language has, because the two cores are written against each other and a change to one is a change to both. Pass a platform feature in, the way `setGraphemeSplitter` does, instead of importing it there.
 
 ## Development
 
-You need Node.js 22.12 or later.
+You need Node.js 22.12 or later for the JavaScript package and the site, and Flutter 3.32 or later for the Flutter package.
 
-| Task                      | Command                                 |
-| ------------------------- | --------------------------------------- |
-| Install                   | `npm install`                           |
-| Playground                | `npm run dev`                           |
-| All tests                 | `npm test`                              |
-| Unit tests only           | `npm run test:unit`                     |
-| Browser tests only        | `npm run test:browser`                  |
-| Lint / format             | `npm run lint` / `npm run format`       |
-| Type check                | `npm run typecheck`                     |
-| Build `dist/`             | `npm run build`                         |
-| Regenerate Unicode widths | `npm run generate:unicode`              |
-| Documentation site        | `cd docs && npm install && npm run dev` |
+### The JavaScript package, in `packages/js`
+
+| Task                      | Command                    |
+| ------------------------- | -------------------------- |
+| Install                   | `npm install`              |
+| Playground                | `npm run dev`              |
+| All tests                 | `npm test`                 |
+| Unit tests only           | `npm run test:unit`        |
+| Browser tests only        | `npm run test:browser`     |
+| Lint / format             | `npm run lint` / `npm run format` |
+| Type check                | `npm run typecheck`        |
+| Build `dist/`             | `npm run build`            |
+| Regenerate Unicode widths | `npm run generate:unicode` |
 
 Browser tests use Playwright. Install the browsers once with `npx playwright install`, or run a single browser with `LOGNAL_TEST_BROWSERS=chromium npm run test:browser`.
 
 Import other source files with a `.js` extension, such as `import { LogStore } from './store.js'`. TypeScript resolves it to the `.ts` file, and the published declaration files keep working.
 
-A change that users can see needs an entry in `CHANGELOG.md`, in the unreleased section at the top.
+### The Flutter package, in `packages/flutter`
+
+| Task               | Command                            |
+| ------------------ | ---------------------------------- |
+| Install            | `flutter pub get`                  |
+| Tests              | `flutter test`                     |
+| Analyse            | `dart analyze`                     |
+| Format             | `dart format lib test example/lib` |
+| Example            | `cd example && flutter run`        |
+| Check it publishes | `dart pub publish --dry-run`       |
+
+### The documentation site, in `docs`
+
+| Task            | Command             |
+| --------------- | ------------------- |
+| Install         | `npm install`       |
+| Develop         | `npm run dev`       |
+| Build           | `npm run build`     |
+| Flutter gallery | `npm run flutter`   |
+
+The site is one set of pages for both packages. A switch above the sidebar picks the language, and `::: fw js` and `::: fw flutter` blocks mark the parts of a page that differ. Write both halves, or neither.
+
+A change that users can see needs an entry in the `CHANGELOG.md` of the package it changes, in the unreleased section at the top.
 
 ## Issues
 
@@ -60,7 +84,7 @@ When creating an issue, keep the following in mind:
 - Please specify the correct category selection based on the format of the issue (e.g., bug report, feature request).
 - Check to see if there are duplicate issues.
 - Describe in detail what is happening and what needs to be fixed. You may need additional materials such as images or video.
-- Name the version you are on, the framework adapter you use, and the browser you ran it in.
+- Name the package and version you are on, and the browser or the Flutter version you ran it in.
 - Use appropriate keyword titles to make it easy for others to search and understand.
 - Please use English in all content.
 

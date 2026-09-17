@@ -1,6 +1,6 @@
 {
 	"name": "lognal",
-	"version": "0.1.0",
+	"version": "1.0.0",
 	"description": "A terminal-style log viewer for the browser, drawn on a canvas. Mirror the console, read log files, and inspect typed values that expand and collapse.",
 	"author": "CDGet (https://cdget.com)",
 	"license": "MIT",

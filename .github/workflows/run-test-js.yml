@@ -1,4 +1,4 @@
-name: run-test
+name: run-test-js
 
 on:
   pull_request:
@@ -6,17 +6,13 @@ on:
   push:
     branches: [main]
     paths:
-      - src/**
-      - test/**
-      - scripts/**
-      - package.json
-      - package-lock.json
-      - tsconfig.json
-      - tsconfig.build.json
-      - vitest.config.ts
-      - eslint.config.ts
-      - .github/workflows/run-test.yml
+      - packages/js/**
+      - .github/workflows/run-test-js.yml
   workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: ./packages/js
 
 jobs:
   check:
@@ -29,6 +25,7 @@ jobs:
         with:
           node-version: '24'
           cache: npm
+          cache-dependency-path: packages/js/package-lock.json
       - run: npm ci
       - run: npm run lint
       - run: npm run format:check
@@ -49,6 +46,7 @@ jobs:
         with:
           node-version: ${{ matrix.node_version }}
           cache: npm
+          cache-dependency-path: packages/js/package-lock.json
       - run: npm ci
       - run: npm run test:unit
 
@@ -66,6 +64,7 @@ jobs:
         with:
           node-version: '24'
           cache: npm
+          cache-dependency-path: packages/js/package-lock.json
       - run: npm ci
       - name: Install ${{ matrix.browser }}
         run: npx playwright install --with-deps ${{ matrix.browser }}

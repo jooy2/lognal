@@ -15,10 +15,12 @@ const supportedLocale = ['en', 'ko'];
 const defaultLocale = supportedLocale[0];
 
 const SOURCE_DIRECTORY = fileURLToPath(new URL('..', import.meta.url));
-const LIBRARY_SOURCE_DIRECTORY = fileURLToPath(new URL('../../../src', import.meta.url));
-const LIBRARY_ENTRY = fileURLToPath(new URL('../../../src/index.ts', import.meta.url));
+const LIBRARY_SOURCE_DIRECTORY = fileURLToPath(
+	new URL('../../../packages/js/src', import.meta.url)
+);
+const LIBRARY_ENTRY = fileURLToPath(new URL('../../../packages/js/src/index.ts', import.meta.url));
 const LIBRARY_STYLESHEET = fileURLToPath(
-	new URL('../../../src/styles/lognal.css', import.meta.url)
+	new URL('../../../packages/js/src/styles/lognal.css', import.meta.url)
 );
 
 const DESCRIPTIONS: Record<string, string> = {

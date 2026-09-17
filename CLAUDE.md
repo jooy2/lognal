@@ -52,6 +52,16 @@ Do not pick one of these on your own; ask the owner.
 
 ## Repository layout
 
+One package per language, plus the documentation site they share. There is no install and no manifest at the root; every folder is entered and run on its own.
+
+```text
+packages/js/       the npm package, `lognal`
+packages/flutter/  the pub.dev package, `lognal`
+docs/              the VitePress site, a separate npm package, for both packages
+```
+
+`packages/js`:
+
 ```text
 src/core/       store, filters, text width and wrapping, layout, value previews (portable)
 src/sources/    console capture (hook, recorder, snapshot, format, table) and text files
@@ -62,19 +72,34 @@ src/styles/     lognal.css
 test/unit/      Vitest in Node.js
 test/browser/   Vitest Browser Mode
 playground/     a Vite page for manual checks (npm run dev)
-docs/           the VitePress site, a separate npm package
 scripts/        build.mjs and generate-unicode-width.mjs
 ```
 
-`src/core/text/unicode-width-data.ts` is generated from the Unicode Character Database by `npm run generate:unicode`. Do not edit it by hand.
+`packages/flutter` holds the same library, folder for folder, with the parts a browser has and Flutter does not left out and the parts Flutter has and a browser does not put in their place:
+
+```text
+lib/src/core/      the same core, translated: store, filters, text, layout, value previews
+lib/src/sources/   print and `dart:developer` capture, and text files
+lib/src/renderer/  the Renderer interface, the default theme and the CustomPainter renderer
+lib/src/viewer/    the widget: toolbar, scrollbar, input line, labels
+lib/src/theme/     the palettes, which the stylesheet holds on the JavaScript side
+test/             flutter_test, mirroring test/unit and the widget tests
+example/          a Flutter app for manual checks, and the gallery the site frames
+tool/             the width table generator
+```
+
+The two cores are written against each other. A change to one is a change to both, and the tests of both must agree about what the change does.
+
+`packages/js/src/core/text/unicode-width-data.ts` and `packages/flutter/lib/src/core/text/unicode_width_data.dart` are generated from the Unicode Character Database, by `npm run generate:unicode` and `dart run tool/generate_unicode_width.dart`. Do not edit either by hand.
 
 ## Working in this repository
 
-- Commands: `npm run dev`, `npm test`, `npm run test:unit`, `npm run test:browser`, `npm run lint`, `npm run format`, `npm run typecheck`, `npm run build`. Set `LOGNAL_TEST_BROWSERS=chromium` to run one browser.
+- JavaScript commands, from `packages/js`: `npm run dev`, `npm test`, `npm run test:unit`, `npm run test:browser`, `npm run lint`, `npm run format`, `npm run typecheck`, `npm run build`. Set `LOGNAL_TEST_BROWSERS=chromium` to run one browser.
+- Flutter commands, from `packages/flutter`: `flutter pub get`, `flutter test`, `dart analyze`, `dart format lib test example/lib`.
 - Import source files with a `.js` extension (`./store.js`). The build emits declaration files with the same paths.
 - Follow the common JavaScript conventions: blocks on every control statement, blank lines around statements, arrow functions, `SCREAMING_SNAKE_CASE` constants.
 - Write code that does not depend on a global `document` at import time, so the package can be imported during server rendering.
-- Record user-visible changes in `CHANGELOG.md` under `vNext`, and update both `docs/src/en` and `docs/src/ko` when a public API changes.
+- Record user-visible changes in the `CHANGELOG.md` of the package they change, under `vNext`, and update both `docs/src/en` and `docs/src/ko` when a public API changes. A page that says something only one language's readers need says it inside a `::: fw js` or `::: fw flutter` block.
 - When writing a file through a tool, do not put `\u` escapes in the content: they can be decoded into the real character. Write `\x` escapes or `String.fromCharCode` instead, and check that no invisible character ends up in the source.
 
 ## Value capture

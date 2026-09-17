@@ -4,9 +4,5 @@
 # Generated files
 dist/
 coverage/
-docs/
 src/core/text/unicode-width-data.ts
 playground/*.html
-
-# Files kept as the skeleton wrote them
-.github/

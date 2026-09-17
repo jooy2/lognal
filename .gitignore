@@ -68,3 +68,15 @@ $RECYCLE.BIN/
 **/coverage/
 **/__screenshots__/
 **/.vitest-attachments/
+
+#### [Dart / Flutter] ####
+# Tool and build output
+**/.dart_tool/
+**/.flutter-plugins-dependencies
+**/build/
+
+# The pub lockfile of a library is not committed; the example keeps its own
+packages/flutter/pubspec.lock
+
+# The Flutter gallery the documentation site builds into its public folder
+docs/src/public/flutter/

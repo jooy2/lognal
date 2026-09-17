@@ -13,7 +13,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const DOCS_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const SOURCE = join(DOCS_ROOT, '..', 'CHANGELOG.md');
+const SOURCE = join(DOCS_ROOT, '..', 'packages', 'js', 'CHANGELOG.md');
 const TARGET = join(DOCS_ROOT, 'src', 'changelog.md');
 const KOREAN_TARGET = join(DOCS_ROOT, 'src', 'ko', 'changelog.md');
 const EMPTY_CHANGELOG = [

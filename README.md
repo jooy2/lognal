@@ -2,83 +2,75 @@
 
 # lognal
 
-[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/jooy2/lognal/blob/main/LICENSE) [![run-test](https://github.com/jooy2/lognal/actions/workflows/run-test.yml/badge.svg)](https://github.com/jooy2/lognal/actions/workflows/run-test.yml) ![Commit Count](https://img.shields.io/github/commit-activity/y/jooy2/lognal) [![Followers](https://img.shields.io/github/followers/jooy2?style=social)](https://github.com/jooy2) ![Stars](https://img.shields.io/github/stars/jooy2/lognal?style=social)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/jooy2/lognal/blob/main/LICENSE) [![npm latest package](https://img.shields.io/npm/v/lognal/latest.svg)](https://www.npmjs.com/package/lognal) [![pub latest package](https://img.shields.io/pub/v/lognal.svg)](https://pub.dev/packages/lognal) [![run-test-js](https://github.com/jooy2/lognal/actions/workflows/run-test-js.yml/badge.svg)](https://github.com/jooy2/lognal/actions/workflows/run-test-js.yml) [![run-test-flutter](https://github.com/jooy2/lognal/actions/workflows/run-test-flutter.yml/badge.svg)](https://github.com/jooy2/lognal/actions/workflows/run-test-flutter.yml)
 
-**lognal** is a log viewer for web pages that looks and behaves like a terminal. It draws log output on a canvas instead of creating a DOM element for every line, so a fast stream of messages and a long history do not slow the page down.
+### [**lognal.cdget.com**](https://lognal.cdget.com)
+
+Guides and the full reference, in English and Korean. This README covers the essentials, and each package has a quick start of its own.
+
+---
+
+**A log viewer that looks and behaves like a terminal.**
+
+lognal draws log output on a canvas instead of creating an element or a widget for every line, so a fast stream of messages and a history of tens of thousands of entries cost the same frame. Under that canvas sits a core that knows nothing about the screen: a store, a filter, a text shaper and a layout, all plain data and plain logic. The canvas only turns a frame of rows into pixels.
+
+That core is written twice, once in TypeScript and once in Dart, file for file. A log line means the same thing in a browser and in an app: the same wrapping, the same widths for Korean and emoji, the same search, the same values expanding and collapsing.
 
 ## What it does
 
-- **Shows the browser console inside your page.** Hook `console.log`, `console.warn`, `console.table`, `console.group` and the rest. Arguments are captured at the moment of the call, and the original console keeps working.
-- **Reads log files.** Open a text file and read it line by line. The encoding is detected, including legacy encodings such as EUC-KR. In Chromium-based browsers, a file picked with the File System Access API can be followed as it grows.
-- **Displays values by type.** Objects, arrays, maps, sets, errors and DOM elements expand and collapse, and `console.table` draws a table.
+- **Mirrors the runtime's own logging.** `console.log`, `console.table` and `console.group` in a browser; `print`, `debugPrint` and `dart:developer` in Flutter. Arguments are captured at the moment of the call, and the original output keeps working.
+- **Reads log files.** One entry per line, with the encoding detected, including legacy encodings such as EUC-KR. A file that keeps growing can be followed.
+- **Displays values by type.** Objects, lists, maps, sets and errors expand and collapse, and a table is drawn as a table.
 - **Accepts commands.** Connect a handler, and the viewer shows an input line and prints the replies.
-- **Handles Korean and other CJK text.** Wide characters stay on the grid, Korean text wraps at spaces, and Enter waits for IME composition to finish.
+- **Handles Korean and other CJK text.** Wide characters stay on the grid, Korean wraps at spaces, and the input line waits for IME composition to finish.
 
-The viewer has a toolbar (follow new logs, clear, scroll to top and bottom, line wrapping, themes, hidden messages, text filter and level filter), a status bar, a search bar (Ctrl+F) that highlights matches without hiding entries, timestamps, links that open in a new tab after a confirmation, a menu on each entry for copying and expanding it, a mode that selects whole entries the way a file manager selects files, six color palettes that follow the operating system by default, and a custom scrollbar. Every part can be turned off or restyled with CSS custom properties.
+Both packages ship the same toolbar (follow new logs, clear, scroll to top and bottom, line wrapping, entry selection, themes, hidden messages, a text filter and a level filter), the same status bar, the same search that highlights matches without hiding entries, the same entry menu, the same six palettes, and the same custom scrollbar. Every part can be turned off or restyled.
 
-## Quick start
+## Packages
+
+| Package                                | Registry                                              | Requires                       | Quick start                          |
+| -------------------------------------- | ----------------------------------------------------- | ------------------------------ | ------------------------------------ |
+| [`packages/js`](packages/js)           | [npm: `lognal`](https://www.npmjs.com/package/lognal) | Node.js 22.12 or later         | [README](packages/js/README.md)      |
+| [`packages/flutter`](packages/flutter) | [pub.dev: `lognal`](https://pub.dev/packages/lognal)  | Flutter 3.32 or later, Dart 3.8 | [README](packages/flutter/README.md) |
+
+The JavaScript package ships the viewer for plain JavaScript and a React component under `lognal/react`. The Flutter package ships the viewer as a widget.
+
+Each language's package **versions independently and keeps its own changelog** beside its own manifest: [`packages/js/CHANGELOG.md`](packages/js/CHANGELOG.md) and [`packages/flutter/CHANGELOG.md`](packages/flutter/CHANGELOG.md). A release on one side is not a release on the other, so the numbers will not always agree.
+
+## Install
 
 ```bash
 npm install lognal
 ```
 
-```javascript
-import { LogViewer } from 'lognal';
-import 'lognal/style.css';
+`react` is an optional peer dependency, needed only for `lognal/react`. Nothing else is.
 
-// The container needs a height.
-const viewer = new LogViewer(document.getElementById('logs'), {
-	timestamps: true,
-	core: { maxEntries: 20000 }
-});
-
-viewer.hookConsole();
-console.log('Hello %s', 'lognal', { id: 1, tags: ['canvas', 'logs'] });
+```bash
+flutter pub add lognal
 ```
 
-With React:
+Nothing beyond the Flutter SDK.
 
-```jsx
-import { LogViewer } from 'lognal/react';
-import 'lognal/style.css';
+## Repository layout
 
-export const Logs = () => <LogViewer hookConsole style={{ height: 400 }} />;
-```
+| Path               | What it is                                       | How it is run                                                                 |
+| ------------------ | ------------------------------------------------ | ----------------------------------------------------------------------------- |
+| `packages/js`      | The npm package, `lognal`                        | `cd packages/js && npm install`, then `npm test`, `npm run lint`, `npm run build` |
+| `packages/flutter` | The pub.dev package, `lognal`                    | `cd packages/flutter && flutter pub get`, then `flutter test`, `dart analyze` |
+| `docs`             | The documentation site, shared by both packages  | `cd docs && npm install`, then `npm run dev`                                  |
 
-Reading a file:
-
-```javascript
-import { readTextFile } from 'lognal';
-
-input.addEventListener('change', async () => {
-	await readTextFile(input.files[0], viewer.store);
-});
-```
+There is no install at the repository root and no root manifest. Each folder is entered and run on its own. [CONTRIBUTING.md](CONTRIBUTING.md) has the rest.
 
 ## Documentation
 
-The documentation is at **[lognal.cdget.com](https://lognal.cdget.com)**, in English and Korean.
+The site is written once for both packages: a switch above the sidebar picks the language, and every example, option name and install line on the page follows it.
 
-## Browser support
-
-lognal targets current versions of Chrome, Edge, Firefox and Safari. A few features depend on newer platform APIs:
-
-| Feature                                | Requirement                                                                    |
-| -------------------------------------- | ------------------------------------------------------------------------------ |
-| Grapheme clusters for emoji and Hangul | `Intl.Segmenter`: Chrome 87, Firefox 125, Safari 14.1. A fallback is built in. |
-| Following a growing file               | File System Access API, Chromium-based browsers only                           |
-
-## Development
-
-```bash
-npm install
-npm run dev          # playground at http://localhost:5173
-npm test             # unit tests in Node.js and browser tests in Playwright
-npm run lint
-npm run build
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the project layout and the workflow.
+| Page                                                            | What you will find                                        |
+| --------------------------------------------------------------- | --------------------------------------------------------- |
+| [**Getting started**](https://lognal.cdget.com/getting-started) | Install and setup, end to end.                            |
+| [**Guide**](https://lognal.cdget.com/guide/)                    | The console, log files, values, theming, CJK text.        |
+| [**Reference**](https://lognal.cdget.com/reference/)            | Every option, type and function, one page each.           |
+| [**Demo**](https://lognal.cdget.com/demo)                       | The whole viewer, running, in whichever package you pick. |
 
 ## Contributing
 
@@ -94,4 +86,4 @@ lognal is free to use and maintained in the open. If it saves you time, you can 
 
 ## License
 
-Please see the [LICENSE](LICENSE) file for more information about project owners, usage rights, and more. The character width tables are generated from the Unicode Character Database, whose license is included in `src/core/text/unicode-width-data.ts`.
+[MIT](LICENSE) © [CDGet](https://cdget.com). The character width tables are generated from the Unicode Character Database, whose license is included beside the generated file in each package.
