@@ -136,6 +136,30 @@ void main() {
     controller.dispose();
   });
 
+  testWidgets('a filter that shortens the log brings the view back inside it', (
+    WidgetTester tester,
+  ) async {
+    final LogViewerController controller = LogViewerController();
+
+    for (int index = 0; index < 2000; index++) {
+      controller.write(index == 7 ? 'needle here' : 'line $index');
+    }
+
+    await tester.pumpWidget(host(LogViewer(controller: controller)));
+    await tester.pump();
+    expect(controller.topPixels, controller.maxTopPixels);
+
+    controller.setFilter(const LogFilter(text: 'needle'));
+    await tester.pump();
+
+    // The one row left is far above where the view was, and nothing but the
+    // frame knows how short the log has become.
+    expect(controller.frame().rows, isNotEmpty);
+    expect(controller.topPixels, 0);
+
+    controller.dispose();
+  });
+
   testWidgets('the search bar opens with a query and counts the matches', (
     WidgetTester tester,
   ) async {

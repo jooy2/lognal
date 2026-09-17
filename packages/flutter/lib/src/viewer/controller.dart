@@ -453,6 +453,7 @@ class LogViewerController extends ChangeNotifier {
   /// decorations.
   RenderFrame frame() {
     layout.sync(budget: syncBudget);
+    _settleScroll();
 
     final double rowHeight = _metrics.height;
     final int total = layout.rowCount;
@@ -476,6 +477,24 @@ class LogViewerController extends ChangeNotifier {
       markerCells: markerCells,
       formatTime: formatTime,
     );
+  }
+
+  /// Puts the scroll offset back inside the content, which is the last moment
+  /// the height of that content is known.
+  ///
+  /// Anything that leaves fewer rows behind moves the bottom of the log up: a
+  /// filter, a mute rule, a collapsed value, a narrower viewer. None of them
+  /// can put the offset right where they happen, because the rows they remove
+  /// are laid out later, in slices. So the frame is where it is settled, which
+  /// is also where the JavaScript viewer settles it.
+  void _settleScroll() {
+    final double max = maxTopPixels;
+
+    if (_following) {
+      _topPixels = max;
+    } else if (_topPixels > max) {
+      _topPixels = max;
+    }
   }
 
   /// The highlights on one row.
