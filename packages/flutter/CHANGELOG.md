@@ -11,6 +11,7 @@ The npm package versions on its own and keeps its own changelog, in
 - The text of a row is centred in it, so it lines up with the level marks, the expanders and the box-drawing lines beside it instead of sitting above them. The underline of a link and the line through struck-out text move with it.
 - A blank line in the stack trace of a logged error no longer becomes an empty row under it.
 - The toolbar menus, the entry menu and the link and hidden-message dialogs open again. The viewer draws them over itself instead of pushing a route onto the application's navigator, so they work in an application that has none, such as a `WidgetsApp` with nothing but a `builder`.
+- The pointer over the log says what a press would do, the way the stylesheet already says it on the web: a bar over text to select, a hand over a link or an expander, and an arrow while whole entries are being picked out.
 
 ## 1.0.0 (2026-09-17)
 

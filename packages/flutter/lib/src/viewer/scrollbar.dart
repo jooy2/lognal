@@ -103,6 +103,8 @@ class _LognalScrollbarState extends State<LognalScrollbar> {
     );
 
     return MouseRegion(
+      // The log under it reads as text; the bar over it does not.
+      cursor: SystemMouseCursors.basic,
       onEnter: (PointerEnterEvent _) => setState(() => _hovered = true),
       onExit: (PointerExitEvent _) => setState(() => _hovered = false),
       child: GestureDetector(

@@ -64,6 +64,7 @@ class _LogSurfaceState extends State<LogSurface> {
   final FocusNode _focus = FocusNode(debugLabel: 'lognal log');
   int _fontGeneration = 0;
   Offset? _pressAt;
+  bool _overAction = false;
   bool _dragging = false;
   bool _selectingEntries = false;
   Set<int> _dragBaseSelection = <int>{};
@@ -336,7 +337,30 @@ class _LogSurfaceState extends State<LogSurface> {
   void _onHover(PointerHoverEvent event) {
     final HitTest hit = _controller.hitTest(event.localPosition);
 
+    _setOverAction(hit.action != null);
     _controller.setHoverEntry(hit.visualRow?.entry.id);
+  }
+
+  void _setOverAction(bool value) {
+    if (value != _overAction && mounted) {
+      setState(() => _overAction = value);
+    }
+  }
+
+  /// What the pointer looks like over the log.
+  ///
+  /// The same three the stylesheet gives the JavaScript viewer: a link or an
+  /// expander is something to press, entries are picked out rather than read
+  /// from while the selection mode is entry, and the rest of the time the log
+  /// is text that can be selected.
+  MouseCursor get _cursor {
+    if (_overAction) {
+      return SystemMouseCursors.click;
+    }
+
+    return _controller.options.selectionMode == SelectionMode.entry
+        ? SystemMouseCursors.basic
+        : SystemMouseCursors.text;
   }
 
   void _onDoubleTapDown(TapDownDetails details) {
@@ -509,8 +533,12 @@ class _LogSurfaceState extends State<LogSurface> {
         onPointerMove: _onPointerMove,
         onPointerUp: _onPointerUp,
         child: MouseRegion(
+          cursor: _cursor,
           onHover: _onHover,
-          onExit: (PointerExitEvent _) => _controller.setHoverEntry(null),
+          onExit: (PointerExitEvent _) {
+            _setOverAction(false);
+            _controller.setHoverEntry(null);
+          },
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onDoubleTapDown: _onDoubleTapDown,
@@ -642,20 +670,23 @@ class _LogSurfaceState extends State<LogSurface> {
       child: Semantics(
         button: true,
         label: widget.labels.entryActions,
-        child: GestureDetector(
-          onTapDown: (TapDownDetails details) =>
-              widget.onEntryMenu(entryId, details.globalPosition),
-          child: Container(
-            width: 22,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: widget.theme.chrome.surface,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: LognalIconView(
-              icon: LognalIcon.more,
-              color: widget.theme.chrome.muted,
-              size: 14,
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTapDown: (TapDownDetails details) =>
+                widget.onEntryMenu(entryId, details.globalPosition),
+            child: Container(
+              width: 22,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: widget.theme.chrome.surface,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: LognalIconView(
+                icon: LognalIcon.more,
+                color: widget.theme.chrome.muted,
+                size: 14,
+              ),
             ),
           ),
         ),

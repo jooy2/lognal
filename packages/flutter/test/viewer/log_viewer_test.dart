@@ -8,6 +8,18 @@ import 'package:lognal/lognal.dart';
 import 'package:lognal/src/viewer/controller.dart' show paddingTop;
 import 'package:lognal/src/viewer/log_painter.dart';
 
+/// The painted log, which is what the pointer and the clip are tested through.
+final Finder logSurface = find.byWidgetPredicate(
+  (Widget widget) => widget is CustomPaint && widget.painter is LogPainter,
+);
+
+/// What the pointer looks like over the log.
+MouseCursor cursorOverLog(WidgetTester tester) {
+  return tester
+      .widget<MouseRegion>(find.ancestor(of: logSurface, matching: find.byType(MouseRegion)).first)
+      .cursor;
+}
+
 Widget host(Widget child, {Size size = const Size(640, 360)}) {
   return WidgetsApp(
     color: const Color(0xff000000),
@@ -199,13 +211,9 @@ void main() {
     // A scroll leaves the first row on screen starting above the top of it, and
     // the canvas belongs to the application, so without this clip the row lands
     // on the toolbar.
-    final Finder surface = find.byWidgetPredicate(
-      (Widget widget) => widget is CustomPaint && widget.painter is LogPainter,
-    );
-
     expect(
-      tester.renderObject(surface),
-      paints..clipRect(rect: Offset.zero & tester.getSize(surface)),
+      tester.renderObject(logSurface),
+      paints..clipRect(rect: Offset.zero & tester.getSize(logSurface)),
     );
 
     controller.dispose();
@@ -220,13 +228,10 @@ void main() {
     await tester.pumpWidget(host(LogViewer(controller: controller)));
     await tester.pump();
 
-    final Finder surface = find.byWidgetPredicate(
-      (Widget widget) => widget is CustomPaint && widget.painter is LogPainter,
-    );
     final double rowHeight = controller.metrics.height;
 
     expect(
-      tester.renderObject(surface),
+      tester.renderObject(logSurface),
       paints..something((Symbol method, List<dynamic> arguments) {
         if (method != #drawParagraph) {
           return false;
@@ -414,6 +419,56 @@ void main() {
 
     expect(opened, <String>['https://example.com']);
     expect(find.text('Open this link?'), findsNothing);
+
+    controller.dispose();
+  });
+
+  testWidgets('the pointer over the log says what a press there would do', (
+    WidgetTester tester,
+  ) async {
+    final LogViewerController controller = LogViewerController();
+
+    controller.write('see https://example.com now');
+    await tester.pumpWidget(host(LogViewer(controller: controller)));
+    await tester.pump();
+
+    final Offset origin = tester.getTopLeft(find.byType(LogViewer));
+    final double row = origin.dy + 40 + paddingTop + controller.metrics.height / 2;
+    final TestGesture pointer = await tester.createGesture(kind: PointerDeviceKind.mouse);
+
+    await pointer.addPointer(location: Offset(origin.dx + controller.contentLeft, row));
+    addTearDown(pointer.removePointer);
+    await tester.pump();
+    expect(cursorOverLog(tester), SystemMouseCursors.text);
+
+    // Over the address, where a press opens the link rather than starting a
+    // selection.
+    await pointer.moveTo(
+      Offset(origin.dx + controller.contentLeft + controller.metrics.width * 6, row),
+    );
+    await tester.pump();
+    expect(cursorOverLog(tester), SystemMouseCursors.click);
+
+    controller.dispose();
+  });
+
+  testWidgets('the pointer picks entries out rather than reading them in entry mode', (
+    WidgetTester tester,
+  ) async {
+    final LogViewerController controller = LogViewerController();
+
+    controller.write('one');
+    await tester.pumpWidget(
+      host(
+        LogViewer(
+          controller: controller,
+          options: const LogViewerOptions(selectionMode: SelectionMode.entry),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(cursorOverLog(tester), SystemMouseCursors.basic);
 
     controller.dispose();
   });
