@@ -78,6 +78,10 @@ class CanvasLogRenderer extends LogRenderer {
   RenderTheme _theme = darkTheme.renderer;
   FontSettings _font = const FontSettings();
   CellMetrics _metrics = const CellMetrics(width: 8, height: 20, baseline: 14);
+
+  /// The distance from the top of a row to the top of the text drawn on it,
+  /// which is what centres the line inside the taller row. See [setFont].
+  double _textTop = 0;
   final LinkedHashMap<_ParagraphKey, ui.Paragraph> _paragraphs =
       LinkedHashMap<_ParagraphKey, ui.Paragraph>();
 
@@ -109,10 +113,16 @@ class CanvasLogRenderer extends LogRenderer {
     final double width = sample.maxIntrinsicWidth / 20;
     final double height = math.max(1, (font.size * font.lineHeight).roundToDouble());
 
+    // A row is taller than the line the font draws, so the leftover height is
+    // split above and below the text. Everything the renderer draws by hand —
+    // the level marks, the expanders, the box-drawing lines — sits on the
+    // middle of the row, and text that kept the top of the row would sit above
+    // all of it.
+    _textTop = math.max(0, (height - sample.height) / 2).roundToDouble();
     _metrics = CellMetrics(
       width: width > 0 ? width : font.size * 0.6,
       height: height,
-      baseline: ((height - sample.height) / 2 + sample.alphabeticBaseline).roundToDouble(),
+      baseline: (_textTop + sample.alphabeticBaseline).roundToDouble(),
     );
 
     return _metrics;
@@ -384,7 +394,7 @@ class CanvasLogRenderer extends LogRenderer {
       final bool italic = style?.italic ?? false;
 
       if (run.simple) {
-        canvas.drawParagraph(_layout(run.text, drawn, bold, italic), Offset(x, top));
+        canvas.drawParagraph(_layout(run.text, drawn, bold, italic), Offset(x, top + _textTop));
       } else {
         double clusterLeft = x;
 
@@ -401,7 +411,7 @@ class CanvasLogRenderer extends LogRenderer {
             final double natural = paragraph.maxIntrinsicWidth;
             final double offset = cells > 1 && natural < slot ? (slot - natural) / 2 : 0;
 
-            canvas.drawParagraph(paragraph, Offset(clusterLeft + offset, top));
+            canvas.drawParagraph(paragraph, Offset(clusterLeft + offset, top + _textTop));
           }
 
           clusterLeft += slot;
@@ -483,7 +493,7 @@ class CanvasLogRenderer extends LogRenderer {
     if (frame.timestampCells > 0) {
       canvas.drawParagraph(
         _layout(frame.formatTime(entry.time), _theme.muted, false, false),
-        Offset(x, top),
+        Offset(x, top + _textTop),
       );
       x += frame.timestampCells * cellWidth;
     }

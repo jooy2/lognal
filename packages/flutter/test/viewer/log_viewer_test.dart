@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -204,6 +206,42 @@ void main() {
     expect(
       tester.renderObject(surface),
       paints..clipRect(rect: Offset.zero & tester.getSize(surface)),
+    );
+
+    controller.dispose();
+  });
+
+  testWidgets('the text of a row is centred in it, with the marks beside it', (
+    WidgetTester tester,
+  ) async {
+    final LogViewerController controller = LogViewerController();
+
+    controller.write('centred');
+    await tester.pumpWidget(host(LogViewer(controller: controller)));
+    await tester.pump();
+
+    final Finder surface = find.byWidgetPredicate(
+      (Widget widget) => widget is CustomPaint && widget.painter is LogPainter,
+    );
+    final double rowHeight = controller.metrics.height;
+
+    expect(
+      tester.renderObject(surface),
+      paints..something((Symbol method, List<dynamic> arguments) {
+        if (method != #drawParagraph) {
+          return false;
+        }
+
+        final ui.Paragraph paragraph = arguments[0] as ui.Paragraph;
+        final Offset offset = arguments[1] as Offset;
+        // The line the font draws is shorter than the row it sits on, so half
+        // of what is left over goes above it. The level marks and the
+        // expanders are drawn on the middle of the row, and this is what puts
+        // the text beside them rather than above them.
+        final double expected = paddingTop + (rowHeight - paragraph.height) / 2;
+
+        return (offset.dy - expected).abs() <= 1;
+      }),
     );
 
     controller.dispose();
