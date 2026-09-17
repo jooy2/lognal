@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lognal/lognal.dart';
 import 'package:lognal/src/viewer/controller.dart' show paddingTop;
+import 'package:lognal/src/viewer/log_painter.dart';
 
 Widget host(Widget child, {Size size = const Size(640, 360)}) {
   return WidgetsApp(
@@ -177,6 +178,33 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(controller.layout.rowCount, 2);
+
+    controller.dispose();
+  });
+
+  testWidgets('the log is cut off at the edges of the surface it is drawn in', (
+    WidgetTester tester,
+  ) async {
+    final LogViewerController controller = LogViewerController();
+
+    for (int index = 0; index < 200; index++) {
+      controller.write('line $index');
+    }
+
+    await tester.pumpWidget(host(LogViewer(controller: controller)));
+    await tester.pump();
+
+    // A scroll leaves the first row on screen starting above the top of it, and
+    // the canvas belongs to the application, so without this clip the row lands
+    // on the toolbar.
+    final Finder surface = find.byWidgetPredicate(
+      (Widget widget) => widget is CustomPaint && widget.painter is LogPainter,
+    );
+
+    expect(
+      tester.renderObject(surface),
+      paints..clipRect(rect: Offset.zero & tester.getSize(surface)),
+    );
 
     controller.dispose();
   });

@@ -125,6 +125,16 @@ class CanvasLogRenderer extends LogRenderer {
     final double gutterWidth = (frame.timestampCells + frame.markerCells) * cellWidth;
     final double contentLeft = frame.paddingLeft + gutterWidth;
 
+    // The first row on screen usually starts above the top of it, because the
+    // log scrolls by the pixel rather than by the row, and the last one runs
+    // past the bottom. A canvas in a browser is a box of its own and cuts them
+    // off; this canvas is the application's, and a row drawn past the edge
+    // lands on whatever the viewer put there — the toolbar above, the input
+    // line below. So the renderer cuts them off itself.
+    canvas
+      ..save()
+      ..clipRect(Rect.fromLTWH(0, 0, size.width, size.height));
+
     canvas.drawRect(
       Rect.fromLTWH(0, 0, size.width, size.height),
       Paint()..color = _theme.background,
@@ -173,6 +183,8 @@ class CanvasLogRenderer extends LogRenderer {
         _drawEntryFocus(canvas, size, row, top);
       }
     }
+
+    canvas.restore();
   }
 
   @override

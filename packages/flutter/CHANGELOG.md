@@ -5,6 +5,10 @@ Changes to the `lognal` package on pub.dev that affect its users, newest first.
 The npm package versions on its own and keeps its own changelog, in
 [`packages/js/CHANGELOG.md`](../js/CHANGELOG.md).
 
+## vNext (2026--)
+
+- The log is cut off at the edges of the area it is drawn in, so the row that a scroll leaves half above the top no longer paints over the toolbar.
+
 ## 1.0.0 (2026-09-17)
 
 The first release, and the same library the npm package has shipped since
