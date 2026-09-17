@@ -120,43 +120,51 @@ class _LognalToolbarState extends State<LognalToolbar> {
     );
   }
 
-  Future<void> _openLevelMenu(Offset position) async {
+  /// The rows of the level menu, as they stand right now.
+  ///
+  /// Built again after every choice rather than once, because the menu stays
+  /// open while levels are added and taken away, and each row is ticked
+  /// according to the filter the last choice wrote.
+  List<PopupItem> _levelItems() {
     final List<LogLevel> shown = _shownLevels;
     final bool all = shown.length == logLevels.length;
 
+    return <PopupItem>[
+      PopupItem(label: widget.labels.levelAll, checked: all, onSelect: () => _setLevels(logLevels)),
+      for (final LogLevel level in logLevels)
+        PopupItem(
+          label: _levelLabel(level),
+          checked: shown.contains(level),
+          separatorBefore: level == logLevels.first,
+          onSelect: () {
+            // While every level is shown, choosing one shows that level alone;
+            // after that, choosing a level adds it or takes it away.
+            if (all) {
+              _setLevels(<LogLevel>[level]);
+
+              return;
+            }
+
+            final List<LogLevel> next = shown.contains(level)
+                ? (List<LogLevel>.of(shown)..remove(level))
+                : (List<LogLevel>.of(shown)..add(level));
+
+            _setLevels(next.isEmpty ? logLevels : (next..sort(_bySeverity)));
+          },
+        ),
+    ];
+  }
+
+  Future<void> _openLevelMenu(Offset position) async {
     await showLognalMenu(
       host: LognalPopupHost.maybeOf(context),
+      items: _levelItems,
       position: position,
       theme: widget.theme.chrome,
-      items: <PopupItem>[
-        PopupItem(
-          label: widget.labels.levelAll,
-          checked: all,
-          onSelect: () => _setLevels(logLevels),
-        ),
-        for (final LogLevel level in logLevels)
-          PopupItem(
-            label: _levelLabel(level),
-            checked: shown.contains(level),
-            separatorBefore: level == logLevels.first,
-            onSelect: () {
-              // While every level is shown, choosing one shows that level alone;
-              // after that, choosing a level adds it or takes it away.
-              if (all) {
-                _setLevels(<LogLevel>[level]);
-
-                return;
-              }
-
-              final List<LogLevel> next = shown.contains(level)
-                  ? (List<LogLevel>.of(shown)..remove(level))
-                  : (List<LogLevel>.of(shown)..add(level));
-
-              _setLevels(next.isEmpty ? logLevels : (next..sort(_bySeverity)));
-            },
-          ),
-      ],
       width: 180,
+      // Levels are a set rather than a choice of one, so the menu stays open
+      // until it is dismissed.
+      multiple: true,
     );
   }
 
@@ -167,15 +175,15 @@ class _LognalToolbarState extends State<LognalToolbar> {
 
     await showLognalMenu(
       host: LognalPopupHost.maybeOf(context),
-      position: position,
-      theme: widget.theme.chrome,
-      items: choices.map((ThemeChoice choice) {
+      items: () => choices.map((ThemeChoice choice) {
         return PopupItem(
           label: choice.label ?? _themeLabel(choice.name),
           checked: _controller.themeName == choice.name,
           onSelect: () => _controller.setTheme(choice.name),
         );
       }).toList(),
+      position: position,
+      theme: widget.theme.chrome,
       width: 180,
     );
   }

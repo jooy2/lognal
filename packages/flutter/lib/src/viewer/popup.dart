@@ -201,21 +201,24 @@ class _PopupLayer extends StatelessWidget {
 /// viewer inside a light application should not open a light menu.
 Future<void> showLognalMenu({
   required LognalPopupHostState? host,
+  required List<PopupItem> Function() items,
   required Offset position,
   required ChromeTheme theme,
-  required List<PopupItem> items,
   double width = 240,
+  bool multiple = false,
 }) {
+  final List<PopupItem> first = host == null ? const <PopupItem>[] : items();
+
   // A menu with nothing in it does not open, the way the JavaScript viewer's
   // entry menu does not when every item has been turned off.
-  if (host == null || items.isEmpty) {
+  if (host == null || first.isEmpty) {
     return Future<void>.value();
   }
 
   final Offset origin = host.toLocal(position);
 
   return host.show((BuildContext context, Size area, VoidCallback close) {
-    final double height = items.length * _popupRowHeight + 8;
+    final double height = first.length * _popupRowHeight + 8;
     final double left = math.min(origin.dx, math.max(0, area.width - width - 8));
     final double top = math.min(origin.dy, math.max(0, area.height - height - 8));
 
@@ -223,20 +226,51 @@ Future<void> showLognalMenu({
       left: math.max(0, left),
       top: math.max(0, top),
       width: width,
-      child: _PopupPanel(theme: theme, items: items, onDismiss: close),
+      child: _PopupPanel(theme: theme, items: items, multiple: multiple, onDismiss: close),
     );
   });
 }
 
-class _PopupPanel extends StatelessWidget {
-  const _PopupPanel({required this.theme, required this.items, required this.onDismiss});
+class _PopupPanel extends StatefulWidget {
+  const _PopupPanel({
+    required this.theme,
+    required this.items,
+    required this.multiple,
+    required this.onDismiss,
+  });
 
   final ChromeTheme theme;
-  final List<PopupItem> items;
+  final List<PopupItem> Function() items;
+  final bool multiple;
   final VoidCallback onDismiss;
 
   @override
+  State<_PopupPanel> createState() => _PopupPanelState();
+}
+
+class _PopupPanelState extends State<_PopupPanel> {
+  /// Chooses an item, and closes the menu unless it takes several answers.
+  ///
+  /// A menu of levels is a set rather than a choice of one, so it stays open
+  /// and redraws its ticks, which is the JavaScript viewer's `multiple`. The
+  /// items are asked for again rather than kept, because what is ticked is read
+  /// off the filter the item just changed.
+  void _choose(PopupItem item) {
+    if (!widget.multiple) {
+      widget.onDismiss();
+      item.onSelect();
+
+      return;
+    }
+
+    item.onSelect();
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final ChromeTheme theme = widget.theme;
+
     return DecoratedBox(
       decoration: BoxDecoration(
         color: theme.surface,
@@ -251,8 +285,9 @@ class _PopupPanel extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: items
-              .map((PopupItem item) => _PopupRow(theme: theme, item: item, onDismiss: onDismiss))
+          children: widget
+              .items()
+              .map((PopupItem item) => _PopupRow(theme: theme, item: item, onChoose: _choose))
               .toList(),
         ),
       ),
@@ -261,11 +296,11 @@ class _PopupPanel extends StatelessWidget {
 }
 
 class _PopupRow extends StatefulWidget {
-  const _PopupRow({required this.theme, required this.item, required this.onDismiss});
+  const _PopupRow({required this.theme, required this.item, required this.onChoose});
 
   final ChromeTheme theme;
   final PopupItem item;
-  final VoidCallback onDismiss;
+  final void Function(PopupItem item) onChoose;
 
   @override
   State<_PopupRow> createState() => _PopupRowState();
@@ -299,10 +334,7 @@ class _PopupRowState extends State<_PopupRow> {
             onExit: (PointerExitEvent _) => setState(() => _hovered = false),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () {
-                widget.onDismiss();
-                item.onSelect();
-              },
+              onTap: () => widget.onChoose(item),
               child: Container(
                 height: _popupRowHeight,
                 padding: const EdgeInsets.symmetric(horizontal: 10),

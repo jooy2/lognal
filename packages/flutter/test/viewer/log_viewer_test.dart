@@ -339,14 +339,15 @@ void main() {
     controller.dispose();
   });
 
-  testWidgets('the level menu opens over the viewer and filters what it shows', (
+  testWidgets('the level menu stays open while levels are added and taken away', (
     WidgetTester tester,
   ) async {
     final LogViewerController controller = LogViewerController();
 
     controller
       ..write('a quiet line')
-      ..write('a loud one', const WriteOptions(level: LogLevel.error));
+      ..write('a loud one', const WriteOptions(level: LogLevel.error))
+      ..write('a careful one', const WriteOptions(level: LogLevel.warn));
 
     await tester.pumpWidget(host(LogViewer(controller: controller)));
     await tester.pump();
@@ -363,10 +364,20 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(controller.filter?.levels, <LogLevel>[LogLevel.error]);
-    expect(find.text('1 of 2 entries'), findsOneWidget);
-    // The menu is gone, and what is left saying "Error" is the button it opened
-    // from, which now shows what was chosen.
-    expect(find.text('Error'), findsOneWidget);
+    expect(find.text('1 of 3 entries'), findsOneWidget);
+    // Levels are a set, so the menu is still there with the next one a press
+    // away. "Error" is on the button as well by now.
+    expect(find.text('Warning'), findsOneWidget);
+
+    await tester.tap(find.text('Warning'));
+    await tester.pumpAndSettle();
+
+    expect(controller.filter?.levels, <LogLevel>[LogLevel.warn, LogLevel.error]);
+    expect(find.text('2 of 3 entries'), findsOneWidget);
+
+    await tester.tapAt(tester.getBottomLeft(find.byType(LogViewer)) - const Offset(-8, 8));
+    await tester.pumpAndSettle();
+    expect(find.text('Warning'), findsNothing);
 
     controller.dispose();
   });

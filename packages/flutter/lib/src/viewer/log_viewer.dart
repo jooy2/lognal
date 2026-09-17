@@ -193,9 +193,9 @@ class _LogViewerState extends State<LogViewer> {
     controller.setMenuEntry(entryId);
     await showLognalMenu(
       host: _popups.currentState,
+      items: () => _entryMenuItems(controller, entry, labels),
       position: position,
       theme: theme.chrome,
-      items: _entryMenuItems(controller, entry, labels),
     );
 
     if (mounted) {

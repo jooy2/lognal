@@ -15,6 +15,7 @@ The npm package versions on its own and keeps its own changelog, in
 - The sentence a dialog explains itself with wraps instead of ending in an ellipsis.
 - On the web, the browser no longer draws its own menu over the entry menu on a right click. The viewer turns the browser's menu off while it is on screen and puts it back when the last one goes away.
 - A menu that would have no items in it does not open.
+- The level menu stays open while levels are added and taken away, so a set of them is a few presses rather than a few trips to the button. A press outside it closes it.
 - A filter, a mute rule or anything else that leaves fewer rows behind no longer scrolls the log off the bottom of the view. The view comes back inside the log it is showing, and a view that was following new entries stays at the end.
 
 ## 1.0.0 (2026-09-17)
