@@ -79,6 +79,11 @@ class LogViewer extends StatefulWidget {
 }
 
 class _LogViewerState extends State<LogViewer> {
+  /// The layer the viewer's own menus and dialogs are drawn on.
+  ///
+  /// Held by key rather than looked up, because this state is above the host
+  /// rather than inside it.
+  final GlobalKey<LognalPopupHostState> _popups = GlobalKey<LognalPopupHostState>();
   LogViewerController? _own;
 
   LogViewerController get _controller => widget.controller ?? _own!;
@@ -147,13 +152,10 @@ class _LogViewerState extends State<LogViewer> {
       return;
     }
 
-    final RenderBox? box = context.findRenderObject() as RenderBox?;
-    final Offset origin = box == null ? position : box.localToGlobal(position);
-
     controller.setMenuEntry(entryId);
     await showLognalMenu(
-      context: context,
-      position: origin,
+      host: _popups.currentState,
+      position: position,
       theme: theme.chrome,
       items: _entryMenuItems(controller, entry, labels),
     );
@@ -267,7 +269,7 @@ class _LogViewerState extends State<LogViewer> {
     }
 
     await showLinkDialog(
-      context: context,
+      host: _popups.currentState,
       theme: _theme(context, controller).chrome,
       labels: controller.options.resolvedLabels,
       url: url,
@@ -279,7 +281,7 @@ class _LogViewerState extends State<LogViewer> {
     final LogViewerController controller = _controller;
 
     await showMuteDialog(
-      context: context,
+      host: _popups.currentState,
       controller: controller,
       theme: _theme(context, controller).chrome,
       labels: controller.options.resolvedLabels,
@@ -320,55 +322,58 @@ class _LogViewerState extends State<LogViewer> {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(10),
-          child: Column(
-            children: <Widget>[
-              if (options.toolbar.visible)
-                LognalToolbar(
-                  controller: controller,
-                  theme: theme,
-                  labels: labels,
-                  onOpenMute: _openMute,
-                ),
-              if (controller.isSearchOpen)
-                LognalSearchBar(controller: controller, theme: theme, labels: labels),
-              Expanded(
-                child: Stack(
-                  children: <Widget>[
-                    Positioned.fill(
-                      child: LogSurface(
-                        controller: controller,
-                        theme: theme,
-                        font: font,
-                        labels: labels,
-                        onEntryMenu: _openEntryMenu,
-                        onLinkTap: (String url, {required bool direct}) =>
-                            _tapLink(url, direct: direct),
-                      ),
-                    ),
-                    if (controller.hasUnseen)
-                      Positioned(
-                        right: 16,
-                        bottom: 16,
-                        child: _NewLogsButton(
+          child: LognalPopupHost(
+            key: _popups,
+            child: Column(
+              children: <Widget>[
+                if (options.toolbar.visible)
+                  LognalToolbar(
+                    controller: controller,
+                    theme: theme,
+                    labels: labels,
+                    onOpenMute: _openMute,
+                  ),
+                if (controller.isSearchOpen)
+                  LognalSearchBar(controller: controller, theme: theme, labels: labels),
+                Expanded(
+                  child: Stack(
+                    children: <Widget>[
+                      Positioned.fill(
+                        child: LogSurface(
+                          controller: controller,
                           theme: theme,
-                          label: labels.newLogs,
-                          onPressed: controller.scrollToBottom,
+                          font: font,
+                          labels: labels,
+                          onEntryMenu: _openEntryMenu,
+                          onLinkTap: (String url, {required bool direct}) =>
+                              _tapLink(url, direct: direct),
                         ),
                       ),
-                  ],
+                      if (controller.hasUnseen)
+                        Positioned(
+                          right: 16,
+                          bottom: 16,
+                          child: _NewLogsButton(
+                            theme: theme,
+                            label: labels.newLogs,
+                            onPressed: controller.scrollToBottom,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-              if (input != null)
-                LognalInputLine(
-                  controller: controller,
-                  options: input,
-                  theme: theme,
-                  font: font,
-                  labels: labels,
-                ),
-              if (options.statusBar)
-                LognalStatusBar(controller: controller, theme: theme, labels: labels),
-            ],
+                if (input != null)
+                  LognalInputLine(
+                    controller: controller,
+                    options: input,
+                    theme: theme,
+                    font: font,
+                    labels: labels,
+                  ),
+                if (options.statusBar)
+                  LognalStatusBar(controller: controller, theme: theme, labels: labels),
+              ],
+            ),
           ),
         ),
       ),

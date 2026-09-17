@@ -9,16 +9,16 @@ import 'package:lognal/src/viewer/popup.dart';
 
 /// Asks before a link opens, and shows the address it would open.
 Future<void> showLinkDialog({
-  required BuildContext context,
+  required LognalPopupHostState? host,
   required ChromeTheme theme,
   required ViewerLabels labels,
   required String url,
   required VoidCallback onOpen,
 }) {
-  return showLognalDialog<void>(
-    context: context,
+  return showLognalDialog(
+    host: host,
     theme: theme,
-    builder: (BuildContext context) => Column(
+    builder: (BuildContext context, VoidCallback close) => Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -49,18 +49,14 @@ Future<void> showLinkDialog({
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: <Widget>[
-            LognalTextButton(
-              label: labels.linkDialogCancel,
-              theme: theme,
-              onPressed: () => Navigator.of(context).pop(),
-            ),
+            LognalTextButton(label: labels.linkDialogCancel, theme: theme, onPressed: close),
             const SizedBox(width: 8),
             LognalTextButton(
               label: labels.linkDialogOpen,
               theme: theme,
               primary: true,
               onPressed: () {
-                Navigator.of(context).pop();
+                close();
                 onOpen();
               },
             ),
@@ -73,26 +69,32 @@ Future<void> showLinkDialog({
 
 /// Manages the rules that keep noise out of the log.
 Future<void> showMuteDialog({
-  required BuildContext context,
+  required LognalPopupHostState? host,
   required LogViewerController controller,
   required ChromeTheme theme,
   required ViewerLabels labels,
 }) {
-  return showLognalDialog<void>(
-    context: context,
+  return showLognalDialog(
+    host: host,
     theme: theme,
     width: 420,
-    builder: (BuildContext context) =>
-        _MuteDialog(controller: controller, theme: theme, labels: labels),
+    builder: (BuildContext context, VoidCallback close) =>
+        _MuteDialog(controller: controller, theme: theme, labels: labels, onClose: close),
   );
 }
 
 class _MuteDialog extends StatefulWidget {
-  const _MuteDialog({required this.controller, required this.theme, required this.labels});
+  const _MuteDialog({
+    required this.controller,
+    required this.theme,
+    required this.labels,
+    required this.onClose,
+  });
 
   final LogViewerController controller;
   final ChromeTheme theme;
   final ViewerLabels labels;
+  final VoidCallback onClose;
 
   @override
   State<_MuteDialog> createState() => _MuteDialogState();
@@ -211,7 +213,7 @@ class _MuteDialogState extends State<_MuteDialog> {
               label: labels.muteClose,
               theme: theme,
               primary: true,
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: widget.onClose,
             ),
           ],
         ),

@@ -310,6 +310,114 @@ void main() {
     controller.dispose();
   });
 
+  testWidgets('the level menu opens over the viewer and filters what it shows', (
+    WidgetTester tester,
+  ) async {
+    final LogViewerController controller = LogViewerController();
+
+    controller
+      ..write('a quiet line')
+      ..write('a loud one', const WriteOptions(level: LogLevel.error));
+
+    await tester.pumpWidget(host(LogViewer(controller: controller)));
+    await tester.pump();
+
+    // The application around the viewer has no navigator, which is the case a
+    // menu of the framework's own could not serve.
+    expect(find.byType(Navigator), findsNothing);
+
+    await tester.tap(find.text('All levels'));
+    await tester.pumpAndSettle();
+    expect(find.text('Error'), findsOneWidget);
+
+    await tester.tap(find.text('Error'));
+    await tester.pumpAndSettle();
+
+    expect(controller.filter?.levels, <LogLevel>[LogLevel.error]);
+    expect(find.text('1 of 2 entries'), findsOneWidget);
+    // The menu is gone, and what is left saying "Error" is the button it opened
+    // from, which now shows what was chosen.
+    expect(find.text('Error'), findsOneWidget);
+
+    controller.dispose();
+  });
+
+  testWidgets('a press outside a menu closes it and chooses nothing', (WidgetTester tester) async {
+    final LogViewerController controller = LogViewerController();
+
+    await tester.pumpWidget(host(LogViewer(controller: controller)));
+    await tester.pump();
+
+    await tester.tap(find.text('All levels'));
+    await tester.pumpAndSettle();
+    expect(find.text('Error'), findsOneWidget);
+
+    await tester.tapAt(tester.getBottomLeft(find.byType(LogViewer)) - const Offset(-8, 8));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Error'), findsNothing);
+    expect(controller.filter?.levels, isNull);
+
+    controller.dispose();
+  });
+
+  testWidgets('a right press on an entry opens its menu', (WidgetTester tester) async {
+    final LogViewerController controller = LogViewerController();
+
+    controller.write('right click me');
+    await tester.pumpWidget(host(LogViewer(controller: controller)));
+    await tester.pump();
+
+    final Offset origin = tester.getTopLeft(find.byType(LogViewer));
+    final Offset row = origin + Offset(controller.contentLeft + 8, 40 + paddingTop + 4);
+    final TestGesture gesture = await tester.startGesture(
+      row,
+      kind: PointerDeviceKind.mouse,
+      buttons: kSecondaryMouseButton,
+    );
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Copy as text'), findsOneWidget);
+
+    controller.dispose();
+  });
+
+  testWidgets('a tap on a link asks before it opens', (WidgetTester tester) async {
+    final LogViewerController controller = LogViewerController();
+    final List<String> opened = <String>[];
+
+    controller.write('see https://example.com now');
+    await tester.pumpWidget(
+      host(
+        LogViewer(
+          controller: controller,
+          options: LogViewerOptions(onOpenLink: opened.add),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    // Into the address itself, which starts at the fifth cell of the row.
+    final Offset origin = tester.getTopLeft(find.byType(LogViewer));
+    final double x = origin.dx + controller.contentLeft + controller.metrics.width * 6;
+    final double y = origin.dy + 40 + paddingTop + controller.metrics.height / 2;
+
+    await tester.tapAt(Offset(x, y));
+    await tester.pumpAndSettle();
+    expect(find.text('Open this link?'), findsOneWidget);
+    expect(opened, isEmpty);
+
+    await tester.tap(find.text('Open link'));
+    await tester.pumpAndSettle();
+
+    expect(opened, <String>['https://example.com']);
+    expect(find.text('Open this link?'), findsNothing);
+
+    controller.dispose();
+  });
+
   testWidgets('the theme menu changes the palette', (WidgetTester tester) async {
     final LogViewerController controller = LogViewerController();
 
@@ -317,6 +425,13 @@ void main() {
     await tester.pump();
 
     expect(controller.themeName, 'auto');
+
+    await tester.tap(find.bySemanticsLabel('Theme'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Dark'));
+    await tester.pumpAndSettle();
+
+    expect(controller.themeName, 'dark');
 
     controller.setTheme('ember');
     await tester.pump();
@@ -349,6 +464,14 @@ void main() {
     expect(controller.mutedCount, 2);
     expect(find.text('1 of 3 entries'), findsOneWidget);
     expect(find.text('2'), findsOneWidget);
+
+    await tester.tap(find.bySemanticsLabel(RegExp('^Hidden messages')));
+    await tester.pumpAndSettle();
+    expect(find.text('/health'), findsOneWidget);
+
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(find.text('/health'), findsNothing);
 
     controller.dispose();
   });

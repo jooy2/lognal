@@ -125,7 +125,7 @@ class _LognalToolbarState extends State<LognalToolbar> {
     final bool all = shown.length == logLevels.length;
 
     await showLognalMenu(
-      context: context,
+      host: LognalPopupHost.maybeOf(context),
       position: position,
       theme: widget.theme.chrome,
       items: <PopupItem>[
@@ -166,7 +166,7 @@ class _LognalToolbarState extends State<LognalToolbar> {
     final List<ThemeChoice> choices = _controller.options.resolvedThemes(widget.labels);
 
     await showLognalMenu(
-      context: context,
+      host: LognalPopupHost.maybeOf(context),
       position: position,
       theme: widget.theme.chrome,
       items: choices.map((ThemeChoice choice) {

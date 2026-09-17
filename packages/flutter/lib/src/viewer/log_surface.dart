@@ -49,7 +49,7 @@ class LogSurface extends StatefulWidget {
   /// The labels of the controls drawn over the log.
   final ViewerLabels labels;
 
-  /// Opens the menu of an entry, at a point of the surface.
+  /// Opens the menu of an entry, at a point on the screen.
   final void Function(int entryId, Offset position) onEntryMenu;
 
   /// Handles a tap on a link.
@@ -149,7 +149,7 @@ class _LogSurfaceState extends State<LogSurface> {
       final VisualRow? row = hit.visualRow;
 
       if (row != null) {
-        widget.onEntryMenu(row.entry.id, event.localPosition);
+        widget.onEntryMenu(row.entry.id, event.position);
       }
 
       return;
@@ -356,7 +356,7 @@ class _LogSurfaceState extends State<LogSurface> {
     final VisualRow? row = hit.visualRow;
 
     if (row != null) {
-      widget.onEntryMenu(row.entry.id, details.localPosition);
+      widget.onEntryMenu(row.entry.id, details.globalPosition);
     }
   }
 
@@ -643,9 +643,8 @@ class _LogSurfaceState extends State<LogSurface> {
         button: true,
         label: widget.labels.entryActions,
         child: GestureDetector(
-          onTapDown: (TapDownDetails details) {
-            widget.onEntryMenu(entryId, details.localPosition + Offset(size.width - 40, top));
-          },
+          onTapDown: (TapDownDetails details) =>
+              widget.onEntryMenu(entryId, details.globalPosition),
           child: Container(
             width: 22,
             alignment: Alignment.center,
