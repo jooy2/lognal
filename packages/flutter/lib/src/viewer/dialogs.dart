@@ -6,6 +6,7 @@ import 'package:lognal/src/viewer/controls.dart';
 import 'package:lognal/src/viewer/icons.dart';
 import 'package:lognal/src/viewer/labels.dart';
 import 'package:lognal/src/viewer/popup.dart';
+import 'package:lognal/src/viewer/toolbar.dart' show filterDelay;
 
 /// Asks before a link opens, and shows the address it would open.
 Future<void> showLinkDialog({
@@ -103,16 +104,43 @@ class _MuteDialog extends StatefulWidget {
 class _MuteDialogState extends State<_MuteDialog> {
   final TextEditingController _text = TextEditingController();
   late List<MuteRule> _rules = List<MuteRule>.of(widget.controller.muteRules);
+  late final List<TextEditingController> _fields = _rules
+      .map((MuteRule rule) => TextEditingController(text: rule.text))
+      .toList();
+  Object? _typingTimer;
 
   @override
   void dispose() {
     _text.dispose();
+
+    for (final TextEditingController field in _fields) {
+      field.dispose();
+    }
+
     super.dispose();
   }
 
   void _apply(List<MuteRule> rules) {
     setState(() => _rules = rules);
     widget.controller.setMuteRules(rules);
+  }
+
+  /// Applies an edited rule once typing stops, the way the toolbar filter does.
+  ///
+  /// Every keystroke would lay the whole log out again, which is a long wait on
+  /// a log of any size for a rule that is half written.
+  void _applyLater(int index, MuteRule rule) {
+    final Object token = Object();
+
+    _typingTimer = token;
+    setState(() => _rules[index] = rule);
+    Future<void>.delayed(filterDelay, () {
+      if (!mounted || _typingTimer != token) {
+        return;
+      }
+
+      widget.controller.setMuteRules(List<MuteRule>.of(_rules));
+    });
   }
 
   void _add() {
@@ -123,13 +151,35 @@ class _MuteDialogState extends State<_MuteDialog> {
     }
 
     _text.clear();
+    _fields.add(TextEditingController(text: text));
     _apply(<MuteRule>[..._rules, MuteRule(text: text)]);
+  }
+
+  void _remove(int index) {
+    _fields.removeAt(index).dispose();
+    _apply(List<MuteRule>.of(_rules)..removeAt(index));
+  }
+
+  /// Whether a rule compiles, which only a regular expression can fail to do.
+  bool _valid(MuteRule rule) {
+    if (!rule.regex) {
+      return true;
+    }
+
+    try {
+      RegExp(rule.text);
+
+      return true;
+    } on FormatException {
+      return false;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final ChromeTheme theme = widget.theme;
     final ViewerLabels labels = widget.labels;
+    final bool tooltips = widget.controller.options.tooltips;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -156,33 +206,58 @@ class _MuteDialogState extends State<_MuteDialog> {
                   itemBuilder: (BuildContext context, int index) {
                     final MuteRule rule = _rules[index];
 
+                    void replace(MuteRule next) {
+                      final List<MuteRule> rules = List<MuteRule>.of(_rules);
+
+                      rules[index] = next;
+                      _apply(rules);
+                    }
+
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       child: Row(
+                        spacing: controlGap,
                         children: <Widget>[
                           _Toggle(
                             theme: theme,
                             label: labels.muteEnabled,
                             value: rule.enabled,
-                            onChanged: (bool value) {
-                              final List<MuteRule> next = List<MuteRule>.of(_rules);
-
-                              next[index] = rule.copyWith(enabled: value);
-                              _apply(next);
-                            },
+                            onChanged: (bool value) => replace(rule.copyWith(enabled: value)),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(child: LognalText(rule.text, color: theme.foreground)),
+                          const SizedBox(width: 8 - controlGap),
+                          Expanded(
+                            child: LognalField(
+                              controller: _fields[index],
+                              theme: theme,
+                              hint: labels.muteText,
+                              invalid: !_valid(rule),
+                              onChanged: (String text) =>
+                                  _applyLater(index, rule.copyWith(text: text)),
+                            ),
+                          ),
+                          LognalButton(
+                            icon: LognalIcon.matchCase,
+                            label: labels.searchCase,
+                            theme: theme,
+                            tooltips: tooltips,
+                            pressed: rule.caseSensitive,
+                            onPressed: () =>
+                                replace(rule.copyWith(caseSensitive: !rule.caseSensitive)),
+                          ),
+                          LognalButton(
+                            icon: LognalIcon.regex,
+                            label: labels.searchRegex,
+                            theme: theme,
+                            tooltips: tooltips,
+                            pressed: rule.regex,
+                            onPressed: () => replace(rule.copyWith(regex: !rule.regex)),
+                          ),
                           LognalButton(
                             icon: LognalIcon.close,
                             label: labels.muteRemove,
                             theme: theme,
-                            onPressed: () {
-                              final List<MuteRule> next = List<MuteRule>.of(_rules)
-                                ..removeAt(index);
-
-                              _apply(next);
-                            },
+                            tooltips: tooltips,
+                            onPressed: () => _remove(index),
                           ),
                         ],
                       ),

@@ -569,9 +569,31 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('/health'), findsOneWidget);
 
+    // A rule is edited where it stands: its text, whether letter case counts
+    // and whether the text is a regular expression.
+    await tester.tap(find.bySemanticsLabel('Use regular expression'));
+    await tester.pumpAndSettle();
+    expect(controller.muteRules.single.regex, isTrue);
+
+    await tester.tap(find.bySemanticsLabel('Match case'));
+    await tester.pumpAndSettle();
+    expect(controller.muteRules.single.caseSensitive, isTrue);
+
+    await tester.enterText(
+      find.descendant(of: find.byType(ListView), matching: find.byType(EditableText)),
+      '^GET',
+    );
+    await tester.pumpAndSettle();
+    expect(controller.muteRules.single.text, '^GET');
+    expect(controller.mutedCount, 2);
+
+    await tester.tap(find.bySemanticsLabel('Remove'));
+    await tester.pumpAndSettle();
+    expect(controller.muteRules, isEmpty);
+
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
-    expect(find.text('/health'), findsNothing);
+    expect(find.text('Nothing is hidden yet.'), findsNothing);
 
     controller.dispose();
   });
