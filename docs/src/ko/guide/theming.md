@@ -19,10 +19,9 @@ description: lognal의 기본 팔레트를 전환하고, 테마를 직접 만들
 | `'ember'`    | 따뜻한 갈색 바탕에 호박색을 강조색으로 쓰는 팔레트입니다.   |
 | `'moss'`     | 짙은 녹색 바탕의 어두운 팔레트입니다.                       |
 
-```ts
-
 ::: fw js
 
+```ts
 const viewer = new LogViewer(container, { theme: 'auto' });
 const darkModeSwitch = document.querySelector<HTMLInputElement>('#dark-mode')!;
 
