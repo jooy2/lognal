@@ -1,0 +1,28 @@
+# Changelog
+
+Changes to the `lognal` package on pub.dev that affect its users, newest first.
+
+The npm package versions on its own and keeps its own changelog, in
+[`packages/js/CHANGELOG.md`](../js/CHANGELOG.md).
+
+## 1.0.0 (2026-09-17)
+
+The first release, and the same library the npm package has shipped since
+`0.1.0`, translated file for file.
+
+- `LogViewer` shows logs drawn on a canvas, with a toolbar (follow new logs, clear, scroll to top and bottom, line wrapping, entry selection, themes, hidden messages, text filter and level filter), a status bar, timestamps, its own scrollbars and an optional input line for commands. `LogViewerController` holds the state, so log entries never go through `setState`.
+- `hookDebugPrint`, `runZonedWithLognal` and `hookFlutterErrors` record what the application already prints: the first replaces the variable Flutter prints through and puts it back, the second catches `print`, which belongs to the zone rather than to a variable, and the third puts a failed build in the log with its stack.
+- `LognalConsole` writes into a store from your own code, with the levels, groups, counters, timers, assertions and tables a console has, and the format specifiers `%s`, `%d`, `%i`, `%f`, `%o`, `%O` and `%c`.
+- `captureValue` takes a value as it was at the moment of the call. A class that writes `toJson()` opens into its properties, one that writes `toString()` shows what it says, and the rest show their type. Depth, item count, string length and total node count each have a limit, and whatever they cut is counted.
+- Logged lists, maps, sets and errors expand and collapse, an error is open by default so its stack is visible, and `console.table` draws a table whose columns line up around wide characters.
+- `readTextStream` and `readTextBytes` read a text file one entry per line, from a file on disk or the bytes a browser handed the page. `followTextFile` keeps reading a file as it grows, and reads it again from the start when it was replaced. UTF-8, UTF-16, Latin-1 and Windows-1252 decode here, and `registerTextDecoder` takes a legacy CJK decoder from your application.
+- Korean, Chinese, Japanese and emoji take two cells, Korean text wraps at spaces, the filter and the search compare text in Unicode normalization form C so decomposed Hangul matches what a reader types, and the input line is a real text field, so an input method composes into it.
+- Text written with `wrap: false`, and the output of a table, keeps its lines on one row; a line wider than the viewer scrolls sideways.
+- A large log lays out the rows on screen first and the rest in small steps between frames. While the view is not following, the entry at its top stays in place when rows above it change height.
+- `core: mergeRepeats` merges identical consecutive messages into a repeat count, or keeps them as a run that opens from the count badge.
+- `LogFilter` takes `mute`, rules that keep matching entries out of the log whatever the rest of the filter says, with a dialog in the toolbar that manages them.
+- The search bar highlights every match without hiding an entry, and matches letter case or reads the text as a regular expression when asked.
+- `selectionMode` selects whole entries the way a file manager selects files, with the arrow keys, Shift and the platform's own multi-select modifier.
+- `http` and `https` addresses in the text are drawn as links; `linkClick` decides whether a tap asks first, opens straight away, or does nothing, and `onOpenLink` is what actually opens one.
+- Six palettes — `light`, `paper`, `dark`, `midnight`, `ember` and `moss` — with `auto` following the system. `buildTheme` makes one of your own out of a background, an accent and a sixteen-colour ramp.
+- English and Korean labels, with `labels` to replace any of them.
